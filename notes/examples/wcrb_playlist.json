@@ -1,0 +1,2265 @@
+{  
+  "onToday":[  
+    {  
+      "_id":"55d4136ca7ead0e83b75dfc4",
+      "event_id":"54b02b9e2481ce58431a32b2",
+      "program_id":"54b02acfd84bca6a43116eca",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 00:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 05:00:00 GMT-0400 (EDT)",
+      "start_time":"00:00",
+      "end_time":"05:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"54b02acfd84bca6a43116eca",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Late Nights on WCRB",
+        "program_desc":null,
+        "program_format":"Classical",
+        "program_link":null,
+        "twitter":"995wcrb",
+        "facebook":"995wcrb",
+        "station_id":"",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+
+        ],
+        "_date_modified":"06-30-2016 15:03:25.442"
+      },
+      "conflict_edited":1420831646712,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:00:00",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":781000,
+          "program":"",
+          "trackName":"Papillons, Op. 2",
+          "imageURL":"",
+          "catalogNumber":"000122802",
+          "copyright":"Decca",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Nelson Freire: Schumann",
+          "composerName":"Robert Schumann",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Nelson Freire, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:00:00",
+          "_id":"578fe0369911942654456b64",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Robert Schumann&trackName=Papillons, Op. 2&collectionName=Nelson Freire: Schumann&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Robert,Schumann|000122802|Nelson,Freire,Schumann|Papillons,Op,2|Decca"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:13:21",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":3314000,
+          "program":"",
+          "trackName":"Serenade No. 7 in D, K. 250 \"Haffner Serenade\"",
+          "imageURL":"",
+          "catalogNumber":"150 027",
+          "copyright":"Novalis",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Mozart: Haffner Serenade/Symphony No. 32",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"Colin Davis",
+          "artistName":"Bavarian Radio Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:13:21",
+          "_id":"578fe0369911942654456b97",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Bavarian Radio Symphony Orchestra&trackName=Serenade No. 7 in D, K. 250 \"Haffner Serenade\"&collectionName=Mozart: Haffner Serenade/Symphony No. 32&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Bavarian,Radio,Symphony,Orchestra|150,027|Mozart,Haffner,Serenade,Symphony,No,32|Serenade,No,7,in,D,K,250,Haffner,Serenade|Novalis"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:09:40",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":462000,
+          "program":"",
+          "trackName":"Ballade No. 3 in A-flat, Op. 47",
+          "imageURL":"",
+          "catalogNumber":"434970",
+          "copyright":"Philips",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Chopin: 4 Ballades, 4 Impromptus / Bella Davidovich",
+          "composerName":"Frederic Chopin",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Bella Davidovich, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:08:40",
+          "_id":"578fe0369911942654456b98",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Frederic Chopin&trackName=Ballade No. 3 in A-flat, Op. 47&collectionName=Chopin: 4 Ballades, 4 Impromptus / Bella Davidovich&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Frederic,Chopin|434970|Chopin,4,Ballades,4,Impromptus,Bella,Davidovich|Ballade,No,3,in,A,flat,Op,47|Philips"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:17:42",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1359000,
+          "program":"",
+          "trackName":"Overture in B-flat",
+          "imageURL":"",
+          "catalogNumber":"173",
+          "copyright":"Phoenix Edition",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Overtures",
+          "composerName":"Johann Friedrich Fasch",
+          "conductor":"Hans-Martin Linde",
+          "artistName":"Cappella Coloniensis",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:16:42",
+          "_id":"578fe0369911942654456b99",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Cappella Coloniensis&trackName=Overture in B-flat&collectionName=Overtures&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Cappella,Coloniensis|173|Overtures|Overture,in,B,flat|Phoenix,Edition"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:40:41",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1556000,
+          "program":"",
+          "trackName":"Clarinet Trio, Op 114",
+          "imageURL":"",
+          "catalogNumber":"410 114",
+          "copyright":"London",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Brahms: Clarinet Trio/Horn Trio",
+          "composerName":"Johannes Brahms",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Peter Schmidl, clarinet/Friedrich Dolezal, cello/Andras Schiff, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:39:41",
+          "_id":"578fe0369911942654456b9a",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Johannes Brahms&trackName=Clarinet Trio, Op 114&collectionName=Brahms: Clarinet Trio/Horn Trio&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Johannes,Brahms|410,114|Brahms,Clarinet,Trio,Horn,Trio|Clarinet,Trio,Op,114|London"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:07:37",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":558000,
+          "program":"",
+          "trackName":"Folies D'Espagne",
+          "imageURL":"",
+          "catalogNumber":"3449",
+          "copyright":"Centaur Records",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Per la Grazia de Bach: Bach, Marais / Martinez",
+          "composerName":"Marin Marais",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Jose Luis Martinez, guitar",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:06:37",
+          "_id":"578fe0369911942654456b9b",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Marin Marais&trackName=Folies D'Espagne&collectionName=Per la Grazia de Bach: Bach, Marais / Martinez&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Marin,Marais|3449|Per,la,Grazia,de,Bach,Bach,Marais,Martinez|Folies,D,Espagne|Centaur,Records"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:17:15",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2397000,
+          "program":"",
+          "trackName":"Symphony No. 4 in F minor, Op. 36",
+          "imageURL":"",
+          "catalogNumber":"860 111",
+          "copyright":"Orfeo",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Tchaikovsky 4: Francesa Da Rimini: Nelsons",
+          "composerName":"Piotr Ilyich Tchaikovsky",
+          "conductor":"Andris Nelsons",
+          "artistName":"City of Birmingham Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:16:15",
+          "_id":"578fe0369911942654456b9c",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=City of Birmingham Symphony Orchestra&trackName=Symphony No. 4 in F minor, Op. 36&collectionName=Tchaikovsky 4: Francesa Da Rimini: Nelsons&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=City,of,Birmingham,Symphony,Orchestra|860,111|Tchaikovsky,4,Francesa,Da,Rimini,Nelsons|Symphony,No,4,in,F,minor,Op,36|Orfeo"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:58:12",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":3783000,
+          "program":"",
+          "trackName":"Octet for Winds and Strings, D. 803",
+          "imageURL":"",
+          "catalogNumber":"699841",
+          "copyright":"Apex",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Schubert: Octet, D803: String Quintet, D956",
+          "composerName":"Franz Schubert",
+          "conductor":"",
+          "artistName":"Berlin Soloists",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:57:12",
+          "_id":"578fe0369911942654456b9d",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Berlin Soloists&trackName=Octet for Winds and Strings, D. 803&collectionName=Schubert: Octet, D803: String Quintet, D956&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Berlin,Soloists|699841|Schubert,Octet,D803,String,Quintet,D956|Octet,for,Winds,and,Strings,D,803|Apex"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:02:20",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2214000,
+          "program":"",
+          "trackName":"Symphony No. 3 in C minor, Op. 78 \"Organ\"",
+          "imageURL":"",
+          "catalogNumber":"80274",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Saint-Saens: Symphony 3",
+          "composerName":"Camille Saint-Saëns",
+          "conductor":"Christian Badea",
+          "artistName":"Royal Philharmonic Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Michael Murray, organ",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:01:20",
+          "_id":"578fe0369911942654456b9e",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Royal Philharmonic Orchestra&trackName=Symphony No. 3 in C minor, Op. 78 \"Organ\"&collectionName=Saint-Saens: Symphony 3&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Royal,Philharmonic,Orchestra|80274|Saint,Saens,Symphony,3|Symphony,No,3,in,C,minor,Op,78,Organ|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:39:34",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":646000,
+          "program":"",
+          "trackName":"Concerto Grosso in F, Op. 6 No. 5",
+          "imageURL":"",
+          "catalogNumber":"47919",
+          "copyright":"EMI",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Le Petite Bande",
+          "composerName":"Arcangelo Corelli",
+          "conductor":"",
+          "artistName":"The Little Band",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:38:34",
+          "_id":"578fe0369911942654456b9f",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=The Little Band&trackName=Concerto Grosso in F, Op. 6 No. 5&collectionName=Le Petite Bande&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=The,Little,Band|47919|Le,Petite,Bande|Concerto,Grosso,in,F,Op,6,No,5|EMI"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:50:40",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":562000,
+          "program":"",
+          "trackName":"Allegretto and Twelve Variations in B-flat, K. 500",
+          "imageURL":"",
+          "catalogNumber":"422 518",
+          "copyright":"Philips",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Complete Mozart Edition Vol. 18",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Ingrid Haebler, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:49:40",
+          "_id":"578fe0369911942654456b65",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Wolfgang Amadeus Mozart&trackName=Allegretto and Twelve Variations in B-flat, K. 500&collectionName=Complete Mozart Edition Vol. 18&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Wolfgang,Amadeus,Mozart|422,518|Complete,Mozart,Edition,Vol,18|Allegretto,and,Twelve,Variations,in,B,flat,K,500|Philips"
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 00:00",
+      "fullend":"2016-07-31 05:00",
+      "conflicts":[  
+        "55d4136ca7ead0e83b75dfc4"
+      ]
+    },
+    {  
+      "_id":"55d4136da7ead0e83b75e108",
+      "event_id":"53877cfc0621b61d5ad63fb8",
+      "program_id":"53877cc8e1c80a130decb738",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 05:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 06:00:00 GMT-0400 (EDT)",
+      "start_time":"05:00",
+      "end_time":"06:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53877cc8e1c80a130decb738",
+        "parentID":"517059379de8e95a460001e4",
+        "national_program_id":"49",
+        "isParent":false,
+        "name":"Pipedreams",
+        "program_desc":"Each week, Pipedreams host Michael Barone shares selected organ works and performances, and in doing so, encourages listeners to engage both their ears and imaginations to gain greater appreciation of this instrument.",
+        "program_format":"Classical",
+        "program_link":"http://pipedreams.publicradio.org/about/",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"station_all-classical_581",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1401388284000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "fullstart":"2016-07-31 05:00",
+      "fullend":"2016-07-31 06:00",
+      "conflicts":[  
+        "55d4136da7ead0e83b75e108"
+      ],
+      "playlist":null
+    },
+    {  
+      "_id":"55d4136ca7ead0e83b75dffa",
+      "event_id":"53877cd407ad150d5a2af97f",
+      "program_id":"53877cc1e1c80a130decb6e1",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 06:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 07:00:00 GMT-0400 (EDT)",
+      "start_time":"06:00",
+      "end_time":"07:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53877cc1e1c80a130decb6e1",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"The Bach Hour with Brian McCreath",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"http://www.wgbh.org/programs/The-Bach-Hour-803?MM=1",
+        "twitter":"BKMcCreath",
+        "facebook":"995wcrb",
+        "station_id":"station_all-classical_581",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+          {  
+            "name":"Brian McCreath"
+          }
+        ],
+        "_date_modified":"06-30-2016 15:03:20.174"
+      },
+      "conflict_edited":-1450467370132,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "episode_notes":"",
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"6:01:51",
+          "_date":"07-31-2016",
+          "_end":"",
+          "_duration":814000,
+          "program":"",
+          "trackName":"\"Gamba Sonata in G minor, BWV 1029\"",
+          "imageURL":"",
+          "catalogNumber":"CDA68045",
+          "copyright":"Hyperion",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"J.S. Bach",
+          "conductor":"",
+          "artistName":"\"Steven Isserlis, cello; Richard Egarr, harpsichord\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:01:51",
+          "_id":"180c7cd8fc8ce7dee7de5f023532269d",
+          "_end_time":"07-31-2016 06:15:25",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=\"Steven Isserlis, cello; Richard Egarr, harpsichord\"&trackName=\"Gamba Sonata in G minor, BWV 1029\"&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Steven,Isserlis,cello,Richard,Egarr,harpsichord|CDA68045||Gamba,Sonata,in,G,minor,BWV,1029|Hyperion"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"6:19:47",
+          "_date":"07-31-2016",
+          "_end":"",
+          "_duration":1702000,
+          "program":"",
+          "trackName":"\"Cantata BWV 101 Nimm von uns, Herr, du treuer Gott\"",
+          "imageURL":"",
+          "catalogNumber":"80220",
+          "copyright":"Erato",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"J.S. Bach",
+          "conductor":"",
+          "artistName":"\"Caroline Stam, soprano; Michael Chance, alto; Paul Agnew, tenor; Klaus Mertens, bass; Amsterdam Baroque Orchestra & Choir, Ton Koopman, conductor\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:19:47",
+          "_id":"e21a8c068f566591c4c56a484c2d3bde",
+          "_end_time":"07-31-2016 06:48:09",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=\"Caroline Stam, soprano; Michael Chance, alto; Paul Agnew, tenor; Klaus Mertens, bass; Amsterdam Baroque Orchestra & Choir, Ton Koopman, conductor\"&trackName=\"Cantata BWV 101 Nimm von uns, Herr, du treuer Gott\"&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Caroline,Stam,soprano,Michael,Chance,alto,Paul,Agnew,tenor,Klaus,Mertens,bass,Amsterdam,Baroque,Orchestra,Choir,Ton,Koopman,conductor|80220||Cantata,BWV,101,Nimm,von,uns,Herr,du,treuer,Gott|Erato"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"6:48:44",
+          "_date":"07-31-2016",
+          "_end":"",
+          "_duration":570000,
+          "program":"",
+          "trackName":"\"Contrapuncti I, IV, & IX, from The Art of Fugue, BWV 1080\"",
+          "imageURL":"",
+          "catalogNumber":"MK 44501",
+          "copyright":"Columbia",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"\"J.S. Bach, arr. Frackenpohl\"",
+          "conductor":"",
+          "artistName":"Canadian Brass",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:48:44",
+          "_id":"6e61fbb24515d099cc3e4b5fad03d3a",
+          "_end_time":"07-31-2016 06:58:14",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Canadian Brass&trackName=\"Contrapuncti I, IV, & IX, from The Art of Fugue, BWV 1080\"&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Canadian,Brass|MK,44501||Contrapuncti,I,IV,IX,from,The,Art,of,Fugue,BWV,1080|Columbia"
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 06:00",
+      "fullend":"2016-07-31 07:00",
+      "conflicts":[  
+        "55d4136ca7ead0e83b75dffa"
+      ]
+    },
+    {  
+      "_id":"55d4136ca7ead0e83b75df32",
+      "event_id":"53bc4b13b93f210d1e1e906e",
+      "program_id":"53877cc3e1c80a130decb701",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 07:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 13:00:00 GMT-0400 (EDT)",
+      "start_time":"07:00",
+      "end_time":"13:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53877cc3e1c80a130decb701",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"Boston Sunday Brunch",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"http://www.wgbh.org/blogs/wcrb-blog/Meet-the-WCRB-Staff-2015-12-31",
+        "twitter":"995wcrb",
+        "facebook":"995wcrb",
+        "station_id":"station_all-classical_581",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+          {  
+            "name":"Mo Lotman"
+          }
+        ],
+        "_date_modified":"06-30-2016 15:03:14.369"
+      },
+      "conflict_edited":1429735076338,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:01:02",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":499000,
+          "program":"",
+          "trackName":"Mandolin Concerto in C, RV 425",
+          "imageURL":"",
+          "catalogNumber":"5637288054",
+          "copyright":"Musical Heritage Society",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Eliot Fisk: Vivaldi Concertos",
+          "composerName":"Antonio Vivaldi",
+          "conductor":"",
+          "artistName":"Orchestra of St. Luke's",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Eliot Fisk, guitar",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:01:02",
+          "_id":"578fe0369911942654456b66",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Orchestra of St. Luke's&trackName=Mandolin Concerto in C, RV 425&collectionName=Eliot Fisk: Vivaldi Concertos&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Orchestra,of,St,Luke,s|5637288054|Eliot,Fisk,Vivaldi,Concertos|Mandolin,Concerto,in,C,RV,425|Musical,Heritage,Society"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:11:21",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":593000,
+          "program":"",
+          "trackName":"The Consecration of the House Overture, Op. 124",
+          "imageURL":"",
+          "catalogNumber":"47521",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Leonard Bernstein: The Royal Edition, No. 10 of 100",
+          "composerName":"Ludwig van Beethoven",
+          "conductor":"Leonard Bernstein",
+          "artistName":"New York Philharmonic",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:11:21",
+          "_id":"578fe0369911942654456b67",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=New York Philharmonic&trackName=The Consecration of the House Overture, Op. 124&collectionName=Leonard Bernstein: The Royal Edition, No. 10 of 100&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=New,York,Philharmonic|47521|Leonard,Bernstein,The,Royal,Edition,No,10,of,100|The,Consecration,of,the,House,Overture,Op,124|Sony"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:21:29",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":292000,
+          "program":"",
+          "trackName":"Musical Banquet No. 2 in D",
+          "imageURL":"",
+          "catalogNumber":"61399",
+          "copyright":"Virgin",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Jordi Savall: Hesperion XX: Johann Hermann Schein",
+          "composerName":"Johann Hermann Schein",
+          "conductor":"Jordi Savall",
+          "artistName":"Hesperion XX",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:21:29",
+          "_id":"578fe0369911942654456b68",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Hesperion XX&trackName=Musical Banquet No. 2 in D&collectionName=Jordi Savall: Hesperion XX: Johann Hermann Schein&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Hesperion,XX|61399|Jordi,Savall,Hesperion,XX,Johann,Hermann,Schein|Musical,Banquet,No,2,in,D|Virgin"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:28:21",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":814000,
+          "program":"",
+          "trackName":"Keyboard Concerto No. 4 in A , BWV 1055",
+          "imageURL":"",
+          "catalogNumber":"67308",
+          "copyright":"Hyperion",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Bach: The Keyboard Concertos 2 / Hewitt, Tognetti, Et Al",
+          "composerName":"Johann Sebastian Bach",
+          "conductor":"Richard Tognetti",
+          "artistName":"Australian Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Angela Hewitt, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:28:21",
+          "_id":"578fe0369911942654456b69",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Australian Chamber Orchestra&trackName=Keyboard Concerto No. 4 in A , BWV 1055&collectionName=Bach: The Keyboard Concertos 2 / Hewitt, Tognetti, Et Al&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Australian,Chamber,Orchestra|67308|Bach,The,Keyboard,Concertos,2,Hewitt,Tognetti,Et,Al|Keyboard,Concerto,No,4,in,A,BWV,1055|Hyperion"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:42:10",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":867000,
+          "program":"",
+          "trackName":"Symphony No. 2 in E minor, Op. 27: IV. Allegro vivace",
+          "imageURL":"",
+          "catalogNumber":"80312",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Rachmaninoff: Symphony No.2 & Vocalise",
+          "composerName":"Sergei Rachmaninoff",
+          "conductor":"David Zinman",
+          "artistName":"Baltimore Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:42:10",
+          "_id":"578fe0369911942654456b6a",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Baltimore Symphony Orchestra&trackName=Symphony No. 2 in E minor, Op. 27: IV. Allegro vivace&collectionName=Rachmaninoff: Symphony No.2 & Vocalise&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Baltimore,Symphony,Orchestra|80312|Rachmaninoff,Symphony,No,2,Vocalise|Symphony,No,2,in,E,minor,Op,27,IV,Allegro,vivace|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"07:58:37",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":589000,
+          "program":"",
+          "trackName":"Divertimento No. 4 in B-flat, K. 186",
+          "imageURL":"",
+          "catalogNumber":"8605",
+          "copyright":"Naive",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Mozart: Gran Partita Kv 361, Divertimento Kv 166 / Zefiro",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"",
+          "artistName":"Zefiro",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 07:58:37",
+          "_id":"578fe0369911942654456b6b",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Zefiro&trackName=Divertimento No. 4 in B-flat, K. 186&collectionName=Mozart: Gran Partita Kv 361, Divertimento Kv 166 / Zefiro&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Zefiro|8605|Mozart,Gran,Partita,Kv,361,Divertimento,Kv,166,Zefiro|Divertimento,No,4,in,B,flat,K,186|Naive"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:08:41",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":329000,
+          "program":"",
+          "trackName":"Elegiac Melody, Op. 34 No. 2: Last Spring",
+          "imageURL":"",
+          "catalogNumber":"1740/2",
+          "copyright":"BIS",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Grieg: The Complete Orchestral Music",
+          "composerName":"Edvard Grieg",
+          "conductor":"Ole Kristian Ruud",
+          "artistName":"Bergen Philharmonic Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:08:41",
+          "_id":"578fe0369911942654456b6c",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Bergen Philharmonic Orchestra&trackName=Elegiac Melody, Op. 34 No. 2: Last Spring&collectionName=Grieg: The Complete Orchestral Music&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Bergen,Philharmonic,Orchestra|1740,2|Grieg,The,Complete,Orchestral,Music|Elegiac,Melody,Op,34,No,2,Last,Spring|BIS"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:15:55",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":285000,
+          "program":"",
+          "trackName":"Recorder Concerto in C: Minuet",
+          "imageURL":"",
+          "catalogNumber":"901917",
+          "copyright":"Harmonia Mundi",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Telemann: Suites, Concerto for Recorder / Steger, Et Al",
+          "composerName":"Georg Philipp Telemann",
+          "conductor":"Maurice Steger",
+          "artistName":"Academy for Ancient Music Berlin",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Maurice Steger, recorder",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:15:55",
+          "_id":"578fe0369911942654456b6d",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Academy for Ancient Music Berlin&trackName=Recorder Concerto in C: Minuet&collectionName=Telemann: Suites, Concerto for Recorder / Steger, Et Al&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Academy,for,Ancient,Music,Berlin|901917|Telemann,Suites,Concerto,for,Recorder,Steger,Et,Al|Recorder,Concerto,in,C,Minuet|Harmonia,Mundi"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:20:55",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":711000,
+          "program":"",
+          "trackName":"Romanian Rhapsody No. 1 in A, Op. 11",
+          "imageURL":"",
+          "catalogNumber":"80170",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Symphonic Spectacular: Kunzel: Cincinnati Pops Orchestra",
+          "composerName":"Georges Enescu",
+          "conductor":"Erich Kunzel",
+          "artistName":"Cincinnati Pops Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:20:55",
+          "_id":"578fe0369911942654456b6e",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Cincinnati Pops Orchestra&trackName=Romanian Rhapsody No. 1 in A, Op. 11&collectionName=Symphonic Spectacular: Kunzel: Cincinnati Pops Orchestra&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Cincinnati,Pops,Orchestra|80170|Symphonic,Spectacular,Kunzel,Cincinnati,Pops,Orchestra|Romanian,Rhapsody,No,1,in,A,Op,11|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:34:31",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":758000,
+          "program":"",
+          "trackName":"The Plow That Broke the Plains Suite",
+          "imageURL":"",
+          "catalogNumber":"06612",
+          "copyright":"EMI Classics",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Thomson: The Plow That Broke The Plains; Hanson: Symphony No 2 \"",
+          "composerName":"Virgil Thomson",
+          "conductor":"Neville Marriner",
+          "artistName":"Los Angeles Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:34:31",
+          "_id":"578fe0369911942654456b6f",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Los Angeles Chamber Orchestra&trackName=The Plow That Broke the Plains Suite&collectionName=Thomson: The Plow That Broke The Plains; Hanson: Symphony No 2 \"&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Los,Angeles,Chamber,Orchestra|06612|Thomson,The,Plow,That,Broke,The,Plains,Hanson,Symphony,No,2|The,Plow,That,Broke,the,Plains,Suite|EMI,Classics"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:48:24",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":571000,
+          "program":"",
+          "trackName":"Trumpet Concerto in D",
+          "imageURL":"",
+          "catalogNumber":"69152",
+          "copyright":"Warner Classics",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Maurice André - Trumpet Concertos - Bach, Handel, Haydn, Etc",
+          "composerName":"Michael Haydn",
+          "conductor":"Jesus Lopez-Cobos",
+          "artistName":"Franz Liszt Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Maurice Andre, trumpet",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:48:24",
+          "_id":"578fe0369911942654456b70",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Franz Liszt Chamber Orchestra&trackName=Trumpet Concerto in D&collectionName=Maurice André - Trumpet Concertos - Bach, Handel, Haydn, Etc&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Franz,Liszt,Chamber,Orchestra|69152|Maurice,Andre,Trumpet,Concertos,Bach,Handel,Haydn,Etc|Trumpet,Concerto,in,D|Warner,Classics"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"08:59:55",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":269000,
+          "program":"",
+          "trackName":"Sonata, K. 477",
+          "imageURL":"",
+          "catalogNumber":"5182681",
+          "copyright":"Musical Heritage Society",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Domenico Scarlatti: Sonatas Arranged for Guitar",
+          "composerName":"Domenico Scarlatti",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Fabio Zanon, guitar",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 08:59:55",
+          "_id":"578fe0369911942654456b71",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Domenico Scarlatti&trackName=Sonata, K. 477&collectionName=Domenico Scarlatti: Sonatas Arranged for Guitar&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Domenico,Scarlatti|5182681|Domenico,Scarlatti,Sonatas,Arranged,for,Guitar|Sonata,K,477|Musical,Heritage,Society"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"09:04:39",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2464000,
+          "program":"",
+          "trackName":"Piano Concerto No. 5 in E-flat, Op. 73 \"Emperor\"",
+          "imageURL":"",
+          "catalogNumber":"80065",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Piano Concerto No.5 Op.73 \"Emperor\"(Ozawa/Serkin/BSO)",
+          "composerName":"Ludwig van Beethoven",
+          "conductor":"Seiji Ozawa",
+          "artistName":"Boston Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Rudolf Serkin, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 09:04:39",
+          "_id":"578fe0369911942654456b72",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Boston Symphony Orchestra&trackName=Piano Concerto No. 5 in E-flat, Op. 73 \"Emperor\"&collectionName=Piano Concerto No.5 Op.73 \"Emperor\"(Ozawa/Serkin/BSO)&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Boston,Symphony,Orchestra|80065|Piano,Concerto,No,5,Op,73,Emperor,Ozawa,Serkin,BSO|Piano,Concerto,No,5,in,E,flat,Op,73,Emperor|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"09:47:13",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":352000,
+          "program":"",
+          "trackName":"String Quartet No. 1 in E minor: IV. Vivace",
+          "imageURL":"",
+          "catalogNumber":"80178",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Borodin: Quartet No 2: Smetana: Quartet No. 1: Cleveland Quartet",
+          "composerName":"Bedrich Smetana",
+          "conductor":"",
+          "artistName":"Cleveland Quartet",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 09:47:13",
+          "_id":"578fe0369911942654456b73",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Cleveland Quartet&trackName=String Quartet No. 1 in E minor: IV. Vivace&collectionName=Borodin: Quartet No 2: Smetana: Quartet No. 1: Cleveland Quartet&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Cleveland,Quartet|80178|Borodin,Quartet,No,2,Smetana,Quartet,No,1,Cleveland,Quartet|String,Quartet,No,1,in,E,minor,IV,Vivace|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"09:54:35",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":706000,
+          "program":"",
+          "trackName":"Symphony for Winds No. 3 in E-flat major",
+          "imageURL":"",
+          "catalogNumber":"301 0434",
+          "copyright":"MDG",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"JC Bach: Wind Symphonies",
+          "composerName":"Johann Christian Bach",
+          "conductor":"",
+          "artistName":"Consortium Classicum",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 09:54:35",
+          "_id":"578fe0369911942654456b74",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Consortium Classicum&trackName=Symphony for Winds No. 3 in E-flat major&collectionName=JC Bach: Wind Symphonies&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Consortium,Classicum|301,0434|JC,Bach,Wind,Symphonies|Symphony,for,Winds,No,3,in,E,flat,major|MDG"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"10:07:51",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":563000,
+          "program":"",
+          "trackName":"Concerto in F for 3 Violins, RV 551",
+          "imageURL":"",
+          "catalogNumber":"642309",
+          "copyright":"Teldec",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Vivaldi/Il Giardino Armonico",
+          "composerName":"Antonio Vivaldi",
+          "conductor":"",
+          "artistName":"Il Giardino Armonico",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 10:07:51",
+          "_id":"578fe0369911942654456b75",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Il Giardino Armonico&trackName=Concerto in F for 3 Violins, RV 551&collectionName=Vivaldi/Il Giardino Armonico&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Il,Giardino,Armonico|642309|Vivaldi,Il,Giardino,Armonico|Concerto,in,F,for,3,Violins,RV,551|Teldec"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"10:18:44",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":622000,
+          "program":"",
+          "trackName":"Benvenuto Cellini, Op. 23: Overture",
+          "imageURL":"",
+          "catalogNumber":"429724",
+          "copyright":"Deutsche Grammophon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Berlioz: Requiem, Overtures / Levine, Pavarotti, Berlin PO",
+          "composerName":"Hector Berlioz",
+          "conductor":"James Levine",
+          "artistName":"Berlin Philharmonic",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 10:18:44",
+          "_id":"578fe0369911942654456b76",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Berlin Philharmonic&trackName=Benvenuto Cellini, Op. 23: Overture&collectionName=Berlioz: Requiem, Overtures / Levine, Pavarotti, Berlin PO&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Berlin,Philharmonic|429724|Berlioz,Requiem,Overtures,Levine,Pavarotti,Berlin,PO|Benvenuto,Cellini,Op,23,Overture|Deutsche,Grammophon"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"10:30:36",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":824000,
+          "program":"",
+          "trackName":"String Sonata No. 1 in G",
+          "imageURL":"",
+          "catalogNumber":"413 310",
+          "copyright":"Deutsche Grammophon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Rossini: Sonatas For Strings / Füri, Camerata Bern",
+          "composerName":"Gioachino Rossini",
+          "conductor":"Thomas Furi",
+          "artistName":"Camerata Bern",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 10:30:36",
+          "_id":"578fe0369911942654456b77",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Camerata Bern&trackName=String Sonata No. 1 in G&collectionName=Rossini: Sonatas For Strings / Füri, Camerata Bern&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Camerata,Bern|413,310|Rossini,Sonatas,For,Strings,Furi,Camerata,Bern|String,Sonata,No,1,in,G|Deutsche,Grammophon"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"10:44:35",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":822000,
+          "program":"",
+          "trackName":"Serenade No. 6 in D, K. 239",
+          "imageURL":"",
+          "catalogNumber":"2907280",
+          "copyright":"Harmonia Mundi",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Mozart Night Music / Manze, English Concert",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"Andrew Manze",
+          "artistName":"The English Concert",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 10:44:35",
+          "_id":"578fe0369911942654456b78",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=The English Concert&trackName=Serenade No. 6 in D, K. 239&collectionName=Mozart Night Music / Manze, English Concert&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=The,English,Concert|2907280|Mozart,Night,Music,Manze,English,Concert|Serenade,No,6,in,D,K,239|Harmonia,Mundi"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"10:59:47",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":357000,
+          "program":"",
+          "trackName":"Caprice basque, Op. 24",
+          "imageURL":"",
+          "catalogNumber":"001997702",
+          "copyright":"Decca",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Julia Fischer: Sarasate",
+          "composerName":"Pablo de Sarasate",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Julia Fischer, violin/Milana Chernyavska, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 10:59:47",
+          "_id":"578fe0369911942654456b79",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Pablo de Sarasate&trackName=Caprice basque, Op. 24&collectionName=Julia Fischer: Sarasate&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Pablo,de,Sarasate|001997702|Julia,Fischer,Sarasate|Caprice,basque,Op,24|Decca"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"11:05:59",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":662000,
+          "program":"",
+          "trackName":"Brandenburg Concerto No. 2 in F, BWV 1047",
+          "imageURL":"",
+          "catalogNumber":"001392302",
+          "copyright":"Decca",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Bach Brandenburg Concertos",
+          "composerName":"Johann Sebastian Bach",
+          "conductor":"Riccardo Chailly",
+          "artistName":"Gewandhaus Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 11:05:59",
+          "_id":"578fe0369911942654456b7a",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Gewandhaus Orchestra&trackName=Brandenburg Concerto No. 2 in F, BWV 1047&collectionName=Bach Brandenburg Concertos&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Gewandhaus,Orchestra|001392302|Bach,Brandenburg,Concertos|Brandenburg,Concerto,No,2,in,F,BWV,1047|Decca"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"11:18:31",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":638000,
+          "program":"",
+          "trackName":"Octet No. 2 in E-flat",
+          "imageURL":"",
+          "catalogNumber":"691",
+          "copyright":"Music & Arts",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Dvorak and Friends",
+          "composerName":"Josef Myslivecek",
+          "conductor":"Steven Richman",
+          "artistName":"Harmonie Ensemble",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 11:18:31",
+          "_id":"578fe0369911942654456b7b",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Harmonie Ensemble&trackName=Octet No. 2 in E-flat&collectionName=Dvorak and Friends&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Harmonie,Ensemble|691|Dvorak,and,Friends|Octet,No,2,in,E,flat|Music,Arts"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"11:30:39",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":804000,
+          "program":"",
+          "trackName":"Harp Concerto in B-flat, HWV 294",
+          "imageURL":"",
+          "catalogNumber":"413684",
+          "copyright":"Dg Musikfest",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"The Harmonious Harp",
+          "composerName":"George Frideric Handel",
+          "conductor":"Paul Kuentz",
+          "artistName":"Paul Kuentz Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Nicanor Zabaleta, harp",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 11:30:39",
+          "_id":"578fe0369911942654456b7c",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Paul Kuentz Chamber Orchestra&trackName=Harp Concerto in B-flat, HWV 294&collectionName=The Harmonious Harp&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Paul,Kuentz,Chamber,Orchestra|413684|The,Harmonious,Harp|Harp,Concerto,in,B,flat,HWV,294|Dg,Musikfest"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"11:44:18",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":741000,
+          "program":"",
+          "trackName":"Scheherazade, Op. 35: IV. Festival at Baghdad - the sea - shipwreck - conclusion",
+          "imageURL":"",
+          "catalogNumber":"475 7570",
+          "copyright":"Philips",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Rimsky-Korsakov: Scheherazade; Borodin: Symphony No. 2",
+          "composerName":"Nikolai Rimsky-Korsakov",
+          "conductor":"Kirill Kondrashin",
+          "artistName":"Concertgebouw Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 11:44:18",
+          "_id":"578fe0369911942654456b7d",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Concertgebouw Orchestra&trackName=Scheherazade, Op. 35: IV. Festival at Baghdad - the sea - shipwreck - conclusion&collectionName=Rimsky-Korsakov: Scheherazade; Borodin: Symphony No. 2&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Concertgebouw,Orchestra|475,7570|Rimsky,Korsakov,Scheherazade,Borodin,Symphony,No,2|Scheherazade,Op,35,IV,Festival,at,Baghdad,the,sea,shipwreck,conclusion|Philips"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"11:58:09",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":206000,
+          "program":"",
+          "trackName":"Gretchen at the Spinning Wheel",
+          "imageURL":"",
+          "catalogNumber":"137",
+          "copyright":"Ancalagon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"A Second Of Silence",
+          "composerName":"Franz Schubert",
+          "conductor":"Eric Jacobsen",
+          "artistName":"The Knights",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 11:58:09",
+          "_id":"578fe0369911942654456b7e",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=The Knights&trackName=Gretchen at the Spinning Wheel&collectionName=A Second Of Silence&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=The,Knights|137|A,Second,Of,Silence|Gretchen,at,the,Spinning,Wheel|Ancalagon"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"12:01:50",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1642000,
+          "program":"",
+          "trackName":"Symphonie a 17 parties",
+          "imageURL":"",
+          "catalogNumber":"8554750-51",
+          "copyright":"Naxos",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Gossec: Grand Messe Des Morts, Symphonie /Fasolis, Hauschild",
+          "composerName":"Francois-Joseph Gossec",
+          "conductor":"Wolf-Dieter Hauschild",
+          "artistName":"The Swiss-Italian Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:01:50",
+          "_id":"578fe0369911942654456b7f",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=The Swiss-Italian Orchestra&trackName=Symphonie a 17 parties&collectionName=Gossec: Grand Messe Des Morts, Symphonie /Fasolis, Hauschild&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=The,Swiss,Italian,Orchestra|8554750,51|Gossec,Grand,Messe,Des,Morts,Symphonie,Fasolis,Hauschild|Symphonie,a,17,parties|Naxos"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"12:30:42",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":661000,
+          "program":"",
+          "trackName":"Our Town",
+          "imageURL":"",
+          "catalogNumber":"42429",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Copland Conducts Copland",
+          "composerName":"Aaron Copland",
+          "conductor":"Aaron Copland",
+          "artistName":"London Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:30:42",
+          "_id":"578fe0369911942654456b80",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=London Symphony Orchestra&trackName=Our Town&collectionName=Copland Conducts Copland&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=London,Symphony,Orchestra|42429|Copland,Conducts,Copland|Our,Town|Sony"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"12:42:13",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":604000,
+          "program":"",
+          "trackName":"Symphony in A",
+          "imageURL":"",
+          "catalogNumber":"7499802",
+          "copyright":"Apex",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Pacelbel; Fasch / Jean-Francois Paillard Chamber Orchestra",
+          "composerName":"Johann Friedrich Fasch",
+          "conductor":"Jean-Francois Paillard",
+          "artistName":"Jean-Francois Paillard Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:42:13",
+          "_id":"578fe0369911942654456b81",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Jean-Francois Paillard Chamber Orchestra&trackName=Symphony in A&collectionName=Pacelbel; Fasch / Jean-Francois Paillard Chamber Orchestra&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Jean,Francois,Paillard,Chamber,Orchestra|7499802|Pacelbel,Fasch,Jean,Francois,Paillard,Chamber,Orchestra|Symphony,in,A|Apex"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"12:52:32",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":488000,
+          "program":"",
+          "trackName":"Rondo in G minor for Cello and Orchestra, Op. 94",
+          "imageURL":"",
+          "catalogNumber":"42206",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Dvorak: Yo-Yo Ma",
+          "composerName":"Antonin Dvorak",
+          "conductor":"Lorin Maazel",
+          "artistName":"Berlin Philharmonic",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Yo-Yo Ma, cello",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:52:32",
+          "_id":"578fe0369911942654456b82",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Berlin Philharmonic&trackName=Rondo in G minor for Cello and Orchestra, Op. 94&collectionName=Dvorak: Yo-Yo Ma&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Berlin,Philharmonic|42206|Dvorak,Yo,Yo,Ma|Rondo,in,G,minor,for,Cello,and,Orchestra,Op,94|Sony"
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 07:00",
+      "fullend":"2016-07-31 13:00",
+      "conflicts":[  
+        "55d4136ca7ead0e83b75df32"
+      ]
+    },
+    {  
+      "_id":"55d41378a7ead0e83b75e124",
+      "event_id":"53f357c89ab156e216bd988b",
+      "program_id":"53877ccbe1c80a130decb763",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 13:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 19:00:00 GMT-0400 (EDT)",
+      "start_time":"13:00",
+      "end_time":"19:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53877ccbe1c80a130decb763",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"Classical Music with Larry King",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"http://www.wgbh.org/blogs/wcrb-blog/Meet-the-WCRB-Staff",
+        "twitter":"995wcrb",
+        "facebook":"995wcrb",
+        "station_id":"station_all-classical_581",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+
+        ],
+        "_date_modified":"06-30-2016 16:04:05.521"
+      },
+      "conflict_edited":1411588358837,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"13:02:10",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2282000,
+          "program":"",
+          "trackName":"Symphony No. 40 in G minor, K. 550",
+          "imageURL":"",
+          "catalogNumber":"429731",
+          "copyright":"Deutsche Grammophon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Mozart: Symphonies Nos 40 & 41 \"Jupiter\" / Levine, Vienna PO",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"James Levine",
+          "artistName":"Vienna Philharmonic Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:03:40",
+          "_id":"578fe0369911942654456b83",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Vienna Philharmonic Orchestra&trackName=Symphony No. 40 in G minor, K. 550&collectionName=Mozart: Symphonies Nos 40 & 41 \"Jupiter\" / Levine, Vienna PO&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Vienna,Philharmonic,Orchestra|429731|Mozart,Symphonies,Nos,40,41,Jupiter,Levine,Vienna,PO|Symphony,No,40,in,G,minor,K,550|Deutsche,Grammophon"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"13:41:42",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":134000,
+          "program":"",
+          "trackName":"Danza & Ballo Tedesco",
+          "imageURL":"",
+          "catalogNumber":"3957127",
+          "copyright":"Harmonia Mundi",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Italian Renaissance Dances Vol 2 / Hargis, O'DettNoyse: Douglass",
+          "composerName":"Anonymous",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Paul O'Dette, lute",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:42:45",
+          "_id":"578fe0369911942654456b84",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Anonymous&trackName=Danza & Ballo Tedesco&collectionName=Italian Renaissance Dances Vol 2 / Hargis, O'DettNoyse: Douglass&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Anonymous|3957127|Italian,Renaissance,Dances,Vol,2,Hargis,O,DettNoyse,Douglass|Danza,Ballo,Tedesco|Harmonia,Mundi"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"13:44:26",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":620000,
+          "program":"",
+          "trackName":"The Two Barons of Rocca Azzura: Overture",
+          "imageURL":"",
+          "catalogNumber":"8573734",
+          "copyright":"Naxos",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Cimarosa: Overtures 3",
+          "composerName":"Domenico Cimarosa",
+          "conductor":"Patrick Gallois",
+          "artistName":"Sinfonia Finlandia Jyvaskyla",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:45:30",
+          "_id":"578fe0369911942654456b85",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Sinfonia Finlandia Jyvaskyla&trackName=The Two Barons of Rocca Azzura: Overture&collectionName=Cimarosa: Overtures 3&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Sinfonia,Finlandia,Jyvaskyla|8573734|Cimarosa,Overtures,3|The,Two,Barons,of,Rocca,Azzura,Overture|Naxos"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"13:56:16",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1741000,
+          "program":"",
+          "trackName":"Piano Concerto, Op. 16",
+          "imageURL":"",
+          "catalogNumber":"30035",
+          "copyright":"Steinway",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Tchaikovsky, Grieg: Piano Concertos",
+          "composerName":"Edvard Grieg",
+          "conductor":"Stanislav Bogunia",
+          "artistName":"Czech National Symphony",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Stewart Goodyear, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:57:30",
+          "_id":"578fe0369911942654456b86",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Czech National Symphony&trackName=Piano Concerto, Op. 16&collectionName=Tchaikovsky, Grieg: Piano Concertos&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Czech,National,Symphony|30035|Tchaikovsky,Grieg,Piano,Concertos|Piano,Concerto,Op,16|Steinway"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"14:26:47",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2709000,
+          "program":"",
+          "trackName":"Symphony No. 3 in E-flat major, Op. 55 \"Eroica\"",
+          "imageURL":"",
+          "catalogNumber":"592140",
+          "copyright":"Arte Nova",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Beethoven: Symphonies No 3 & 4 / Zinman, Tonhalle Orchester",
+          "composerName":"Ludwig van Beethoven",
+          "conductor":"David Zinman",
+          "artistName":"Tonhalle Orchestra Zurich",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 14:28:10",
+          "_id":"578fe0369911942654456b87",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Tonhalle Orchestra Zurich&trackName=Symphony No. 3 in E-flat major, Op. 55 \"Eroica\"&collectionName=Beethoven: Symphonies No 3 & 4 / Zinman, Tonhalle Orchester&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Tonhalle,Orchestra,Zurich|592140|Beethoven,Symphonies,No,3,4,Zinman,Tonhalle,Orchester|Symphony,No,3,in,E,flat,major,Op,55,Eroica|Arte,Nova"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"15:13:26",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1553000,
+          "program":"",
+          "trackName":"Violin Concerto, Op. 26",
+          "imageURL":"",
+          "catalogNumber":"5186208",
+          "copyright":"Pentatone",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Bruch & Mendelssohn: Violin Concertos / Mintz, Abbado, Chicago S",
+          "composerName":"Max Bruch",
+          "conductor":"Claudio Abbado",
+          "artistName":"Chicago Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Shlomo Mintz, violin",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 15:14:55",
+          "_id":"578fe0369911942654456b88",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Chicago Symphony Orchestra&trackName=Violin Concerto, Op. 26&collectionName=Bruch & Mendelssohn: Violin Concertos / Mintz, Abbado, Chicago S&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Chicago,Symphony,Orchestra|5186208|Bruch,Mendelssohn,Violin,Concertos,Mintz,Abbado,Chicago,S|Violin,Concerto,Op,26|Pentatone"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"15:40:49",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":88000,
+          "program":"",
+          "trackName":"French Suite: I. Bransle de Bourgogne",
+          "imageURL":"",
+          "catalogNumber":"1011",
+          "copyright":"ELF",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Collage for Winds",
+          "composerName":"Francis Poulenc",
+          "conductor":"John Boyd",
+          "artistName":"Indiana State University Faculty Winds",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 15:41:55",
+          "_id":"578fe0369911942654456b89",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Indiana State University Faculty Winds&trackName=French Suite: I. Bransle de Bourgogne&collectionName=Collage for Winds&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Indiana,State,University,Faculty,Winds|1011|Collage,for,Winds|French,Suite,I,Bransle,de,Bourgogne|ELF"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"15:42:17",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":70000,
+          "program":"",
+          "trackName":"French Suite: III. Petite marche miltaire",
+          "imageURL":"",
+          "catalogNumber":"1011",
+          "copyright":"ELF",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Collage for Winds",
+          "composerName":"Francis Poulenc",
+          "conductor":"John Boyd",
+          "artistName":"Indiana State University Faculty Winds",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 15:43:23",
+          "_id":"578fe0369911942654456b8a",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Indiana State University Faculty Winds&trackName=French Suite: III. Petite marche miltaire&collectionName=Collage for Winds&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Indiana,State,University,Faculty,Winds|1011|Collage,for,Winds|French,Suite,III,Petite,marche,miltaire|ELF"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"15:43:42",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1818000,
+          "program":"",
+          "trackName":"Symphony No. 1 in C minor, Op. 11",
+          "imageURL":"",
+          "catalogNumber":"98275",
+          "copyright":"Hanssler Classic",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Mendelssohn: Symphony No 1, String Symphonies No 8 & 13 /Fey",
+          "composerName":"Felix Mendelssohn",
+          "conductor":"Thomas Fey",
+          "artistName":"Heidelberg Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 15:44:55",
+          "_id":"578fe0369911942654456b8b",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Heidelberg Symphony Orchestra&trackName=Symphony No. 1 in C minor, Op. 11&collectionName=Mendelssohn: Symphony No 1, String Symphonies No 8 & 13 /Fey&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Heidelberg,Symphony,Orchestra|98275|Mendelssohn,Symphony,No,1,String,Symphonies,No,8,13,Fey|Symphony,No,1,in,C,minor,Op,11|Hanssler,Classic"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"16:15:30",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":293000,
+          "program":"",
+          "trackName":"Danzas Españolas, Op. 37 No. 12: Arabesca",
+          "imageURL":"",
+          "catalogNumber":"2127",
+          "copyright":"White Line",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Danzas Fantásticas - Albéniz, Et Al / New Pro Arte Trio",
+          "composerName":"Enrique Granados",
+          "conductor":"",
+          "artistName":"New Pro Arte Guitar Trio",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 16:16:35",
+          "_id":"578fe0369911942654456b8c",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=New Pro Arte Guitar Trio&trackName=Danzas Españolas, Op. 37 No. 12: Arabesca&collectionName=Danzas Fantásticas - Albéniz, Et Al / New Pro Arte Trio&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=New,Pro,Arte,Guitar,Trio|2127|Danzas,Fantasticas,Albeniz,Et,Al,New,Pro,Arte,Trio|Danzas,Espanolas,Op,37,No,12,Arabesca|White,Line"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"16:20:53",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":566000,
+          "program":"",
+          "trackName":"Salome, Op. 54: Dance of the Seven Veils",
+          "imageURL":"",
+          "catalogNumber":"833 111",
+          "copyright":"Orfeo",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Strauss: Alpensinfonie",
+          "composerName":"Richard Strauss",
+          "conductor":"Andris Nelsons",
+          "artistName":"City of Birmingham Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 16:21:55",
+          "_id":"578fe0369911942654456b8d",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=City of Birmingham Symphony Orchestra&trackName=Salome, Op. 54: Dance of the Seven Veils&collectionName=Strauss: Alpensinfonie&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=City,of,Birmingham,Symphony,Orchestra|833,111|Strauss,Alpensinfonie|Salome,Op,54,Dance,of,the,Seven,Veils|Orfeo"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"16:31:49",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1954000,
+          "program":"",
+          "trackName":"Symphony No. 103 in E-flat major, Hob. I:103 \"Drum Roll\"",
+          "imageURL":"",
+          "catalogNumber":"01",
+          "copyright":"Vienna Philharmonic",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Haydn: Vienna Philharmonic",
+          "composerName":"Joseph Haydn",
+          "conductor":"Nikolaus Harnoncourt",
+          "artistName":"Vienna Philharmonic Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 16:32:20",
+          "_id":"578fe0369911942654456b8e",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Vienna Philharmonic Orchestra&trackName=Symphony No. 103 in E-flat major, Hob. I:103 \"Drum Roll\"&collectionName=Haydn: Vienna Philharmonic&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Vienna,Philharmonic,Orchestra|01|Haydn,Vienna,Philharmonic|Symphony,No,103,in,E,flat,major,Hob,I,103,Drum,Roll|Vienna,Philharmonic"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"17:07:31",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":801000,
+          "program":"",
+          "trackName":"Violin & Oboe Concerto in D minor, BWV 1060",
+          "imageURL":"",
+          "catalogNumber":"138",
+          "copyright":"Ancalagon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Lara St. John: Bach: The Violin Concertos",
+          "composerName":"Johann Sebastian Bach",
+          "conductor":"Eduardo Marturet",
+          "artistName":"Simon Bolivar Youth Orchestra of Venezuela",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Ariana Ghez, oboe/Lara St. John, violin",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 17:06:50",
+          "_id":"578fe0369911942654456b90",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Simon Bolivar Youth Orchestra of Venezuela&trackName=Violin & Oboe Concerto in D minor, BWV 1060&collectionName=Lara St. John: Bach: The Violin Concertos&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Simon,Bolivar,Youth,Orchestra,of,Venezuela|138|Lara,St,John,Bach,The,Violin,Concertos|Violin,Oboe,Concerto,in,D,minor,BWV,1060|Ancalagon"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"17:22:22",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":2978000,
+          "program":"",
+          "trackName":"Symphony No. 9 in C major, D. 944 \"The Great\"",
+          "imageURL":"",
+          "catalogNumber":"80110",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Schubert: Symphony No. 9 \"The Great\"",
+          "composerName":"Franz Schubert",
+          "conductor":"Christoph von Dohnanyi",
+          "artistName":"Cleveland Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 17:21:55",
+          "_id":"578fe0369911942654456b91",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Cleveland Orchestra&trackName=Symphony No. 9 in C major, D. 944 \"The Great\"&collectionName=Schubert: Symphony No. 9 \"The Great\"&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Cleveland,Orchestra|80110|Schubert,Symphony,No,9,The,Great|Symphony,No,9,in,C,major,D,944,The,Great|Telarc"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"18:13:30",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":1537000,
+          "program":"",
+          "trackName":"Piano Concerto No. 12 in A, K. 414",
+          "imageURL":"",
+          "catalogNumber":"743505",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Leon Fleisher: Mozart Piano Concertos",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"Leon Fleisher",
+          "artistName":"Stuttgart Chamber Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Leon Fleisher, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 18:14:05",
+          "_id":"578fe0369911942654456b92",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Stuttgart Chamber Orchestra&trackName=Piano Concerto No. 12 in A, K. 414&collectionName=Leon Fleisher: Mozart Piano Concertos&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Stuttgart,Chamber,Orchestra|743505|Leon,Fleisher,Mozart,Piano,Concertos|Piano,Concerto,No,12,in,A,K,414|Sony"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"18:40:37",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":375000,
+          "program":"",
+          "trackName":"Variations on a Theme of Mozart",
+          "imageURL":"",
+          "catalogNumber":"15241",
+          "copyright":"EMI Classics",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Best Guitar 100",
+          "composerName":"Fernando Sor",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Christopher Parkening, guitar",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 18:40:50",
+          "_id":"578fe0369911942654456b93",
+          "custom_values":{  
+
+          },
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Fernando Sor&trackName=Variations on a Theme of Mozart&collectionName=Best Guitar 100&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Fernando,Sor|15241|Best,Guitar,100|Variations,on,a,Theme,of,Mozart|EMI,Classics"
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"18:47:07",
+          "_date":"07/31/2016",
+          "_end":"",
+          "_duration":696000,
+          "program":"",
+          "trackName":"Prelude to the Afternoon of a Faun",
+          "imageURL":"",
+          "catalogNumber":"429 728",
+          "copyright":"Deutsche Grammophon",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Debussy: La Mer, Images, Prelude / Bernstein",
+          "composerName":"Claude Debussy",
+          "conductor":"Leonard Bernstein",
+          "artistName":"Orchestra of the National Academy of Saint Cecilia",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 18:47:20",
+          "_id":"578fe0369911942654456b94",
+          "buy":{  
+            "itunes":"https://api.composer.nprstations.org/v1/widget/itunes?artistName=Orchestra of the National Academy of Saint Cecilia&trackName=Prelude to the Afternoon of a Faun&collectionName=Debussy: La Mer, Images, Prelude / Bernstein&at=2708184",
+            "arkiv":"https://api.composer.nprstations.org/v1/widget/arkiv?source=WGBH&trackInfo=Orchestra,of,the,National,Academy,of,Saint,Cecilia|429,728|Debussy,La,Mer,Images,Prelude,Bernstein|Prelude,to,the,Afternoon,of,a,Faun|Deutsche,Grammophon"
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 13:00",
+      "fullend":"2016-07-31 19:00",
+      "conflicts":[  
+        "55d41378a7ead0e83b75e124"
+      ]
+    },
+    {  
+      "_id":"5755935cf2d6c8961f1c78c4",
+      "event_id":"5755935cf2d6c8961f1c78c1",
+      "program_id":"53877cc9e1c80a130decb748",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 19:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 21:30:00 GMT-0400 (EDT)",
+      "start_time":"19:00",
+      "end_time":"21:30",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53877cc9e1c80a130decb748",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"Live from Tanglewood",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"http://www.wgbh.org/995/bso.cfm?",
+        "twitter":"995wcrb",
+        "facebook":"99.5wcrb",
+        "station_id":"station_all-classical_581",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+
+        ],
+        "_date_modified":"06-06-2016 11:11:36.638"
+      },
+      "conflict_edited":1465226076576,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "episode_notes":"",
+      "fullstart":"2016-07-31 19:00",
+      "fullend":"2016-07-31 21:30",
+      "conflicts":[  
+        "5755935cf2d6c8961f1c78c4"
+      ]
+    },
+    {  
+      "_id":"55d4136ca7ead0e83b75e05e",
+      "event_id":"53f35785455fbf491f7b7a81",
+      "program_id":"53f35785455fbf491f7b7a82",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 21:30:00 GMT-0400 (EDT)",
+      "end_utc":"Mon Aug 01 2016 00:00:00 GMT-0400 (EDT)",
+      "start_time":"21:30",
+      "end_time":"00:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53f35785455fbf491f7b7a82",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Sunday Night at the Opera",
+        "program_desc":null,
+        "program_format":"Classical",
+        "program_link":"http://www.wgbh.org/articles/Sunday-Night-Opera-9978",
+        "twitter":"995wcrb",
+        "facebook":"99.5wcrb",
+        "station_id":"",
+        "ucs":"53877c98e1c80a130decb6c8",
+        "hosts":[  
+          {  
+            "name":"Chris Voss"
+          }
+        ],
+        "_date_modified":"06-06-2016 09:09:01.473"
+      },
+      "conflict_edited":1409954042000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":false,
+        "customized":false
+      },
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 20:00",
+      "fullend":"2016-08-01 00:00",
+      "conflicts":[  
+        "55d4136ca7ead0e83b75e05e"
+      ]
+    }
+  ],
+  "affiliate":{  
+    "amazon":null,
+    "itunes":"2708184",
+    "arkiv":"WGBH"
+  },
+  "params":{  
+    "format":"json",
+    "date":"2016-07-31",
+    "times":"true"
+  }
+}

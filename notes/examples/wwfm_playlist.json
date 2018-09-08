@@ -1,0 +1,2554 @@
+{  
+  "onToday":[  
+    {  
+      "_id":"5775a14faa5a8c436df4594c",
+      "event_id":"5775a14faa5a8c436df45947",
+      "program_id":"5775a14faa5a8c436df45948",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 00:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 01:00:00 GMT-0400 (EDT)",
+      "start_time":"00:00",
+      "end_time":"01:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"5775a14faa5a8c436df45948",
+        "parentID":"524c7ea2e1c85d374d5a2f25",
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Classical Music with Valerie Kahler",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1467326799518,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "_syndication":{  
+        "date":"07-19-2016 15:12:36",
+        "method":"Song Stream"
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"22:47:15",
+          "_date":"07302016",
+          "_end":"",
+          "_duration":70000,
+          "program":"",
+          "trackName":"Flute Sonata",
+          "imageURL":"",
+          "catalogNumber":"1540",
+          "copyright":"MSR",
+          "upc":"",
+          "releaseDate":"2015",
+          "collectionName":"",
+          "composerName":"Francis Poulenc",
+          "conductor":"",
+          "artistName":"Nicole Esposito, flute",
+          "trackNumber":"4-6",
+          "instruments":"PU",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:00:00",
+          "_id":"578e7ba40f26289768c40042",
+          "_end_time":"07-31-2016 00:01:10",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a4528a200f8634b0d5a",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"23:01:10",
+          "_date":"07302016",
+          "_end":"",
+          "_duration":323000,
+          "program":"",
+          "trackName":"English Idyll No. 1",
+          "imageURL":"",
+          "catalogNumber":"7503",
+          "copyright":"Halle",
+          "upc":"",
+          "releaseDate":"2003",
+          "collectionName":"",
+          "composerName":"George Butterworth",
+          "conductor":"Mark Elder",
+          "artistName":"",
+          "trackNumber":"2",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Halle Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:01:10",
+          "_id":"578e7ba40f26289768c40043",
+          "_end_time":"07-31-2016 00:06:33",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a4528a200f8634b0d5b",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"23:06:33",
+          "_date":"07302016",
+          "_end":"",
+          "_duration":984000,
+          "program":"",
+          "trackName":"Horn Concerto No. 2",
+          "imageURL":"",
+          "catalogNumber":"44906",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"Janos Rolla",
+          "artistName":"Dale Clevenger, horn",
+          "trackNumber":"4-6",
+          "instruments":"OWv",
+          "soloists":"",
+          "ensembles":"Franz Liszt Chamber Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:06:33",
+          "_id":"578e7ba40f26289768c40044",
+          "_end_time":"07-31-2016 00:22:57",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a4528a200f8634b0d5c",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"23:22:57",
+          "_date":"07302016",
+          "_end":"",
+          "_duration":1064000,
+          "program":"",
+          "trackName":"Symphony No. 2 \"Mysterious Mountain\"",
+          "imageURL":"",
+          "catalogNumber":"3157",
+          "copyright":"Delos",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Alan Hovhaness",
+          "conductor":"Gerard Schwarz",
+          "artistName":"",
+          "trackNumber":"1-3",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Seattle Symphony",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:22:57",
+          "_id":"578e7ba40f26289768c40045",
+          "_end_time":"07-31-2016 00:40:41",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a4528a200f8634b0d5d",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"23:40:41",
+          "_date":"07302016",
+          "_end":"",
+          "_duration":1099000,
+          "program":"",
+          "trackName":"Sonata for Flute, Viola, and Harp",
+          "imageURL":"",
+          "catalogNumber":"2345",
+          "copyright":"ECM",
+          "upc":"",
+          "releaseDate":"2014",
+          "collectionName":"",
+          "composerName":"Claude Debussy",
+          "conductor":"",
+          "artistName":"Marina Piccinini, flute",
+          "trackNumber":"2-4",
+          "instruments":"URYvr",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 00:40:41",
+          "_id":"578e7ba40f26289768c40046",
+          "_end_time":"07-31-2016 00:59:00",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a4528a200f8634b0d5e",
+          "buy":{  
+
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 00:00",
+      "fullend":"2016-07-31 01:00",
+      "conflicts":[  
+        "5775a14faa5a8c436df4594c"
+      ]
+    },
+    {  
+      "_id":"5775a0748b840c7379328a43",
+      "event_id":"5775a0748b840c7379328a3e",
+      "program_id":"5775a0748b840c7379328a3f",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 01:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 07:00:00 GMT-0400 (EDT)",
+      "start_time":"01:00",
+      "end_time":"07:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"5775a0748b840c7379328a3f",
+        "parentID":"524c7ea2e1c85d374d5a2f25",
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Classical Music with Kevin O'Connor",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1467326580445,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "_syndication":{  
+        "date":"07-19-2016 15:12:51",
+        "method":"Song Stream"
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:01:10",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":315000,
+          "program":"",
+          "trackName":"Flowers of the Forest",
+          "imageURL":"",
+          "catalogNumber":"90139",
+          "copyright":"Dorian",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Anonymous",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"6-9",
+          "instruments":"ZV",
+          "soloists":"",
+          "ensembles":"Baltimore Consort",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:01:10",
+          "_id":"578e7bb30f26289768c4011b",
+          "_end_time":"07-31-2016 01:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422133",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":206000,
+          "program":"",
+          "trackName":"Valsa sem nome (Waltz without a Name)",
+          "imageURL":"",
+          "catalogNumber":"714",
+          "copyright":"Reference",
+          "upc":"",
+          "releaseDate":"2015",
+          "collectionName":"",
+          "composerName":"Baden Powell",
+          "conductor":"",
+          "artistName":"Marc Regnier, guitar",
+          "trackNumber":"5",
+          "instruments":"X",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:06:25",
+          "_id":"578e7bb30f26289768c4011c",
+          "_end_time":"07-31-2016 01:09:51",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a2",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:09:51",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1095000,
+          "program":"",
+          "trackName":"Der Rosenkavalier: Waltzes",
+          "imageURL":"",
+          "catalogNumber":"64346",
+          "copyright":"EMI",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Richard Strauss",
+          "conductor":"Rudolph Kempe",
+          "artistName":"",
+          "trackNumber":"3",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Dresden State Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:09:51",
+          "_id":"578e7bb30f26289768c4011d",
+          "_end_time":"07-31-2016 01:28:06",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a3",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:28:06",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":867000,
+          "program":"",
+          "trackName":"Three Romances",
+          "imageURL":"",
+          "catalogNumber":"3235",
+          "copyright":"Delos",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Robert Schumann",
+          "conductor":"",
+          "artistName":"Allan Vogel, oboe",
+          "trackNumber":"13-15",
+          "instruments":"UPvp",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:28:06",
+          "_id":"578e7bb30f26289768c4011e",
+          "_end_time":"07-31-2016 01:42:33",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a4",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:42:33",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1121000,
+          "program":"",
+          "trackName":"Symphony No. 6 \"Tragic\": Andante",
+          "imageURL":"",
+          "catalogNumber":"901804",
+          "copyright":"CSO Resound",
+          "upc":"",
+          "releaseDate":"2008",
+          "collectionName":"",
+          "composerName":"Gustav Mahler",
+          "conductor":"Bernard Haitink",
+          "artistName":"",
+          "trackNumber":"3",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Chicago Symphony Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 01:42:33",
+          "_id":"578e7bb30f26289768c4011f",
+          "_end_time":"07-31-2016 02:01:14",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a5",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:01:14",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":311000,
+          "program":"",
+          "trackName":"Symphony No. 5: 2nd movement",
+          "imageURL":"",
+          "catalogNumber":"9661",
+          "copyright":"Chandos",
+          "upc":"",
+          "releaseDate":"1998",
+          "collectionName":"",
+          "composerName":"Francois-Joseph Gossec",
+          "conductor":"Matthias Bamert",
+          "artistName":"",
+          "trackNumber":"9",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"London Mozart Players",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:01:14",
+          "_id":"578e7bb30f26289768c40120",
+          "_end_time":"07-31-2016 02:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a6",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":650000,
+          "program":"",
+          "trackName":"Fratres (Brothers)",
+          "imageURL":"",
+          "catalogNumber":"80387",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Arvo Part",
+          "conductor":"Rudolf Werthen",
+          "artistName":"",
+          "trackNumber":"1",
+          "instruments":"S",
+          "soloists":"",
+          "ensembles":"I Fiamminghi",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:06:25",
+          "_id":"578e7bb30f26289768c40121",
+          "_end_time":"07-31-2016 02:17:15",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a7",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:17:15",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":279000,
+          "program":"",
+          "trackName":"Calme des nuits (Nocturnal Calm)",
+          "imageURL":"",
+          "catalogNumber":"2227",
+          "copyright":"Atma",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Camille Saint-Saens",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"5",
+          "instruments":"L",
+          "soloists":"",
+          "ensembles":"Musica Intima",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:17:15",
+          "_id":"578e7bb30f26289768c40122",
+          "_end_time":"07-31-2016 02:21:54",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a8",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:21:54",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1639000,
+          "program":"",
+          "trackName":"Violin Sonata",
+          "imageURL":"",
+          "catalogNumber":"87287",
+          "copyright":"Sony",
+          "upc":"",
+          "releaseDate":"2003",
+          "collectionName":"",
+          "composerName":"Cesar Franck",
+          "conductor":"",
+          "artistName":"Yo-Yo Ma, cello",
+          "trackNumber":"7-10",
+          "instruments":"PRpr",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:21:54",
+          "_id":"578e7bb30f26289768c40123",
+          "_end_time":"07-31-2016 02:49:13",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221a9",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"01:49:13",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":717000,
+          "program":"",
+          "trackName":"Swan of Tuonela",
+          "imageURL":"",
+          "catalogNumber":"99",
+          "copyright":"Reference",
+          "upc":"",
+          "releaseDate":"2002",
+          "collectionName":"",
+          "composerName":"Jean Sibelius",
+          "conductor":"Eiji Oue",
+          "artistName":"",
+          "trackNumber":"11",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Minnesota Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 02:49:13",
+          "_id":"578e7bb30f26289768c40124",
+          "_end_time":"07-31-2016 03:01:10",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be643664221aa",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:01:10",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":315000,
+          "program":"",
+          "trackName":"The Prophet: Ballet of the Skaters: Galop",
+          "imageURL":"",
+          "catalogNumber":"573076",
+          "copyright":"Naxos",
+          "upc":"",
+          "releaseDate":"2014",
+          "collectionName":"",
+          "composerName":"Giacomo Meyerbeer",
+          "conductor":"Michal Nesterowicz",
+          "artistName":"",
+          "trackNumber":"16",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Barcelona Symphony Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 03:01:10",
+          "_id":"578e7bb30f26289768c40125",
+          "_end_time":"07-31-2016 03:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422134",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":850000,
+          "program":"",
+          "trackName":"Concerto for Two Mandolins",
+          "imageURL":"",
+          "catalogNumber":"412892",
+          "copyright":"Philips",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Antonio Vivaldi",
+          "conductor":"Neville Marriner",
+          "artistName":"",
+          "trackNumber":"7-9",
+          "instruments":"S",
+          "soloists":"",
+          "ensembles":"Academy of St Martin in the Fields",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 03:06:25",
+          "_id":"578e7bb30f26289768c40126",
+          "_end_time":"07-31-2016 03:20:35",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422135",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:20:35",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1248000,
+          "program":"",
+          "trackName":"Sextet",
+          "imageURL":"",
+          "catalogNumber":"310001",
+          "copyright":"Schwann",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Ferdinand Ries",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"8-9",
+          "instruments":"X",
+          "soloists":"",
+          "ensembles":"Consortium Classicum",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 03:20:35",
+          "_id":"578e7bb30f26289768c40127",
+          "_end_time":"07-31-2016 03:41:23",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422136",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:41:23",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":233000,
+          "program":"",
+          "trackName":"Poeme No. 1",
+          "imageURL":"",
+          "catalogNumber":"16606",
+          "copyright":"DG",
+          "upc":"",
+          "releaseDate":"2012",
+          "collectionName":"",
+          "composerName":"Alexander Scriabin",
+          "conductor":"",
+          "artistName":"Yuja Wang, piano",
+          "trackNumber":"17",
+          "instruments":"P",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 03:41:23",
+          "_id":"578e7bb30f26289768c40128",
+          "_end_time":"07-31-2016 03:45:16",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422137",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"02:45:16",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":956000,
+          "program":"",
+          "trackName":"Gotterdammerung: Dawn and Siegfried's Rhine Journey",
+          "imageURL":"",
+          "catalogNumber":"445769",
+          "copyright":"DG",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Richard Wagner",
+          "conductor":"Daniel Barenboim",
+          "artistName":"",
+          "trackNumber":"8",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Paris Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 03:45:16",
+          "_id":"578e7bb30f26289768c40129",
+          "_end_time":"07-31-2016 04:01:12",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422138",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"03:01:12",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":313000,
+          "program":"",
+          "trackName":"Rondo Amoroso",
+          "imageURL":"",
+          "catalogNumber":"4913",
+          "copyright":"Aurora",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Harald Saeverud",
+          "conductor":"Per Dreier",
+          "artistName":"",
+          "trackNumber":"5",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Royal Philharmonic Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:01:12",
+          "_id":"578e7bb30f26289768c4012a",
+          "_end_time":"07-31-2016 04:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422139",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"03:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1197000,
+          "program":"",
+          "trackName":"Bassoon Concerto",
+          "imageURL":"",
+          "catalogNumber":"5185",
+          "copyright":"CBC",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Nino Rota",
+          "conductor":"Mario Bernardi",
+          "artistName":"Christopher Millard, bassoon",
+          "trackNumber":"18-20",
+          "instruments":"JOUv",
+          "soloists":"",
+          "ensembles":"CBC Vancouver Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:06:25",
+          "_id":"578e7bb30f26289768c4012b",
+          "_end_time":"07-31-2016 04:26:22",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213a",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"03:26:22",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":278000,
+          "program":"",
+          "trackName":"March",
+          "imageURL":"",
+          "catalogNumber":"2076",
+          "copyright":"Concerto",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Gioacchino Rossini",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"8",
+          "instruments":"P",
+          "soloists":"",
+          "ensembles":"Duo Sollini-Barbatano",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:26:22",
+          "_id":"578e7bb30f26289768c4012c",
+          "_end_time":"07-31-2016 04:31:00",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213b",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"03:31:00",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1815000,
+          "program":"",
+          "trackName":"Symphony No. 4 \"Italian\"",
+          "imageURL":"",
+          "catalogNumber":"440476",
+          "copyright":"London/Decca",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Felix Mendelssohn",
+          "conductor":"Georg Solti",
+          "artistName":"",
+          "trackNumber":"1-4",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Vienna Philharmonic",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 04:31:00",
+          "_id":"578e7bb30f26289768c4012d",
+          "_end_time":"07-31-2016 05:01:15",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213c",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:01:15",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":310000,
+          "program":"",
+          "trackName":"Intermezzo",
+          "imageURL":"",
+          "catalogNumber":"9897",
+          "copyright":"Analekta",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Enrique Granados",
+          "conductor":"Yuli Turovsky",
+          "artistName":"Yuli Turovsky, cello",
+          "trackNumber":"5",
+          "instruments":"RS",
+          "soloists":"",
+          "ensembles":"I Musici Montreal",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 05:01:15",
+          "_id":"578e7bb30f26289768c4012e",
+          "_end_time":"07-31-2016 05:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213d",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":666000,
+          "program":"",
+          "trackName":"Sonata No. 5",
+          "imageURL":"",
+          "catalogNumber":"415291",
+          "copyright":"Archiv",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"George Frideric Handel",
+          "conductor":"Trevor Pinnock",
+          "artistName":"",
+          "trackNumber":"5-7",
+          "instruments":"S",
+          "soloists":"",
+          "ensembles":"English Concert",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 05:06:25",
+          "_id":"578e7bb30f26289768c4012f",
+          "_end_time":"07-31-2016 05:17:31",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213e",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:17:31",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":793000,
+          "program":"",
+          "trackName":"Norwegian Rhapsody No. 2",
+          "imageURL":"",
+          "catalogNumber":"50013",
+          "copyright":"NKF",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Johan Halvorsen",
+          "conductor":"Karsten Andersen",
+          "artistName":"",
+          "trackNumber":"2",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Bergen Symphony Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 05:17:31",
+          "_id":"578e7bb30f26289768c40130",
+          "_end_time":"07-31-2016 05:30:44",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be6436642213f",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"04:30:44",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1826000,
+          "program":"",
+          "trackName":"Piano Concerto No. 17",
+          "imageURL":"",
+          "catalogNumber":"281",
+          "copyright":"EMI",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Wolfgang Amadeus Mozart",
+          "conductor":"Leif Ove Andsnes",
+          "artistName":"Leif Ove Andsnes, piano",
+          "trackNumber":"1-3",
+          "instruments":"OPp",
+          "soloists":"",
+          "ensembles":"Norwegian Chamber Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 05:30:44",
+          "_id":"578e7bb30f26289768c40131",
+          "_end_time":"07-31-2016 06:01:10",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422140",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"05:01:10",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":315000,
+          "program":"",
+          "trackName":"Concierto en Flamenco: Alegrias de Cadiz",
+          "imageURL":"",
+          "catalogNumber":"573255",
+          "copyright":"Naxos",
+          "upc":"",
+          "releaseDate":"2015",
+          "collectionName":"",
+          "composerName":"Federico Torroba",
+          "conductor":"Manuel Coves",
+          "artistName":"Pepe Romero, guitar",
+          "trackNumber":"3",
+          "instruments":"OX",
+          "soloists":"",
+          "ensembles":"Malaga Philharmonic Orchestra",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:01:10",
+          "_id":"578e7bb30f26289768c40132",
+          "_end_time":"07-31-2016 06:06:25",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422141",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"05:06:25",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":678000,
+          "program":"",
+          "trackName":"Sonata for Flutes and Basso Continuo",
+          "imageURL":"",
+          "catalogNumber":"1434",
+          "copyright":"Etcetera",
+          "upc":"",
+          "releaseDate":"2012",
+          "collectionName":"",
+          "composerName":"Jacques Loeillet",
+          "conductor":"",
+          "artistName":"",
+          "trackNumber":"1-4",
+          "instruments":"URQ",
+          "soloists":"",
+          "ensembles":"The Authentic Tastes Ensemble",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:06:25",
+          "_id":"578e7bb30f26289768c40133",
+          "_end_time":"07-31-2016 06:17:43",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422142",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"05:17:43",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":321000,
+          "program":"",
+          "trackName":"Musical Moment No. 5",
+          "imageURL":"",
+          "catalogNumber":"4136",
+          "copyright":"Onyx",
+          "upc":"",
+          "releaseDate":"2014",
+          "collectionName":"",
+          "composerName":"Franz Schubert",
+          "conductor":"",
+          "artistName":"Shai Wosner, piano",
+          "trackNumber":"5",
+          "instruments":"P",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:17:43",
+          "_id":"578e7bb30f26289768c40134",
+          "_end_time":"07-31-2016 06:23:04",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422143",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"05:23:04",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1181000,
+          "program":"",
+          "trackName":"Concerto for Harp and String Orchestra",
+          "imageURL":"",
+          "catalogNumber":"80530",
+          "copyright":"Telarc",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Alan Hovhaness",
+          "conductor":"Rudolf Werthen",
+          "artistName":"Yolanda Kondonassis, harp",
+          "trackNumber":"6-10",
+          "instruments":"OYx",
+          "soloists":"",
+          "ensembles":"I Fiamminghi",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:23:04",
+          "_id":"578e7bb30f26289768c40135",
+          "_end_time":"07-31-2016 06:42:45",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422144",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"05:42:45",
+          "_date":"07312016",
+          "_end":"",
+          "_duration":1035000,
+          "program":"",
+          "trackName":"Symphony No. 12",
+          "imageURL":"",
+          "catalogNumber":"90226",
+          "copyright":"Dorian",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"",
+          "composerName":"Franz Joseph Haydn",
+          "conductor":"John Hsu",
+          "artistName":"",
+          "trackNumber":"1-3",
+          "instruments":"O",
+          "soloists":"",
+          "ensembles":"Apollo Ensemble",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 06:42:45",
+          "_id":"578e7bb30f26289768c40136",
+          "_end_time":"07-31-2016 07:00:00",
+          "_start_datetime":{  
+
+          },
+          "_end_datetime":{  
+
+          },
+          "_source_song_id":"578e7a48446be64366422145",
+          "buy":{  
+
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 01:00",
+      "fullend":"2016-07-31 07:00",
+      "conflicts":[  
+        "5775a0748b840c7379328a43"
+      ]
+    },
+    {  
+      "_id":"55d4143aa7ead0e83b76d494",
+      "event_id":"54ad6ca45870097e53b89e5e",
+      "program_id":"54ad6ca45870097e53b89e5f",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 07:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 08:00:00 GMT-0400 (EDT)",
+      "start_time":"07:00",
+      "end_time":"08:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"54ad6ca45870097e53b89e5f",
+        "parentID":"517059379de8e95a460001e4",
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Pipedreams with Michael Barone",
+        "program_desc":null,
+        "program_format":"Classical",
+        "program_link":null,
+        "twitter":null,
+        "facebook":null,
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ],
+        "_date_modified":"03-30-2016 16:04:51.990"
+      },
+      "conflict_edited":1420651684311,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "fullstart":"2016-07-31 07:00",
+      "fullend":"2016-07-31 08:00",
+      "conflicts":[  
+        "55d4143aa7ead0e83b76d494"
+      ],
+      "playlist":null
+    },
+    {  
+      "_id":"56a269e2a259d2b0112a87a8",
+      "event_id":"56a269e1a259d2b0112a878c",
+      "program_id":"56a269e1a259d2b0112a878d",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 08:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 12:00:00 GMT-0400 (EDT)",
+      "start_time":"08:00",
+      "end_time":"12:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"56a269e1a259d2b0112a878d",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Classical Music with Bill Jerome",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1453484513892,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "fullstart":"2016-07-31 08:00",
+      "fullend":"2016-07-31 12:00",
+      "conflicts":[  
+        "56a269e2a259d2b0112a87a8"
+      ],
+      "playlist":null
+    },
+    {  
+      "_id":"55d41438a7ead0e83b76d1e0",
+      "event_id":"53a98fcdc612d02e20982449",
+      "program_id":"53a98f20e1c80647e855fce2",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 12:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 13:00:00 GMT-0400 (EDT)",
+      "start_time":"12:00",
+      "end_time":"13:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53a98f20e1c80647e855fce2",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"The Piano Matters with David Dubal",
+        "program_desc":"We've been travelling for some time now and we're homesick for the United States. Tonight's program will focus on American music played by American piansts.",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"station_wwfm_508",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+          {  
+            "name":""
+          }
+        ]
+      },
+      "conflict_edited":1419354881890,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:05:02",
+          "_duration":182000,
+          "program":"",
+          "trackName":"Norweigan March",
+          "imageURL":"",
+          "catalogNumber":"456787",
+          "copyright":"Philips",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Great Pianists of the 20th Century",
+          "composerName":"Edvard Grieg",
+          "conductor":"",
+          "artistName":"Andrei Gavrilov, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:02:00",
+          "_id":"4b6ac19e18d3c9b6b31e920fb5719ae",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:12:10",
+          "_duration":370000,
+          "program":"",
+          "trackName":"Sonata No. 61, Hob. 51",
+          "imageURL":"",
+          "catalogNumber":"52021",
+          "copyright":"Marston",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Ernst Levy 2: Forgotten Genius Plays Haydn",
+          "composerName":"Franz Josef Haydn",
+          "conductor":"",
+          "artistName":"Ernst Levy, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:06:13",
+          "_id":"6ce0cecf11f3dcfa8b4652af4fe13f",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:18:43",
+          "_duration":343000,
+          "program":"",
+          "trackName":"Nocturne, Op. 9, No. 3",
+          "imageURL":"",
+          "catalogNumber":"52014",
+          "copyright":"Marston",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"The Complete Josef Hofmann",
+          "composerName":"Frederic Chopin",
+          "conductor":"",
+          "artistName":"Josef Hofmann, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:13:34",
+          "_id":"4001376ef3ec1e0783d4954215b278b0",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:28:18",
+          "_duration":498000,
+          "program":"",
+          "trackName":"Sonata in f minor, Op. 5",
+          "imageURL":"",
+          "catalogNumber":"1019",
+          "copyright":"Americus",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Brahms - Sonata in f minor",
+          "composerName":"Johannes Brahms",
+          "conductor":"",
+          "artistName":"Walter Hautzig, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:20:28",
+          "_id":"e5abb0c2e6f3a5ebf54f6236ff54d777",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:31:43",
+          "_duration":103000,
+          "program":"",
+          "trackName":"Arabesque",
+          "imageURL":"",
+          "catalogNumber":"1183",
+          "copyright":"VAI",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Grant Johannesen Plays Poulenc",
+          "composerName":"Francis Poulenc",
+          "conductor":"",
+          "artistName":"Grant Johannesen, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:29:57",
+          "_id":"209c93ce9a51698c402b32c0b683467e",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:37:10",
+          "_duration":250000,
+          "program":"",
+          "trackName":"Barcarolle in f-sharp minor",
+          "imageURL":"",
+          "catalogNumber":"5326",
+          "copyright":"Nimbus",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Virtuoso Piano Showpieces",
+          "composerName":"Anatoly Lyadov",
+          "conductor":"",
+          "artistName":"Martin Jones, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:32:51",
+          "_id":"651bb7ea5bb93f18c1b23de92cc9e073",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:44:13",
+          "_duration":373000,
+          "program":"",
+          "trackName":"Eritana",
+          "imageURL":"",
+          "catalogNumber":"65235",
+          "copyright":"Arkiv Music",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Alicia de Larrocha",
+          "composerName":"Isaac Albeniz",
+          "conductor":"",
+          "artistName":"Alicia de Larrocha, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:38:12",
+          "_id":"55176defa49acb07bdca3d15aff76565",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:47:34",
+          "_duration":154000,
+          "program":"",
+          "trackName":"Morning Song, Op. 133, No. 1",
+          "imageURL":"",
+          "catalogNumber":"5250",
+          "copyright":"Nimbus",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Schumann: Waldszenen",
+          "composerName":"Robert Schumann",
+          "conductor":"",
+          "artistName":"Daniel Levy, piano",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:45:36",
+          "_id":"4d7eae1c9fc783faf89a3b50e2f8425f",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"",
+          "_date":"",
+          "_end":"07-27-2016 22:54:42",
+          "_duration":342000,
+          "program":"",
+          "trackName":"Piano Concerto No. 1: Second movement",
+          "imageURL":"",
+          "catalogNumber":"7992",
+          "copyright":"RCA",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Tchaikovsky/Beethoven Piano Concertos",
+          "composerName":"Peter Ilyich Tchaikovsky",
+          "conductor":"Arturo Toscanini, conductor",
+          "artistName":"NBC Symphony Orchestra",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"Vladimir Horowitz, piano",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 12:49:18",
+          "_id":"ef86e511e7b66c9cb947bee4205db4b5",
+          "buy":{  
+
+          }
+        }
+      ],
+      "has_playlist":true,
+      "episode_notes":"",
+      "fullstart":"2016-07-31 12:00",
+      "fullend":"2016-07-31 13:00",
+      "conflicts":[  
+        "55d41438a7ead0e83b76d1e0"
+      ]
+    },
+    {  
+      "_id":"55d4143aa7ead0e83b76d446",
+      "event_id":"5536a1fd847a8c9b6da32d7b",
+      "program_id":"5536a1fd847a8c9b6da32d7c",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 13:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 14:00:00 GMT-0400 (EDT)",
+      "start_time":"13:00",
+      "end_time":"14:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"5536a1fd847a8c9b6da32d7c",
+        "parentID":"517059219de8e95a46000161",
+        "national_program_id":"",
+        "isParent":false,
+        "name":"With Heart and Voice with Peter DuBois",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1429643773979,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "_syndication":{  
+        "date":"07-13-2016 16:34:39",
+        "source_episode_id":"55d40e89a7ead0e83b715cb9",
+        "method":"Most Recent Episode"
+      },
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:00:06",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":79000,
+          "program":"With Heart and Voice",
+          "trackName":"Theme Music: Trumpet Tune in D",
+          "imageURL":"",
+          "catalogNumber":"",
+          "copyright":"Private Recording",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Private Recording",
+          "composerName":"David N. Johnson",
+          "conductor":"",
+          "artistName":"\"Peter DuBois, organ\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:00:06",
+          "_id":"5786a5e0f6a143656361cffe",
+          "_source_song_id":"5786a5dccfab1327628f4798",
+          "_end_time":"07-31-2016 13:01:25",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:01:25",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":340000,
+          "program":"With Heart and Voice",
+          "trackName":"Alleluja pour orgue et orchestre",
+          "imageURL":"",
+          "catalogNumber":"GMCD 7182",
+          "copyright":"GUILD",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Works for Organ & Orchestra",
+          "composerName":"Joseph Jongen",
+          "conductor":"Alfredo Ibarra",
+          "artistName":"\"Franz Hauk, organ\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:01:25",
+          "_id":"5786a5e0f6a143656361cfff",
+          "_source_song_id":"5786a5dccfab1327628f4799",
+          "_end_time":"07-31-2016 13:07:05",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:07:27",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":183000,
+          "program":"With Heart and Voice",
+          "trackName":"\"Praise, my soul, the King of heaven\"",
+          "imageURL":"",
+          "catalogNumber":"GMCD 7102",
+          "copyright":"GUILD",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Coronation Anthems & Hymns",
+          "composerName":"John Goss",
+          "conductor":"Barry Rose",
+          "artistName":"\"Choir of St. Paul's Cathedral, London\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:07:27",
+          "_id":"5786a5e0f6a143656361d001",
+          "_source_song_id":"5786a5dccfab1327628f479a",
+          "_end_time":"07-31-2016 13:10:30",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:11:28",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":484000,
+          "program":"With Heart and Voice",
+          "trackName":"Te Deum in G",
+          "imageURL":"",
+          "catalogNumber":"LAMM 095D",
+          "copyright":"LAMMAS",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Praise and Majesty",
+          "composerName":"Herbert Sumsion",
+          "conductor":"Barry Rose",
+          "artistName":"Choir of the Cathedral & Abbey of St. Albans",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:11:28",
+          "_id":"5786a5e0f6a143656361d003",
+          "_source_song_id":"5786a5dccfab1327628f479b",
+          "_end_time":"07-31-2016 13:19:32",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:19:58",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":214000,
+          "program":"With Heart and Voice",
+          "trackName":"Exultate Deo",
+          "imageURL":"",
+          "catalogNumber":"n/a",
+          "copyright":"PRIVATE",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"\" Sacred Music, vo. 1\"",
+          "composerName":"Allesandro Scarlatti",
+          "conductor":"Thomas Wikman",
+          "artistName":"The Church of the Ascension Choir",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:19:58",
+          "_id":"5786a5e0f6a143656361d005",
+          "_source_song_id":"5786a5dccfab1327628f479c",
+          "_end_time":"07-31-2016 13:23:32",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:23:32",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":118000,
+          "program":"With Heart and Voice",
+          "trackName":"Jubilate Deo",
+          "imageURL":"",
+          "catalogNumber":"n/a",
+          "copyright":"PRIVATE",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"\" Sacred Music, vo. 1\"",
+          "composerName":"Orlando Di Lasso",
+          "conductor":"Thomas Wikman",
+          "artistName":"The Church of the Ascension Choir",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:23:32",
+          "_id":"5786a5e0f6a143656361d006",
+          "_source_song_id":"5786a5dccfab1327628f479d",
+          "_end_time":"07-31-2016 13:25:30",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:26:20",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":347000,
+          "program":"With Heart and Voice",
+          "trackName":"Praise",
+          "imageURL":"",
+          "catalogNumber":"CDA67483",
+          "copyright":"HYPERION",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"The English Anthem 8",
+          "composerName":"Dobrinka Tabakova",
+          "conductor":"John Scott",
+          "artistName":"\"Choir of St. Paul's Cathedral, London\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:26:20",
+          "_id":"5786a5e0f6a143656361d008",
+          "_source_song_id":"5786a5dccfab1327628f479e",
+          "_end_time":"07-31-2016 13:32:07",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:32:35",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":232000,
+          "program":"With Heart and Voice",
+          "trackName":"Ich folge dir gleichfals (St John Passion)",
+          "imageURL":"",
+          "catalogNumber":"n/a",
+          "copyright":"PRIVATE",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Lux Aeterna",
+          "composerName":"J S Bach",
+          "conductor":"Robert Bozeman",
+          "artistName":"\"Musicians of Christ Church Cathedral, Louisville\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:32:35",
+          "_id":"5786a5e0f6a143656361d00a",
+          "_source_song_id":"5786a5dccfab1327628f479f",
+          "_end_time":"07-31-2016 13:36:27",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:37:52",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":709000,
+          "program":"With Heart and Voice",
+          "trackName":"\"Praise the Lord, my soul\"",
+          "imageURL":"",
+          "catalogNumber":"CDA67483",
+          "copyright":"HYPERION",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"The English Anthem 8",
+          "composerName":"S S Wesley",
+          "conductor":"John Scott",
+          "artistName":"\"Choir of St. Paul's Cathedral, London\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:37:52",
+          "_id":"5786a5e0f6a143656361d00c",
+          "_source_song_id":"5786a5dccfab1327628f47a0",
+          "_end_time":"07-31-2016 13:49:41",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"00:50:29",
+          "_date":"7/31/2016",
+          "_end":"",
+          "_duration":347000,
+          "program":"With Heart and Voice",
+          "trackName":"Sing! (Widor: Toccata)",
+          "imageURL":"",
+          "catalogNumber":"PRCD 1053",
+          "copyright":"PRIORY",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Choral Music of David Willcocks",
+          "composerName":"arr. David Willcocks",
+          "conductor":"David Willcocks",
+          "artistName":"Bach Choir & Cambridge University Musical Society",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 13:50:29",
+          "_id":"5786a5e0f6a143656361d00e",
+          "_source_song_id":"5786a5dccfab1327628f47a1",
+          "_end_time":"07-31-2016 13:56:16",
+          "buy":{  
+
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 13:00",
+      "fullend":"2016-07-31 14:00",
+      "conflicts":[  
+        "55d4143aa7ead0e83b76d446"
+      ]
+    },
+    {  
+      "_id":"55d41437a7ead0e83b76d134",
+      "event_id":"5536a2293423d878095280a4",
+      "program_id":"5536a2293423d878095280a5",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 14:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 15:00:00 GMT-0400 (EDT)",
+      "start_time":"14:00",
+      "end_time":"15:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"5536a2293423d878095280a5",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"Sounds Choral with Marjorie Herman",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1429643817975,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "fullstart":"2016-07-31 14:00",
+      "fullend":"2016-07-31 15:00",
+      "conflicts":[  
+        "55d41437a7ead0e83b76d134"
+      ],
+      "playlist":null
+    },
+    {  
+      "_id":"55d41438a7ead0e83b76d17c",
+      "event_id":"54c2e3ce4743747250fa868a",
+      "program_id":"54c2e3ce4743747250fa868b",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 15:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 19:00:00 GMT-0400 (EDT)",
+      "start_time":"15:00",
+      "end_time":"19:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"54c2e3ce4743747250fa868b",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"The Sunday Opera, and music to follow with Michael Kownacky",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1422058483635,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "episode_notes":"",
+      "playlist":[  
+        {  
+          "_err":[  
+
+          ],
+          "_start":"15:00:12",
+          "_date":"07-31-2016",
+          "_end":"",
+          "_duration":5555000,
+          "program":"",
+          "trackName":"NORMA Act 1",
+          "imageURL":"",
+          "catalogNumber":"Live Performance",
+          "copyright":"Live Performance",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Live Performance from November 2015",
+          "composerName":"Vincenzo Bellini",
+          "conductor":"",
+          "artistName":"\"Angela Meade, Jamie Barton, Russell Thomas, Morris Robinson, Rafael Moras, and Lacey Jo Bent with the Los Angeles Opera Orchestra and Chorus, James Conlon, cond.\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 15:00:12",
+          "_id":"3d9763f162cd2da9450545b8e148e09",
+          "_end_time":"07-31-2016 16:32:47",
+          "buy":{  
+
+          }
+        },
+        {  
+          "_err":[  
+
+          ],
+          "_start":"16:34:17",
+          "_date":"07-31-2016",
+          "_end":"",
+          "_duration":4333000,
+          "program":"",
+          "trackName":"NORMA Act 2",
+          "imageURL":"",
+          "catalogNumber":"Live Performance",
+          "copyright":"Live Performance",
+          "upc":"",
+          "releaseDate":"",
+          "collectionName":"Live Performance from November 2015",
+          "composerName":"Vincenzo Bellini",
+          "conductor":"",
+          "artistName":"\"Angela Meade, Jamie Barton, Russell Thomas, Morris Robinson, Rafael Moras, and Lacey Jo Bent with the Los Angeles Opera Orchestra and Chorus, James Conlon, cond.\"",
+          "trackNumber":"",
+          "instruments":"",
+          "soloists":"",
+          "ensembles":"",
+          "episode_notes":"",
+          "_start_time":"07-31-2016 16:34:17",
+          "_id":"576ec5ff76688f186f455de9a83f3277",
+          "_end_time":"07-31-2016 17:46:30",
+          "buy":{  
+
+          }
+        }
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 15:00",
+      "fullend":"2016-07-31 19:00",
+      "conflicts":[  
+        "55d41438a7ead0e83b76d17c"
+      ]
+    },
+    {  
+      "_id":"55d41437a7ead0e83b76d150",
+      "event_id":"53f765a7e69b438c3085e425",
+      "program_id":"53f765a7e69b438c3085e426",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 19:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 20:00:00 GMT-0400 (EDT)",
+      "start_time":"19:00",
+      "end_time":"20:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53f765a7e69b438c3085e426",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"The Dress Circle with Ted Otten and Michael Kownacky",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1408722343000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "episode_notes":"",
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 19:00",
+      "fullend":"2016-07-31 20:00",
+      "conflicts":[  
+        "55d41437a7ead0e83b76d150"
+      ]
+    },
+    {  
+      "_id":"55d41438a7ead0e83b76d1a6",
+      "event_id":"53a98fcec612d02e2098244c",
+      "program_id":"53a98f21e1c80647e855fce4",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 20:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 21:00:00 GMT-0400 (EDT)",
+      "start_time":"20:00",
+      "end_time":"21:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53a98f21e1c80647e855fce4",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"The Lyric Stage with Mike Harrah",
+        "program_desc":"<br>Join Mike Harrah for great performances from the world of opera, including arias, duets, trios, ensemble performances, artist portraits and even short operas.<br>",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"station_wwfm_508",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+          {  
+            "name":""
+          }
+        ]
+      },
+      "conflict_edited":1403621326000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 20:00",
+      "fullend":"2016-07-31 21:00",
+      "conflicts":[  
+        "55d41438a7ead0e83b76d1a6"
+      ]
+    },
+    {  
+      "_id":"55d41433a7ead0e83b76cf98",
+      "event_id":"53a98fdffd8f7f6e6e78a80e",
+      "program_id":"53a98f29e1c80647e855fd5a",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 21:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 22:00:00 GMT-0400 (EDT)",
+      "start_time":"21:00",
+      "end_time":"22:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53a98f29e1c80647e855fd5a",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"Chamber Music Society of Lincoln Center",
+        "program_desc":"Esa-Pekka Salonen: Homonculus (2007) (Johannes String Quartet)<br><br>Cesar Franck: Piano Quintet in f minor (Gilles Vonsattel, piano, Joseph Silverstein, Yoon Kwon, violins, Teng Li, viola, Andres Diaz, cello)<br><br>",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"station_wwfm_508",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+          {  
+            "name":""
+          }
+        ]
+      },
+      "conflict_edited":1403621343000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "fullstart":"2016-07-31 21:00",
+      "fullend":"2016-07-31 22:00",
+      "conflicts":[  
+        "55d41433a7ead0e83b76cf98"
+      ],
+      "playlist":null
+    },
+    {  
+      "_id":"55d41438a7ead0e83b76d198",
+      "event_id":"53f763d6738042013a3c7880",
+      "program_id":"53f763d6738042013a3c7881",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 22:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 23:00:00 GMT-0400 (EDT)",
+      "start_time":"22:00",
+      "end_time":"23:00",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53f763d6738042013a3c7881",
+        "parentID":null,
+        "national_program_id":"",
+        "isParent":false,
+        "name":"The Lost Chord with Ross Amico",
+        "program_desc":"",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+
+        ]
+      },
+      "conflict_edited":1408721878000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "episode_notes":"\"Bohemian Lifestyle\"  Illicit love in Czech music",
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 22:00",
+      "fullend":"2016-07-31 23:00",
+      "conflicts":[  
+        "55d41438a7ead0e83b76d198"
+      ]
+    },
+    {  
+      "_id":"55d41434a7ead0e83b76d052",
+      "event_id":"53a98fe0c2aa02376ecf1871",
+      "program_id":"53a98f29e1c80647e855fd60",
+      "date":"2016-07-31",
+      "start_utc":"Sun Jul 31 2016 23:00:00 GMT-0400 (EDT)",
+      "end_utc":"Sun Jul 31 2016 23:59:00 GMT-0400 (EDT)",
+      "start_time":"23:00",
+      "end_time":"23:59",
+      "day":"Sun",
+      "program":{  
+        "program_id":"53a98f29e1c80647e855fd60",
+        "parentID":null,
+        "national_program_id":"0",
+        "isParent":false,
+        "name":"Half Past with Carl Hemmingsen",
+        "program_desc":"Join WWFM's Carl Hemmingsen for music from the past half century. Listings will be posted as the program airs. Thank you for joining us tonight!<br><br>",
+        "program_format":"Classical",
+        "program_link":"",
+        "twitter":"",
+        "facebook":"",
+        "station_id":"station_wwfm_508",
+        "ucs":"53a98e36e1c80647e855fc88",
+        "hosts":[  
+          {  
+            "name":"Celebrating Our Musical Community: SONC (NYC)"
+          }
+        ]
+      },
+      "conflict_edited":1403621344000,
+      "widget_config":{  
+        "custom_fields":true,
+        "episode_notes":true,
+        "host_display":true,
+        "host_allow":false,
+        "catalog_number":true,
+        "label":true,
+        "album_art":true,
+        "customized":false
+      },
+      "episode_notes":"",
+      "playlist":[  
+
+      ],
+      "has_playlist":true,
+      "fullstart":"2016-07-31 23:00",
+      "fullend":"2016-07-31 23:59",
+      "conflicts":[  
+        "55d41434a7ead0e83b76d052"
+      ]
+    }
+  ],
+  "affiliate":{  
+    "amazon":null,
+    "itunes":null,
+    "arkiv":null
+  },
+  "params":{  
+    "format":"json",
+    "date":"2016-07-31",
+    "times":"true"
+  }
+}

@@ -1,0 +1,26 @@
+{
+  show: {
+    info: "",
+    icon_url: "http://www.kusc.org/Pics/hosts/playlist-alan.jpg",
+    main_link: "http://www.kusc.org/hosts/alan-chapman.aspx",
+    title: "A Musical Offering",
+    sub_title: "with Alan Chapman"
+  },
+  track: {
+    soloist4: "",
+    soloist1: "Monica Huggett, violin",
+    catalog: "",
+    opus: "Op 7/6",
+    label_num: "2143",
+    soloist2: "",
+    in_key: "in A",
+    soloist3: "",
+    orchestra: "Arion",
+    soloist6: "",
+    conductor: "",
+    record_co: "ATMA Classique",
+    title: "Violin Concerto",
+    composer: "Jean-Marie LeClair",
+    soloist5: ""
+  }
+}

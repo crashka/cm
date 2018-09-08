@@ -1,0 +1,189 @@
+{  
+  "current_playlist_item":{  
+    "catalog_entry":{  
+      "reclabel":{  
+        "url":"",
+        "name":"ASV"
+      },
+      "conductor":{  
+        "url":"/musicians/yondani-butt/",
+        "pk":6206,
+        "slug":"yondani-butt",
+        "name":"Yondani Butt"
+      },
+      "catno":"599",
+      "composer":{  
+        "url":"/musicians/camille-saint-saens_/",
+        "pk":9541,
+        "slug":"camille-saint-saens_",
+        "name":"Camille Saint-Saens"
+      },
+      "attribution":"",
+      "soloists":[  
+
+      ],
+      "title":"Suite algerienne,  Op. 60",
+      "url":"http://www.wqxr.org/recordings/10330/",
+      "additional_composers":[  
+
+      ],
+      "audio_may_download":true,
+      "length":1261,
+      "pk":10330,
+      "arkiv_link":"http://www.arkivmusic.com/classical/Playlist?source=WQXR&cat=599&id=110556&label=ASV",
+      "audio":"",
+      "ensemble":{  
+        "url":"/ensembles/london-symphony-orchestra/",
+        "pk":95,
+        "slug":"london-symphony-orchestra",
+        "name":"London Symphony Orchestra"
+      },
+      "additional_ensembles":[  
+
+      ]
+    },
+    "start_time_ts":1469988825.0,
+    "stream":"wqxr",
+    "playlist_entry_id":1264668,
+    "start_time":"2016-07-31T14:13:45",
+    "playlist_page_url":"http://www.wqxr.org/playlists/show/clayelle-dalferes/2016/jul/31/",
+    "comments_url":"/api/list/comments/177/50594/"
+  },
+  "expires":"2016-07-31T14:21:05",
+  "current_show":{  
+    "show_url":"http://www.wqxr.org/programs/clayelle-dalferes/",
+    "end":"2016-07-31T18:00:00-0400",
+    "description":"<p>Clayelle Dalferes hosts Saturday and Sunday afternoons\u00a0on WQXR.</p>",
+    "title":"Clayelle Dalferes",
+    "url":"http://www.wqxr.org/programs/clayelle-dalferes/",
+    "end_ts":1470002400.0,
+    "start_ts":1469984400.0,
+    "schedule_ref":"ShowSchedule:763",
+    "group_slug":"clayelle-dalferes",
+    "pk":152300,
+    "start":"2016-07-31T13:00:00-0400"
+  },
+  "future":[  
+
+  ],
+  "has_playlists":true,
+  "previous":[  
+    {  
+      "catalog_entry":{  
+        "reclabel":{  
+          "url":"",
+          "name":"Virgin"
+        },
+        "conductor":{  
+          "url":"/musicians/lawrence-foster/",
+          "pk":5150,
+          "slug":"lawrence-foster",
+          "name":"Lawrence Foster"
+        },
+        "catno":"91192",
+        "composer":{  
+          "url":"/musicians/antonio-vivaldi/",
+          "pk":544,
+          "slug":"antonio-vivaldi",
+          "name":"Antonio Vivaldi"
+        },
+        "attribution":"",
+        "soloists":[  
+          {  
+            "instruments":[  
+              "guitar"
+            ],
+            "musician":{  
+              "url":"/musicians/sharon-isbin/",
+              "pk":253,
+              "slug":"sharon-isbin",
+              "name":"Sharon Isbin"
+            },
+            "role":""
+          }
+        ],
+        "title":"Concerto for Lute in D Major, RV 93",
+        "url":"http://www.wqxr.org/recordings/9655/",
+        "additional_composers":[  
+
+        ],
+        "audio_may_download":true,
+        "length":726,
+        "pk":9655,
+        "arkiv_link":"http://www.arkivmusic.com/classical/Playlist?source=WQXR&cat=91192&id=109798&label=Virgin",
+        "audio":"",
+        "ensemble":{  
+          "url":"/ensembles/lausanne-chamber-orchestra/",
+          "pk":1110,
+          "slug":"lausanne-chamber-orchestra",
+          "name":"Lausanne Chamber Orchestra"
+        },
+        "additional_ensembles":[  
+
+        ]
+      },
+      "start_time_ts":1469988045.0,
+      "stream":"wqxr",
+      "playlist_entry_id":1264666,
+      "start_time":"2016-07-31T14:00:45",
+      "playlist_page_url":"http://www.wqxr.org/playlists/show/clayelle-dalferes/2016/jul/31/",
+      "comments_url":"/api/list/comments/177/50594/"
+    },
+    {  
+      "catalog_entry":{  
+        "reclabel":{  
+          "url":"",
+          "name":"Chandos"
+        },
+        "conductor":null,
+        "catno":"10821",
+        "composer":{  
+          "url":"/musicians/traditional-irish/",
+          "pk":19114,
+          "slug":"traditional-irish",
+          "name":"Traditional Irish"
+        },
+        "attribution":"",
+        "soloists":[  
+          {  
+            "instruments":[  
+              "piano"
+            ],
+            "musician":{  
+              "url":"/musicians/barry-douglas/",
+              "pk":10092,
+              "slug":"barry-douglas",
+              "name":"Barry Douglas"
+            },
+            "role":""
+          }
+        ],
+        "title":"The Coolin (An Chuilfhionn)",
+        "url":"http://www.wqxr.org/recordings/45601/",
+        "additional_composers":[  
+          {  
+            "url":"/musicians/barry-douglas/",
+            "pk":10092,
+            "slug":"barry-douglas",
+            "name":"Barry Douglas"
+          }
+        ],
+        "audio_may_download":true,
+        "length":434,
+        "pk":45601,
+        "arkiv_link":"http://www.arkivmusic.com/classical/Playlist?source=WQXR&cat=10821&id=141925&label=Chandos",
+        "audio":"",
+        "ensemble":null,
+        "additional_ensembles":[  
+
+        ]
+      },
+      "start_time_ts":1469987560.0,
+      "stream":"wqxr",
+      "playlist_entry_id":1264663,
+      "start_time":"2016-07-31T13:52:40",
+      "playlist_page_url":"http://www.wqxr.org/playlists/show/clayelle-dalferes/2016/jul/31/",
+      "comments_url":"/api/list/comments/177/50594/"
+    }
+  ]
+}

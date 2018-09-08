@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+</head>
+<body>
+    <section id="directory-structure">
+        <h1>Directory structure</h1>
+        <pre>cm/
+  stations/
+    WWFM/
+      station_info.json
+      playlists.json
+      playlists/
+        2018-09-06.json</pre>
+    </section>
+    <section id="station-info-json">
+        <h1>station_info.json</h1>
+        <pre>{
+  Timezone: &lt;timezone value&gt;,
+  Shows: [&lt;show 1&gt;, &lt;show 2&gt;, ... ]
+}</pre>
+    </section>
+    <section id="playlists-json">
+        <h1>playlists.json</h1>
+        <pre>[
+  {
+    date: &lt;%Y-%M-%d&gt;,
+    status: &lt;status value&gt;
+  },
+  {
+    ...
+  }
+]</pre>
+    </section>
+    <section id="timezone-values">
+        <h1>Timezone values</h1>
+        <ul>
+            <li><code>America/New_York</code></li>
+            <li><code>America/Chicago</code></li>
+            <li><code>America/Denver</code></li>
+            <li><code>America/Los_Angeles</code></li>
+        </ul>
+        <p>Status values</p>
+        <ul>
+            <li><code>ok</code></li>
+            <li><code>failed</code></li>
+            <li><code>day_zero</code></li>
+        </ul>
+    </section>
+</body>
+</html>
