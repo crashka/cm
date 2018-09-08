@@ -19,8 +19,10 @@ station_info.json
 ::
 
   {
+    name:     <name>,
     timezone: <timezone value>,
-    shows: [<show 1>, <show 2>, ... ]
+    info:     {...},
+    shows:    [<show 1>, <show 2>, ... ]
   }
 
 --------------
@@ -29,15 +31,16 @@ playlists.json
 
 ::
 
-  [
-    {
-      date: <%Y-%M-%d>,
+  {
+    <%Y-%m-%d>: {
+      file:   <filename>,
       status: <status value>
     },
-    {
+    <%Y-%m-%d>: {
       ...
-    }
-  ]
+    },
+    ...
+  }
 
 ---------------
 Timezone values

@@ -7,7 +7,7 @@
 import os
 import re
 import json
-from datetime import date
+import datetime as dt
 
 import yaml
 import click
@@ -20,9 +20,10 @@ from utils import prettyprint
 ################
 
 FILE_DIR     = os.path.dirname(os.path.realpath(__file__))
-BASE_DIR     = os.path.join(FILE_DIR, os.pardir)
-CONFIG_FILE  = "config/config.yml"
-CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_FILE)
+BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
+CONFIG_DIR   = 'config'
+CONFIG_FILE  = 'config.yml'
+CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
 cfg_profiles = dict()  # {profile_name: {section_name: ...}}
 
 def config(section, profile = None):
@@ -52,8 +53,10 @@ def config(section, profile = None):
 # common constants/functions #
 ##############################
 
-STATIONS = config('stations')
+STATIONS       = config('stations')
 REQUIRED_ATTRS = ['url_fmt', 'date_fmt']
+STD_DATE_FMT   = '%Y-%m-%d'
+DEBUG          = None
 
 #################
 # Station class #
@@ -70,6 +73,7 @@ class Station(object):
         self.info = STATIONS.get(name)
         if not self.info:
             raise RuntimeError("Station \"%s\" not known" % (name))
+        self.playlists = None
 
         for attr in REQUIRED_ATTRS:
             if attr not in self.info:
@@ -80,9 +84,14 @@ class Station(object):
         if not self.tokens:
             raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
 
+        self.station_dir       = os.path.join(BASE_DIR, 'stations', self.name)
+        self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
+        self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
+        self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
+
         # TEMP: just for initial dev/testing!!!
-        self.todays_date = self.build_date(date.today())
-        self.todays_url = self.build_url(date.today())
+        self.todays_date = self.build_date(dt.date.today())
+        self.todays_url = self.build_url(dt.date.today())
 
     def __getattr__(self, key):
         try:
@@ -116,22 +125,88 @@ class Station(object):
     def check(self, validate=False):
         """Return True if station exists (and passes validation test, if requested)
         """
-        pass
+        created = os.path.exists(self.station_dir) and os.path.isdir(self.station_dir)
+        if not validate:
+            return created
+        else:
+            return created and self.valid()
+
+    def valid(self):
+        """Return True if station is validated
+        """
+        valid = os.path.exists(self.playlist_dir) and os.path.isdir(self.playlist_dir)
+        return valid
 
     def create(self):
         """Create station (raise exception if it already exists)
         """
-        pass
+        if self.check():
+            raise RuntimeError("Station \"%s\" already exists" % (self.name))
+        os.mkdir(self.station_dir)
+        os.mkdir(self.playlist_dir)
+        self.playlists = {}
+        self.store_state()
 
-    def get_playlist(date):
-        """Get playlist from internet
+    def store_state(self):
+        with open(self.station_info_file, 'w') as f:
+            json.dump(self.station_info(), f, indent=2)
+        with open(self.playlists_file, 'w') as f:
+            json.dump(self.playlists, f, indent=2)
+
+    def station_info(self):
+        return self.__dict__
+
+    def fetch_playlist(self, date):
+        """Fetch playlist information from internet
         """
-        pass
+        doc = {
+            'name': self.playlist_name(date),
+            'file': self.playlist_file(date)
+        }
+            
+        return json.dumps(doc)
 
-    def store_playlists(start_date, end_date, **flags):
+    def playlist_name(self, date):
+        """
+        """
+        return date.strftime(STD_DATE_FMT)
+
+    def playlist_file(self, date):
+        """
+        """
+        filename = self.playlist_name(date) + '.json'
+        return os.path.join(self.playlist_dir, filename)
+
+    def store_playlists(self, start_date, end_date=None, **flags):
         """Write specified playlists to filesystem
         """
-        pass
+        # FIX: this doesn't really belong here, should go in station load function!!!
+        if self.playlists is None:
+            with open(self.playlists_file) as f:
+                self.playlists = json.load(f)
+
+        # TODO: need to create a range of date ordinals and iterate!!!
+        if start_date:
+            playlist_name = self.playlist_name(start_date)
+            playlist_text = self.fetch_playlist(start_date)
+            if DEBUG:
+                prettyprint(playlist_text)
+            filename = self.playlist_file(start_date)
+            with open(filename, 'w') as f:
+                f.write(playlist_text)
+            self.playlists[playlist_name] = {'file': filename, 'status': 'ok'}
+
+        if end_date:
+            playlist_name = self.playlist_name(end_date)
+            playlist_text = self.fetch_playlist(end_date)
+            if DEBUG:
+                prettyprint(playlist_text)
+            filename = self.playlist_file(end_date)
+            with open(filename, 'w') as f:
+                f.write(playlist_text)
+            self.playlists[playlist_name] = {'file': filename, 'status': 'ok'}
+
+        self.store_state()
 
 #####################
 # command line tool #
@@ -140,10 +215,14 @@ class Station(object):
 @click.command()
 @click.option('--create/--no-create', default=False, help="create specified stations if they don't exist (default: --no-create)")
 @click.option('--name', default='all', help="comma-separated list of station names, or 'all' (default: 'all')")
+@click.option('--fetch', help="fetch playlist for specified date or colon-separated date range (date format: Y-m-d)")
 @click.option('--debug', default=0, help="debug level (default: 0)")
-def main(create, name, debug):
+def main(create, name, fetch, debug):
     """Command line tool for managing station information
     """
+    global DEBUG
+
+    DEBUG = debug
     if name == 'all':
         station_names = STATIONS.keys()
     else:
@@ -152,8 +231,21 @@ def main(create, name, debug):
     if create:
         for station_name in station_names:
             station = Station(station_name)
-            if debug > 0:
+            if DEBUG > 0:
                 station.debug()
+            station.create()
+
+    if fetch:
+        try:
+            dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in fetch.split(':')]
+            if not dates or len(dates) > 2:
+                raise ValueError
+        except ValueError:
+            raise RuntimeError("Invalid date (or date range) to fetch")
+
+        for station_name in station_names:
+            station = Station(station_name)
+            station.store_playlists(*dates)
 
 if __name__ == '__main__':
     main()

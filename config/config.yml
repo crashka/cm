@@ -5,36 +5,43 @@ default:
       sample_url:  'http://classical24.publicradio.org/listings/listings.php?year=2018&month=09&day=06'
       url_fmt:     'http://classical24.publicradio.org/listings/listings.php?<DATE_STR>'
       date_fmt:    'year=%Y&month=%m&day=%d'
+      time_zone:   'America/Chicago'
 
     KUSC:
       sample_url:  'https://www.kusc.org/playlist/2018/09/05/'
       sample_url2: 'https://www.kusc.org/playlist/2018/09/05/?_pjax=%23main'
       url_fmt:     'https://www.kusc.org/playlist/<DATE_STR>/?_pjax=%23main'
       date_fmt:    '%Y/%m/%d'
+      time_zone:   'America/Los_Angeles'
 
     WCRB:
       sample_url:  'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'
       url_fmt:     'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?<DATE_STR>&format=json'
       widgetkey:   '53877c98e1c80a130decb6c8'
       date_fmt:    'date=%Y-%m-%d'
+      time_zone:   'America/New_York'
 
 #    WDAV:
 #      sample_url:  
 #      url_fmt:     
 #      date_fmt:    
+#      time_zone:   'America/New_York'
 
 #    WFMT:
 #      sample_url:  
 #      url_fmt:     
 #      date_fmt:    
+#      time_zone:   'America/Chicago'
 
     WQXR:
       sample_url:  'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
       url_fmt:     'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
       date_fmt:    '%Y/%b/%d'  # %b must be lowercased
+      time_zone:   'America/New_York'
 
     WWFM:
       sample_url:  'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'
       url_fmt:     'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?<DATE_STR>&format=json'
       widgetkey:   '53a98e36e1c80647e855fc88'
       date_fmt:    'date=%Y-%m-%d'
+      time_zone:   'America/New_York'
