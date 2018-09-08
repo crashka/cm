@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Station functions
+"""Station class/functions
 """
 
 import os
@@ -45,6 +45,7 @@ def config(section, profile = None):
         cfg_profiles[profile] = prof_data
     else:
         cfg_profiles[profile] = {}
+
     return cfg_profiles[profile].get(section, {})
 
 ##############################
@@ -74,6 +75,12 @@ class Station(object):
             if attr not in self.info:
                 raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
 
+        # extract tokens in url_fmt upfront
+        self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
+        if not self.tokens:
+            raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
+
+        # TEMP: just for initial dev/testing!!!
         self.todays_date = self.build_date(date.today())
         self.todays_url = self.build_url(date.today())
 
@@ -84,20 +91,22 @@ class Station(object):
             raise AttributeError
 
     def build_date(self, date):
+        """Builds date string based on date_fmt, which is a required attribute in the station info
+        """
         return date.strftime(self.date_fmt)
 
     def build_url(self, date):
+        """Builds playlist URL based on url_fmt, which is a required attribute in the station info
+        """
         # this is a magic variable name that matches a URL format token
         date_str = self.build_date(date)
-        tokens = re.findall(r'\<([A-Z_]+)\>', self.url_fmt)
-        if not tokens:
-            raise RuntimeError("Could not build URL for %s" % (str(date)))
         url = self.url_fmt
-        for token in tokens:
-            value = vars().get(token.lower()) or getattr(self, token.lower(), None)
+        for token in self.tokens:
+            token_var = token[1:-1].lower()
+            value = vars().get(token_var) or getattr(self, token_var, None)
             if not value:
-                raise RuntimeError("Token attribute \"%s\" not found for \"%s\"" % (token, self.name))
-            url = url.replace('<' + token + '>', value)
+                raise RuntimeError("Token attribute \"%s\" not found for \"%s\"" % (token_var, self.name))
+            url = url.replace(token, value)
 
         return url
 
@@ -105,21 +114,35 @@ class Station(object):
         prettyprint(self.__dict__)
         
     def check(self, validate=False):
+        """Return True if station exists (and passes validation test, if requested)
+        """
         pass
 
     def create(self):
+        """Create station (raise exception if it already exists)
+        """
         pass
 
-###################
-# main processing #
-###################
+    def get_playlist(date):
+        """Get playlist from internet
+        """
+        pass
+
+    def store_playlists(start_date, end_date, **flags):
+        """Write specified playlists to filesystem
+        """
+        pass
+
+#####################
+# command line tool #
+#####################
 
 @click.command()
 @click.option('--create/--no-create', default=False, help="create specified stations if they don't exist (default: --no-create)")
 @click.option('--name', default='all', help="comma-separated list of station names, or 'all' (default: 'all')")
 @click.option('--debug', default=0, help="debug level (default: 0)")
 def main(create, name, debug):
-    """Station command
+    """Command line tool for managing station information
     """
     if name == 'all':
         station_names = STATIONS.keys()
