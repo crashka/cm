@@ -177,7 +177,7 @@ class Station(object):
         filename = self.playlist_name(date) + '.json'
         return os.path.join(self.playlist_dir, filename)
 
-    def store_playlists(self, start_date, end_date=None, **flags):
+    def store_playlists(self, start_date, num=1, **flags):
         """Write specified playlists to filesystem
         """
         # FIX: this doesn't really belong here, should go in station load function!!!
@@ -185,23 +185,16 @@ class Station(object):
             with open(self.playlists_file) as f:
                 self.playlists = json.load(f)
 
-        # TODO: need to create a range of date ordinals and iterate!!!
-        if start_date:
-            playlist_name = self.playlist_name(start_date)
-            playlist_text = self.fetch_playlist(start_date)
+        start_ord = start_date.toordinal()
+        end_ord   = start_ord + num
+        ord_step  = (1, -1)[num < 0]
+        for ord in range(start_ord, end_ord, ord_step):
+            date = dt.date.fromordinal(ord)
+            playlist_name = self.playlist_name(date)
+            playlist_text = self.fetch_playlist(date)
             if DEBUG:
                 prettyprint(playlist_text)
-            filename = self.playlist_file(start_date)
-            with open(filename, 'w') as f:
-                f.write(playlist_text)
-            self.playlists[playlist_name] = {'file': filename, 'status': 'ok'}
-
-        if end_date:
-            playlist_name = self.playlist_name(end_date)
-            playlist_text = self.fetch_playlist(end_date)
-            if DEBUG:
-                prettyprint(playlist_text)
-            filename = self.playlist_file(end_date)
+            filename = self.playlist_file(date)
             with open(filename, 'w') as f:
                 f.write(playlist_text)
             self.playlists[playlist_name] = {'file': filename, 'status': 'ok'}
@@ -213,12 +206,19 @@ class Station(object):
 #####################
 
 @click.command()
-@click.option('--create/--no-create', default=False, help="create specified stations if they don't exist (default: --no-create)")
-@click.option('--name', default='all', help="comma-separated list of station names, or 'all' (default: 'all')")
-@click.option('--fetch', help="fetch playlist for specified date or colon-separated date range (date format: Y-m-d)")
-@click.option('--debug', default=0, help="debug level (default: 0)")
-def main(create, name, fetch, debug):
-    """Command line tool for managing station information
+@click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) stations")
+@click.option('--create',    'cmd', flag_value='create', help="Create new station (skip if station exists)")
+@click.option('--playlists', 'cmd', flag_value='playlists', help="List playlists for station (fail if station does not exist)")
+@click.option('--fetch',     'cmd', flag_value='fetch', help="Fetch playlists for station (fail if station does not exist)")
+@click.option('--validate',  'cmd', flag_value='validate', help="Validate playlist metadata for station (fail if station does not exist)")
+@click.option('--date',      help="Start date to list, fetch, validate (format: Y-m-d)")
+@click.option('--num',       default=1, help="Number of dates to list, fetch, or validate (positive indicates forward in time from start date, negative indicates backward in time)")
+@click.option('--skip',      is_flag=True, help="Skip (rather than fail) if station does not exist")
+@click.option('--force',     is_flag=True, help="Overwrite existing playlists (otherwise skip over), applies only to --fetch")
+@click.option('--debug',     default=0, help="Debug level")
+@click.argument('name',      default='all', required=True)
+def main(cmd, date, num, skip, force, debug, name):
+    """Manage station information for comma-separated list of station names (or 'all')
     """
     global DEBUG
 
@@ -228,24 +228,22 @@ def main(create, name, fetch, debug):
     else:
         station_names = name.upper().split(',')
 
-    if create:
+    if cmd == 'create':
         for station_name in station_names:
             station = Station(station_name)
             if DEBUG > 0:
                 station.debug()
             station.create()
 
-    if fetch:
+    if cmd == 'fetch':
         try:
-            dates = [dt.datetime.strptime(d, '%Y-%m-%d').date() for d in fetch.split(':')]
-            if not dates or len(dates) > 2:
-                raise ValueError
+            start_date = dt.datetime.strptime(date, '%Y-%m-%d').date()
         except ValueError:
-            raise RuntimeError("Invalid date (or date range) to fetch")
+            raise RuntimeError("Invalid date to fetch")
 
         for station_name in station_names:
             station = Station(station_name)
-            station.store_playlists(*dates)
+            station.store_playlists(start_date, num)
 
 if __name__ == '__main__':
     main()
