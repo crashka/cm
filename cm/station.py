@@ -7,7 +7,10 @@
 import os
 import re
 import json
+import glob
 import datetime as dt
+from time import sleep
+import logging
 
 import yaml
 import click
@@ -54,9 +57,41 @@ def config(section, profile = None):
 ##############################
 
 STATIONS       = config('stations')
-REQUIRED_ATTRS = ['url_fmt', 'date_fmt']
-STD_DATE_FMT   = '%Y-%m-%d'
-DEBUG          = None
+REQUIRED_ATTRS = set(['url_fmt',
+                      'date_fmt',
+                      'playlist_ext'])
+STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
+INFO_KEYS      = set(['name',
+                      'info',
+                      'state',
+                      'playlists',
+                      'shows'])
+
+# kindly internet fetch interval
+FETCH_INT      = 2.0
+FETCH_DELTA    = dt.timedelta(0, FETCH_INT)
+
+# create logger
+LOGGER_NAME = 'cm'
+LOG_DIR     = 'log'
+LOG_FILE    = LOGGER_NAME + '.log'
+LOG_PATH    = os.path.join(BASE_DIR, LOG_DIR, LOG_FILE)
+LOG_FMTR    = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s')
+
+dlft_hand = logging.FileHandler(LOG_PATH)
+dlft_hand.setLevel(logging.DEBUG)
+dlft_hand.setFormatter(LOG_FMTR)
+
+dbg_hand = logging.StreamHandler()
+dbg_hand.setLevel(logging.DEBUG)
+dbg_hand.setFormatter(LOG_FMTR)
+
+log = logging.getLogger(LOGGER_NAME)
+log.setLevel(logging.INFO)
+log.addHandler(dlft_hand)
+
+# requests session
+sess = requests.Session()
 
 #################
 # Station class #
@@ -65,16 +100,21 @@ DEBUG          = None
 class Station(object):
     """
     """
-    
+    @staticmethod
+    def list():
+        """
+        """
+        dirs = glob.glob(os.path.join(BASE_DIR, 'stations', '*'))
+        return sorted([os.path.basename(dir) for dir in dirs])
+
     def __init__(self, name):
         """
         """
+        log.info("instantiating Station(%s)" % (name))
         self.name = name
         self.info = STATIONS.get(name)
         if not self.info:
             raise RuntimeError("Station \"%s\" not known" % (name))
-        self.playlists = None
-
         for attr in REQUIRED_ATTRS:
             if attr not in self.info:
                 raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
@@ -88,7 +128,14 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
+        self.playlist_min      = self.info.get('playlist_min')
 
+        self.state = None
+        self.playlists = None
+        self.load_state()
+
+        self.last_fetch = dt.datetime.utcnow() - FETCH_DELTA
+        
         # TEMP: just for initial dev/testing!!!
         self.todays_date = self.build_date(dt.date.today())
         self.todays_url = self.build_url(dt.date.today())
@@ -98,6 +145,34 @@ class Station(object):
             return self.info[key]
         except KeyError:
             raise AttributeError
+
+    def station_info(self):
+        return {k: v for k, v in self.__dict__.items() if k in INFO_KEYS}
+
+    def store_state(self):
+        """
+        """
+        with open(self.station_info_file, 'w') as f:
+            json.dump(self.station_info(), f, indent=2)
+        with open(self.playlists_file, 'w') as f:
+            json.dump(self.playlists, f, indent=2)
+
+    def load_state(self, force=False):
+        """
+        """
+        if self.state is None or force:
+            self.state = {}
+            if os.path.isfile(self.station_info_file) and os.path.getsize(self.station_info_file) > 0:
+                with open(self.station_info_file) as f:
+                    station_info = json.load(f)
+                self.state.update(station_info.get('state', {}))
+
+        if self.playlists is None or force:
+            self.playlists = {}
+            if os.path.isfile(self.playlists_file) and os.path.getsize(self.playlists_file) > 0:
+                with open(self.playlists_file) as f:
+                    playlists = json.load(f)
+                self.playlists.update(playlists)
 
     def build_date(self, date):
         """Builds date string based on date_fmt, which is a required attribute in the station info
@@ -119,9 +194,6 @@ class Station(object):
 
         return url
 
-    def debug(self):
-        prettyprint(self.__dict__)
-        
     def check(self, validate=False):
         """Return True if station exists (and passes validation test, if requested)
         """
@@ -134,37 +206,23 @@ class Station(object):
     def valid(self):
         """Return True if station is validated
         """
+        # TEMP: for now, just check integrity of directory structure!!!
         valid = os.path.exists(self.playlist_dir) and os.path.isdir(self.playlist_dir)
         return valid
 
-    def create(self):
+    def create(self, dryrun=False):
         """Create station (raise exception if it already exists)
         """
         if self.check():
             raise RuntimeError("Station \"%s\" already exists" % (self.name))
-        os.mkdir(self.station_dir)
-        os.mkdir(self.playlist_dir)
+        self.state = {}
         self.playlists = {}
-        self.store_state()
-
-    def store_state(self):
-        with open(self.station_info_file, 'w') as f:
-            json.dump(self.station_info(), f, indent=2)
-        with open(self.playlists_file, 'w') as f:
-            json.dump(self.playlists, f, indent=2)
-
-    def station_info(self):
-        return self.__dict__
-
-    def fetch_playlist(self, date):
-        """Fetch playlist information from internet
-        """
-        doc = {
-            'name': self.playlist_name(date),
-            'file': self.playlist_file(date)
-        }
-            
-        return json.dumps(doc)
+        if not dryrun:
+            os.mkdir(self.station_dir)
+            os.mkdir(self.playlist_dir)
+            self.store_state()
+        else:
+            print(self.__dict__)
 
     def playlist_name(self, date):
         """
@@ -174,32 +232,90 @@ class Station(object):
     def playlist_file(self, date):
         """
         """
-        filename = self.playlist_name(date) + '.json'
+        filename = self.playlist_name(date) + '.' + self.playlist_ext
         return os.path.join(self.playlist_dir, filename)
 
-    def store_playlists(self, start_date, num=1, **flags):
+    def get_playlists(self, start_date=None, num=1):
+        """Return names of playlists (from playlists directory)
+        """
+        files = glob.glob(os.path.join(self.playlist_dir, '*'))
+        return {os.path.splitext(os.path.basename(file))[0] for file in files}
+
+    def validate_playlists(self):
+        """
+        """
+        fs_playlists = self.get_playlists()
+        diff = fs_playlists.symmetric_difference(self.playlists.keys())
+        if len(diff) > 0:
+            raise RuntimeError("Inconsistent playlist file/metadata for: " + str(sorted(diff)))
+
+        if len(fs_playlists) == 0:
+            return
+
+        min_date = dt.datetime.strptime(min(fs_playlists), STD_DATE_FMT).date()
+        max_date = dt.datetime.strptime(max(fs_playlists), STD_DATE_FMT).date()
+        ord_list = range(min_date.toordinal(), max_date.toordinal())
+        all_dates = {dt.date.fromordinal(ord).strftime(STD_DATE_FMT) for ord in ord_list}
+        missing = all_dates.difference(fs_playlists)
+        if len(missing) > 0:
+            raise RuntimeError("Missing playlists for: " + str(sorted(missing)))
+    
+    def fetch_playlists(self, start_date, num=1, dryrun=False):
         """Write specified playlists to filesystem
         """
-        # FIX: this doesn't really belong here, should go in station load function!!!
-        if self.playlists is None:
-            with open(self.playlists_file) as f:
-                self.playlists = json.load(f)
-
         start_ord = start_date.toordinal()
         end_ord   = start_ord + num
         ord_step  = (1, -1)[num < 0]
         for ord in range(start_ord, end_ord, ord_step):
             date = dt.date.fromordinal(ord)
             playlist_name = self.playlist_name(date)
+            playlist_file = self.playlist_file(date)
+            if os.path.exists(playlist_file) and os.path.getsize(playlist_file) > 0:
+                log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
+                continue
             playlist_text = self.fetch_playlist(date)
-            if DEBUG:
+            if dryrun:
                 prettyprint(playlist_text)
-            filename = self.playlist_file(date)
-            with open(filename, 'w') as f:
-                f.write(playlist_text)
-            self.playlists[playlist_name] = {'file': filename, 'status': 'ok'}
+            else:
+                with open(playlist_file, 'w') as f:
+                    f.write(playlist_text)
+                status = 'ok'
+                if self.playlist_min and len(playlist_text) < self.playlist_min:
+                    log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_content)))
+                    status = 'notok'
+                self.playlists[playlist_name] = {
+                    'file': playlist_file,
+                    'size': len(playlist_text),
+                    'status': status
+                }
+                log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
 
-        self.store_state()
+        if not dryrun:
+            self.store_state()
+
+    def fetch_playlist(self, date, dummy=False):
+        """Fetch playlist information from internet
+        """
+        elapsed = dt.datetime.utcnow() - self.last_fetch
+        if elapsed < FETCH_DELTA:
+            sleep_delta = FETCH_DELTA - elapsed
+            sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
+
+        if not dummy:
+            r = sess.get(self.build_url(date))
+            playlist_content = r.content
+        else:
+            doc = {
+                'name': self.playlist_name(date),
+                'file': self.playlist_file(date),
+                'url':  self.build_url(date)
+            }
+            playlist_content = json.dumps(doc)
+
+        self.last_fetch = dt.datetime.utcnow()
+        # TODO: this really needs to return metadata around the playlist, not
+        # just the contents!!!
+        return playlist_content
 
 #####################
 # command line tool #
@@ -215,35 +331,49 @@ class Station(object):
 @click.option('--num',       default=1, help="Number of dates to list, fetch, or validate (positive indicates forward in time from start date, negative indicates backward in time)")
 @click.option('--skip',      is_flag=True, help="Skip (rather than fail) if station does not exist")
 @click.option('--force',     is_flag=True, help="Overwrite existing playlists (otherwise skip over), applies only to --fetch")
+@click.option('--dryrun',    is_flag=True, help="Do not execute write, log to INFO level instead")
 @click.option('--debug',     default=0, help="Debug level")
 @click.argument('name',      default='all', required=True)
-def main(cmd, date, num, skip, force, debug, name):
+def main(cmd, date, num, skip, force, dryrun, debug, name):
     """Manage station information for comma-separated list of station names (or 'all')
     """
-    global DEBUG
+    if debug > 0:
+        log.setLevel(logging.DEBUG)
+        log.addHandler(dbg_hand)
 
-    DEBUG = debug
     if name == 'all':
         station_names = STATIONS.keys()
     else:
         station_names = name.upper().split(',')
 
+    if cmd == 'list':
+        station_list = Station.list()
+        for station_name in station_list:
+            if station_name in station_names:
+                station = Station(station_name)
+                prettyprint(station.station_info())
     if cmd == 'create':
         for station_name in station_names:
             station = Station(station_name)
-            if DEBUG > 0:
-                station.debug()
-            station.create()
-
-    if cmd == 'fetch':
+            station.create(dryrun)
+    elif cmd == 'playlists':
+        for station_name in station_names:
+            station = Station(station_name)
+            playlists = station.get_playlists()
+            prettyprint(sorted(playlists))
+    elif cmd == 'fetch':
         try:
-            start_date = dt.datetime.strptime(date, '%Y-%m-%d').date()
+            start_date = dt.datetime.strptime(date, STD_DATE_FMT).date()
         except ValueError:
             raise RuntimeError("Invalid date to fetch")
 
         for station_name in station_names:
             station = Station(station_name)
-            station.store_playlists(start_date, num)
+            station.fetch_playlists(start_date, num, dryrun)
+    elif cmd == 'validate':
+        for station_name in station_names:
+            station = Station(station_name)
+            station.validate_playlists()
 
 if __name__ == '__main__':
     main()

@@ -60,34 +60,29 @@ Status values
 * ``failed``
 * ``day_zero``
 
-----------------
-Station Commands
-----------------
+--------------
+Station Module
+--------------
 
-:list:
-   List all (or specified) stations
+**Commands:**
 
-:create:
-   Create new station (skip if station exists)
+--list       List all (or specified) stations
+--create     Create new station (skip if station exists)
+--playlists  List playlists for station (fail if station does not exist)
+--fetch      Fetch playlists for station (fail if station does not exist)
+--validate   Validate playlist metadata for station (fail if station does not exist)
 
-:playlists:
-   List playlists for station (fail if station does not exist)
+**Common flags:**
 
-:fetch:
-   Fetch playlists for station (fail if station does not exist)
+--skip       Skip (rather than fail) if station does not exist
 
-:validate:
-   Validate playlist metadata for station (fail if station does not exist)
+**Playlist flags:**
 
-Common flags:
-
---name=name  comma-separated list of names (or 'all'), default: all
---skip       skip (rather than fail) if station does not exist
-
-Playlist flags:
-
---date=date  start date to list, fetch, or validate
-
---num=num    number of additional dates to list, fetch, or validate (positive indicates
+--date=date  Start date to list, fetch, or validate
+--num=num    Number of additional dates to list, fetch, or validate (positive indicates
              forward in time from start date, negative indicates backward in time), default: 0
---force      overwrite existing playlists (otherwise skip over), applies only to fetch
+--force      Overwrite existing playlists (otherwise skip over), applies only to fetch
+
+**Arguments:**
+
+:name:       Comma-separated list of names (or 'all'), default: all
