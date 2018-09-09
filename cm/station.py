@@ -129,6 +129,7 @@ class Station(object):
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
         self.playlist_min      = self.info.get('playlist_min')
+        self.http_headers      = self.info.get('http_headers', {})
 
         self.state = None
         self.playlists = None
@@ -177,7 +178,7 @@ class Station(object):
     def build_date(self, date):
         """Builds date string based on date_fmt, which is a required attribute in the station info
         """
-        return date.strftime(self.date_fmt)
+        return date.strftime(self.date_fmt).lower()
 
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
@@ -302,7 +303,7 @@ class Station(object):
             sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
 
         if not dummy:
-            r = sess.get(self.build_url(date))
+            r = sess.get(self.build_url(date), headers=self.http_headers)
             playlist_content = r.content
         else:
             doc = {
