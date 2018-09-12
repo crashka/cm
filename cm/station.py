@@ -9,6 +9,7 @@ import re
 import json
 import glob
 import datetime as dt
+import pytz
 from time import sleep
 from enum import Enum
 import logging
@@ -136,6 +137,11 @@ log.addHandler(dlft_hand)
 # requests session
 sess = requests.Session()
 
+def str2date(datestr, fmt = STD_DATE_FMT):
+    """Returns dt.date object
+    """
+    return dt.datetime.strptime(datestr, fmt).date()
+
 #################
 # Station class #
 #################
@@ -191,7 +197,7 @@ class Station(object):
         try:
             return self.config[key]
         except KeyError:
-            raise AttributeError
+            raise AttributeError()
 
     def station_info(self, keys = INFO_KEYS, exclude = None):
         if type(keys) not in (set, list, tuple):
@@ -207,6 +213,7 @@ class Station(object):
             json.dump(self.station_info(), f, indent=2)
         with open(self.playlists_file, 'w') as f:
             json.dump(self.playlists, f, indent=2)
+        log.info("Writing state for %s" % (self.name))
 
     def load_state(self, force = False):
         """
@@ -303,8 +310,8 @@ class Station(object):
         if len(fs_playlists) == 0:
             return
 
-        min_date = dt.datetime.strptime(min(fs_playlists), STD_DATE_FMT).date()
-        max_date = dt.datetime.strptime(max(fs_playlists), STD_DATE_FMT).date()
+        min_date = str2date(min(fs_playlists))
+        max_date = str2date(max(fs_playlists))
         ord_list = range(min_date.toordinal(), max_date.toordinal())
         all_dates = {dt.date.fromordinal(ord).strftime(STD_DATE_FMT) for ord in ord_list}
         missing = all_dates.difference(fs_playlists)
@@ -329,6 +336,30 @@ class Station(object):
     def fetch_playlists(self, start_date, num = 1, dryrun = False):
         """Write specified playlists to filesystem
         """
+        if type(start_date) in (unicode, str):
+            try:
+                if start_date == Fetch.CATCHUP:
+                    self.validate_playlists(dryrun=True)  # no need to store state yet
+                    start_date = str2date(self.state.get(State.LATEST)) + dt.timedelta(1)
+                    tz = pytz.timezone(self.time_zone)
+                    today = dt.datetime.now(tz).date()
+                    num = (today - start_date).days
+                    if num < 0:
+                        raise RuntimeError("Latest playlist newer than yesterday")
+                elif start_date == Fetch.MISSING:
+                    raise ValueError("Not yet implemented")
+                elif start_date == Fetch.INVALID:
+                    raise ValueError("Not yet implemented")
+                else:
+                    start_date = str2date(start_date)
+            except ValueError:
+                raise RuntimeError("Invalid date to fetch")
+
+        if num == 0:
+            return  # nothing to do
+
+        # do this using ordinals instead of timedelta, since the math syntax is more native
+        # (and hence logic more dependable)
         start_ord = start_date.toordinal()
         end_ord   = start_ord + num
         ord_step  = (1, -1)[num < 0]
@@ -340,9 +371,8 @@ class Station(object):
                 log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
                 continue
             playlist_text = self.fetch_playlist(date)
-            if dryrun:
-                prettyprint(playlist_text)
-            else:
+            log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
+            if not dryrun:
                 with open(playlist_file, 'w') as f:
                     f.write(playlist_text)
                 status = PlaylistStatus.OK
@@ -354,9 +384,6 @@ class Station(object):
                     PlaylistAttr.SIZE   : len(playlist_text),
                     PlaylistAttr.STATUS : status
                 }
-                log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
-
-        if not dryrun:
             self.store_state()
 
     def fetch_playlist(self, date, dummy = False):
@@ -428,14 +455,9 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
             playlists = station.get_playlists()
             prettyprint(sorted(playlists))
     elif cmd == 'fetch':
-        try:
-            start_date = dt.datetime.strptime(date, STD_DATE_FMT).date()
-        except ValueError:
-            raise RuntimeError("Invalid date to fetch")
-
         for station_name in station_names:
             station = Station(station_name)
-            station.fetch_playlists(start_date, num, dryrun)
+            station.fetch_playlists(date, num, dryrun)
     elif cmd == 'validate':
         for station_name in station_names:
             station = Station(station_name)
