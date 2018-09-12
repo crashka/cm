@@ -49,11 +49,18 @@ default:
       playlist_ext: 'html'
 
     WETA:
-      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
-      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value]<DATE_STR>'
-      date_fmt:     '[date]=%m/%d/%Y'
+      sample_url:   'https://weta.org/fm/playlists/2018-09-08'
+      url_fmt:      'https://weta.org/fm/playlists/<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
+
+#    WETA-OLD:
+#      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
+#      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value]<DATE_STR>'
+#      date_fmt:     '[date]=%m/%d/%Y'
+#      time_zone:    'America/New_York'
+#      playlist_ext: 'html'
 
     WFMT:
       sample_url:   'https://www.wfmt.com/schedule/?pldate=08/05/2018'
@@ -63,11 +70,18 @@ default:
       playlist_ext: 'html'
 
     WQXR:
-      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
-      url_fmt:      'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
+      sample_url:   'https://www.wqxr.org/api/schedule_playlist_json/wqxr/2017/sep/01/'
+      url_fmt:      'https://www.wqxr.org/api/schedule_playlist_json/wqxr/<DATE_STR>/'
       date_fmt:     '%Y/%b/%d'  # %b must be lowercased
       time_zone:    'America/New_York'
-      playlist_ext: 'html'
+      playlist_ext: 'json'
+
+#    WQXR-OLD:
+#      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
+#      url_fmt:      'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
+#      date_fmt:     '%Y/%b/%d'  # %b must be lowercased
+#      time_zone:    'America/New_York'
+#      playlist_ext: 'html'
 
     WWFM:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'

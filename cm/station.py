@@ -10,6 +10,7 @@ import json
 import glob
 import datetime as dt
 from time import sleep
+from enum import Enum
 import logging
 
 import yaml
@@ -62,10 +63,52 @@ REQUIRED_ATTRS = set(['url_fmt',
                       'playlist_ext'])
 STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
 INFO_KEYS      = set(['name',
-                      'info',
+                      'status',
+                      'config',
                       'state',
                       'playlists',
                       'shows'])
+
+NOPRINT_KEYS   = set(['playlists'])
+
+class Status(Enum):
+    """Station status values
+    """
+    UNKNOWN  = 'unknown'
+    CREATED  = 'created'
+    ACTIVE   = 'active'
+    INVALID  = 'invalid'
+    DISABLED = 'disabled'
+
+class Fetch(Enum):
+    """Fetch target special values
+    """
+    CATCHUP  = 'catchup'
+    MISSING  = 'missing'
+    INVALID  = 'invalid'
+
+class State(Enum):
+    """State structure fields
+    """
+    TOTAL    = 'total'
+    EARLIEST = 'earliest'
+    LATEST   = 'latest'
+    VALID    = 'valid'
+    MISSING  = 'missing'
+    INVALID  = 'invalid'
+
+class PlaylistAttr(Enum):
+    """
+    """
+    FILE     = 'file'
+    SIZE     = 'size'
+    STATUS   = 'status'
+
+class PlaylistStatus(Enum):
+    """
+    """
+    OK       = 'ok'
+    NOTOK    = 'notok'
 
 # kindly internet fetch interval
 FETCH_INT      = 2.0
@@ -112,11 +155,12 @@ class Station(object):
         """
         log.info("instantiating Station(%s)" % (name))
         self.name = name
-        self.info = STATIONS.get(name)
-        if not self.info:
+        self.status = Status.CREATED
+        self.config = STATIONS.get(name)
+        if not self.config:
             raise RuntimeError("Station \"%s\" not known" % (name))
         for attr in REQUIRED_ATTRS:
-            if attr not in self.info:
+            if attr not in self.config:
                 raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
 
         # extract tokens in url_fmt upfront
@@ -128,12 +172,14 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
-        self.playlist_min      = self.info.get('playlist_min')
-        self.http_headers      = self.info.get('http_headers', {})
+        self.playlist_min      = self.config.get('playlist_min')
+        self.http_headers      = self.config.get('http_headers', {})
 
         self.state = None
         self.playlists = None
         self.load_state()
+        if self.status == Status.CREATED:
+            self.status = Status.ACTIVE if self.valid() else Status.INVALID
 
         self.last_fetch = dt.datetime.utcnow() - FETCH_DELTA
         
@@ -143,12 +189,16 @@ class Station(object):
 
     def __getattr__(self, key):
         try:
-            return self.info[key]
+            return self.config[key]
         except KeyError:
             raise AttributeError
 
-    def station_info(self):
-        return {k: v for k, v in self.__dict__.items() if k in INFO_KEYS}
+    def station_info(self, keys = INFO_KEYS, exclude = None):
+        if type(keys) not in (set, list, tuple):
+            keys = [keys]
+        elif type(exclude) == set and type(keys) == set:
+            keys = keys - exclude
+        return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def store_state(self):
         """
@@ -158,7 +208,7 @@ class Station(object):
         with open(self.playlists_file, 'w') as f:
             json.dump(self.playlists, f, indent=2)
 
-    def load_state(self, force=False):
+    def load_state(self, force = False):
         """
         """
         if self.state is None or force:
@@ -195,7 +245,7 @@ class Station(object):
 
         return url
 
-    def check(self, validate=False):
+    def check(self, validate = False):
         """Return True if station exists (and passes validation test, if requested)
         """
         created = os.path.exists(self.station_dir) and os.path.isdir(self.station_dir)
@@ -211,7 +261,7 @@ class Station(object):
         valid = os.path.exists(self.playlist_dir) and os.path.isdir(self.playlist_dir)
         return valid
 
-    def create(self, dryrun=False):
+    def create(self, dryrun = False):
         """Create station (raise exception if it already exists)
         """
         if self.check():
@@ -236,13 +286,13 @@ class Station(object):
         filename = self.playlist_name(date) + '.' + self.playlist_ext
         return os.path.join(self.playlist_dir, filename)
 
-    def get_playlists(self, start_date=None, num=1):
+    def get_playlists(self, start_date = None, num = 1):
         """Return names of playlists (from playlists directory)
         """
         files = glob.glob(os.path.join(self.playlist_dir, '*'))
         return {os.path.splitext(os.path.basename(file))[0] for file in files}
 
-    def validate_playlists(self):
+    def validate_playlists(self, dryrun = False):
         """
         """
         fs_playlists = self.get_playlists()
@@ -260,8 +310,23 @@ class Station(object):
         missing = all_dates.difference(fs_playlists)
         if len(missing) > 0:
             raise RuntimeError("Missing playlists for: " + str(sorted(missing)))
+
+        # REVISIT: do we really want to just overwrite???
+        self.state = {
+            State.TOTAL    : len(self.playlists),
+            State.EARLIEST : min(fs_playlists),
+            State.LATEST   : max(fs_playlists),
+            # TEMP: None means we don't know!
+            State.VALID    : None,
+            State.MISSING  : None,
+            State.INVALID  : None
+        }
+        log.debug("Validated playlist info\n%s" % (prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
+
+        if not dryrun:
+            self.store_state()
     
-    def fetch_playlists(self, start_date, num=1, dryrun=False):
+    def fetch_playlists(self, start_date, num = 1, dryrun = False):
         """Write specified playlists to filesystem
         """
         start_ord = start_date.toordinal()
@@ -280,21 +345,21 @@ class Station(object):
             else:
                 with open(playlist_file, 'w') as f:
                     f.write(playlist_text)
-                status = 'ok'
+                status = PlaylistStatus.OK
                 if self.playlist_min and len(playlist_text) < self.playlist_min:
                     log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_content)))
-                    status = 'notok'
+                    status = PlaylistStatus.NOTOK
                 self.playlists[playlist_name] = {
-                    'file': playlist_file,
-                    'size': len(playlist_text),
-                    'status': status
+                    PlaylistAttr.FILE   : playlist_file,
+                    PlaylistAttr.SIZE   : len(playlist_text),
+                    PlaylistAttr.STATUS : status
                 }
                 log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
 
         if not dryrun:
             self.store_state()
 
-    def fetch_playlist(self, date, dummy=False):
+    def fetch_playlist(self, date, dummy = False):
         """Fetch playlist information from internet
         """
         elapsed = dt.datetime.utcnow() - self.last_fetch
@@ -352,7 +417,7 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
         for station_name in station_list:
             if station_name in station_names:
                 station = Station(station_name)
-                prettyprint(station.station_info())
+                prettyprint(station.station_info(exclude=NOPRINT_KEYS))
     if cmd == 'create':
         for station_name in station_names:
             station = Station(station_name)
@@ -374,7 +439,7 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
     elif cmd == 'validate':
         for station_name in station_names:
             station = Station(station_name)
-            station.validate_playlists()
+            station.validate_playlists(dryrun)
 
 if __name__ == '__main__':
     main()

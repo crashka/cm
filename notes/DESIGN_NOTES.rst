@@ -20,11 +20,38 @@ station_info.json
 
   {
     name:      <name>,
-    info:      {...},
+    status:    <status>,
+    config:    {...},
     state:     {...},
     playlists: {...},
     shows:     {... }
   }
+
+``config`` fields (from config file):
+
+* url_fmt - substition tokens as <TOKEN_NAME>; magic tokens (local variables or station attributes):
+   * DATE_STR
+* date_fmt - uses strftime tokens (e.g. %Y, %m, %d)
+* time_zone - "tz" values
+   * ``America/New_York``
+   * ``America/Chicago``
+   * ``America/Denver``
+   * ``America/Los_Angeles``
+* playlist_ext - currently: json or html
+
+``state`` fields (written by validation process):
+
+* pl_total (count)
+* pl_earliest (Y-m-d)
+* pl_latest (Y-m-d)
+* pl_valid (count)
+* pl_missing (count)
+* pl_invalid (count)
+
+``playlists`` schema
+
+* currently same as playlists.json (see below), which  may be going away, as soon as validation logic is fully developed
+* *[if/when playlists.json goes away, schema description should be moved here]*
 
 --------------
 playlists.json
@@ -33,28 +60,22 @@ playlists.json
 ::
 
   {
-    <%Y-%m-%d>: {
+    <pl_date>: {
       file:   <filename>,
       status: <status value>
     },
-    <%Y-%m-%d>: {
+    <pl_date>: {
       ...
     },
     ...
   }
 
----------------
-Timezone values
----------------
+Notes
 
-* ``America/New_York``
-* ``America/Chicago``
-* ``America/Denver``
-* ``America/Los_Angeles``
+* ``pl_date`` specified as Y-m-d format
+* ``filename`` specified as relative pathname (from station directory)
 
--------------
-Status values
--------------
+**Status values**
 
 * ``ok``
 * ``failed``
@@ -91,7 +112,65 @@ Station Module
 To Do - Features
 ----------------
 
-* fetch missing playlists
 * catch up on playlists
-* validate playlist contents
-* rebuild metadata based on contents
+* get rid of playlists.json
+* make printing consistent for CLI commands
+* write valid, missing, invalid to state structure
+* fetch missing playlists
+* validate playlist contents, record as metadata
+
+-------------
+Working Notes
+-------------
+
+**Station status values**
+
+* **unknown** - not in config file
+   * Currently: ``Station`` object constructor fails
+* **created** - newly created (e.g. implicitly) but not yet validated
+   * Station directory exists
+   * ``station_info.json`` file exists
+   * ``playlists`` directory exists
+* **active** - created + validation
+   * Station is created
+   * Metadata is created and consistent
+* **invalid** - validation fails (needs manual fixup before validation)
+   * Metadata is found to be inconsistent
+   * Must be manually fixed up and revalidated (for now)
+      * Perhaps later: automated fixup operation
+   * Otherwise similar to "disabled"
+* **disabled** - manually disabled
+   * Must be manually enabled and revalidated
+
+**Creation process**
+
+* Create station directory (fail if already exists)
+* Create ``playlists`` sub-directory
+* Create ``station_info.json``
+   * Write ``name`` and ``status`` fields
+   * Write ``config`` structure (from config file)
+   * Empty structures for ``state`` and ``playlists`` (managed by validation process)
+* TEMP: write ``playlists.json`` file
+
+**Validation process**
+
+* High-level validation:
+   * Check existence and JSON integrity of ``station_info.json`` file
+* Scan ``playlists`` sub-directory
+   * Confirm (or update) ``playlists`` info structure
+   * Record earliest and latest playlists, determine count, missing, etc.
+   * Update ``state`` info structure
+   * Set ``state`` value (either "active" or "invalid")
+   * Write ``station_info.json`` file
+   * TEMP: write ``playlists.json`` file
+   * LATER: validate playlist contents, confirm/update playlist metadata
+
+**Fetch playlists**
+
+* Fetch targets:
+   * **range** (i.e. start date + number)
+   * **catchup** (all since latest in ``playlists``)
+      * Fails if latest is either missing or invalid
+   * **missing** (gaps between earliest and latest)
+   * **invalid** (ignore if marked "dead" or "skip")
+* Only fetch if station is "active"
