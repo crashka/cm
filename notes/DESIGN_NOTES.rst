@@ -108,17 +108,6 @@ Station Module
 
 :name:       Comma-separated list of names (or 'all'), default: all
 
-----------------
-To Do - Features
-----------------
-
-* catch up on playlists
-* get rid of playlists.json
-* make printing consistent for CLI commands
-* write valid, missing, invalid to state structure
-* fetch missing playlists
-* validate playlist contents, record as metadata
-
 -------------
 Working Notes
 -------------
@@ -174,3 +163,25 @@ Working Notes
    * **missing** (gaps between earliest and latest)
    * **invalid** (ignore if marked "dead" or "skip")
 * Only fetch if station is "active"
+
+-------------------
+To Do - Bugs/Tweaks
+-------------------
+
+* add ``--force`` flag to overwrite existing playlists
+* create backup files for station_info.json and playlists.json
+
+----------------
+To Do - Features
+----------------
+
+* Make logging (and printing for CLI commands) consistent
+* Write valid, missing, invalid to state structure
+* Fetch missing playlists
+* Validate playlist contents, record as metadata
+* Break out playlists module
+* Create database schema
+* Create music module
+* Fork/port to python3 (rename to cmir)
+* Locate ``stations`` directory in config.yml (can be outside of cmir)
+* Cron job for updates (fetch catchup)

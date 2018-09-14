@@ -1,7 +1,7 @@
 #!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Station class/functions
+"""Station module
 """
 
 import os
@@ -14,11 +14,10 @@ from time import sleep
 from enum import Enum
 import logging
 
-import yaml
 import click
 import requests
 
-from utils import prettyprint
+from utils import Config, unixtime, prettyprint
 
 ################
 # config stuff #
@@ -29,36 +28,13 @@ BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
 CONFIG_DIR   = 'config'
 CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
-cfg_profiles = dict()  # {profile_name: {section_name: ...}}
-
-def config(section, profile = None):
-    """Get config section for specified profile
-
-    :param section: section within profile (or 'default')
-    :param profile: [optional] if specified, overlay entries on top of 'default' profile
-    :return: dict indexed by key
-    """
-    global cfg_profiles
-    if profile in cfg_profiles:
-        return cfg_profiles[profile].get(section, {})
-
-    with open(CONFIG_PATH, 'r') as f:
-        cfg = yaml.safe_load(f)
-    if cfg:
-        prof_data = cfg.get('default', {})
-        if profile:
-            prof_data.update(cfg.get(profile, {}))
-        cfg_profiles[profile] = prof_data
-    else:
-        cfg_profiles[profile] = {}
-
-    return cfg_profiles[profile].get(section, {})
 
 ##############################
 # common constants/functions #
 ##############################
 
-STATIONS       = config('stations')
+cfg            = Config(CONFIG_PATH)
+STATIONS       = cfg.config('stations')
 REQUIRED_ATTRS = set(['url_fmt',
                       'date_fmt',
                       'playlist_ext'])
@@ -99,14 +75,14 @@ class State(Enum):
     INVALID  = 'invalid'
 
 class PlaylistAttr(Enum):
-    """
+    """Attributes for playlists info section
     """
     FILE     = 'file'
     SIZE     = 'size'
     STATUS   = 'status'
 
 class PlaylistStatus(Enum):
-    """
+    """Playlist status values
     """
     OK       = 'ok'
     NOTOK    = 'notok'
@@ -147,19 +123,21 @@ def str2date(datestr, fmt = STD_DATE_FMT):
 #################
 
 class Station(object):
-    """
+    """Represents a station defined in config.yml
     """
     @staticmethod
     def list():
-        """
+        """List stations that have been created
+
+        :return: sorted list of station names (same as directory names)
         """
         dirs = glob.glob(os.path.join(BASE_DIR, 'stations', '*'))
         return sorted([os.path.basename(dir) for dir in dirs])
 
     def __init__(self, name):
+        """Sets status field locally (but not written back to info file)
         """
-        """
-        log.info("instantiating Station(%s)" % (name))
+        log.debug("Instantiating Station(%s)" % (name))
         self.name = name
         self.status = Status.CREATED
         self.config = STATIONS.get(name)
@@ -200,6 +178,8 @@ class Station(object):
             raise AttributeError()
 
     def station_info(self, keys = INFO_KEYS, exclude = None):
+        """Return station info (canonical fields) as a dict comprehension
+        """
         if type(keys) not in (set, list, tuple):
             keys = [keys]
         elif type(exclude) == set and type(keys) == set:
@@ -207,16 +187,16 @@ class Station(object):
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def store_state(self):
-        """
+        """Writes station info (canonical fields) to station_info.json file
         """
         with open(self.station_info_file, 'w') as f:
             json.dump(self.station_info(), f, indent=2)
         with open(self.playlists_file, 'w') as f:
             json.dump(self.playlists, f, indent=2)
-        log.info("Writing state for %s" % (self.name))
+        log.debug("Storing state for %s\n%s" % (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def load_state(self, force = False):
-        """
+        """Loads station info (canonical fields) from station_info.json file
         """
         if self.state is None or force:
             self.state = {}
@@ -224,6 +204,7 @@ class Station(object):
                 with open(self.station_info_file) as f:
                     station_info = json.load(f)
                 self.state.update(station_info.get('state', {}))
+        log.debug("Loading state for %s\n%s" % (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
 
         if self.playlists is None or force:
             self.playlists = {}
@@ -231,14 +212,22 @@ class Station(object):
                 with open(self.playlists_file) as f:
                     playlists = json.load(f)
                 self.playlists.update(playlists)
+        log.debug("Loading playlists for %s" % (self.name))
+
 
     def build_date(self, date):
         """Builds date string based on date_fmt, which is a required attribute in the station info
+
+        :param date: datetime.date
+        :return: string
         """
         return date.strftime(self.date_fmt).lower()
 
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
+
+        :param date: datetime.date
+        :return: string
         """
         # this is a magic variable name that matches a URL format token
         date_str = self.build_date(date)
@@ -283,24 +272,27 @@ class Station(object):
             print(self.__dict__)
 
     def playlist_name(self, date):
-        """
+        """Playlist name is just the standard date string
         """
         return date.strftime(STD_DATE_FMT)
 
     def playlist_file(self, date):
-        """
+        """Playlist file is playlist name plus data representation extension
         """
         filename = self.playlist_name(date) + '.' + self.playlist_ext
         return os.path.join(self.playlist_dir, filename)
 
     def get_playlists(self, start_date = None, num = 1):
         """Return names of playlists (from playlists directory)
+
+        :return: set
         """
         files = glob.glob(os.path.join(self.playlist_dir, '*'))
         return {os.path.splitext(os.path.basename(file))[0] for file in files}
 
     def validate_playlists(self, dryrun = False):
-        """
+        """Cross-checks playlist files from file system with playlists structure in station info,
+        looks for missing playlists, and writes state structure back to station_info.json file
         """
         fs_playlists = self.get_playlists()
         diff = fs_playlists.symmetric_difference(self.playlists.keys())
@@ -328,7 +320,7 @@ class Station(object):
             State.MISSING  : None,
             State.INVALID  : None
         }
-        log.debug("Validated playlist info\n%s" % (prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
+        log.debug("Validating playlist info for %s" % (self.name))
 
         if not dryrun:
             self.store_state()
@@ -367,6 +359,7 @@ class Station(object):
             date = dt.date.fromordinal(ord)
             playlist_name = self.playlist_name(date)
             playlist_file = self.playlist_file(date)
+            # TODO: allow forcing an overwrite!!!
             if os.path.exists(playlist_file) and os.path.getsize(playlist_file) > 0:
                 log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
                 continue
@@ -380,14 +373,14 @@ class Station(object):
                     log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_content)))
                     status = PlaylistStatus.NOTOK
                 self.playlists[playlist_name] = {
-                    PlaylistAttr.FILE   : playlist_file,
+                    PlaylistAttr.FILE   : os.path.relpath(playlist_file, self.station_dir),
                     PlaylistAttr.SIZE   : len(playlist_text),
                     PlaylistAttr.STATUS : status
                 }
-            self.store_state()
+            self.validate_playlists(dryrun)  # implicitly stores state, if not dryrun
 
     def fetch_playlist(self, date, dummy = False):
-        """Fetch playlist information from internet
+        """Fetch single playlist information (e.g. from internet)
         """
         elapsed = dt.datetime.utcnow() - self.last_fetch
         if elapsed < FETCH_DELTA:
@@ -440,11 +433,9 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
         station_names = name.upper().split(',')
 
     if cmd == 'list':
-        station_list = Station.list()
-        for station_name in station_list:
-            if station_name in station_names:
-                station = Station(station_name)
-                prettyprint(station.station_info(exclude=NOPRINT_KEYS))
+        for station_name in station_names:
+            station = Station(station_name)
+            prettyprint(station.station_info(exclude=NOPRINT_KEYS))
     if cmd == 'create':
         for station_name in station_names:
             station = Station(station_name)
@@ -452,8 +443,7 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
     elif cmd == 'playlists':
         for station_name in station_names:
             station = Station(station_name)
-            playlists = station.get_playlists()
-            prettyprint(sorted(playlists))
+            prettyprint(sorted(station.get_playlists()))
     elif cmd == 'fetch':
         for station_name in station_names:
             station = Station(station_name)
