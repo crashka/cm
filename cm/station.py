@@ -354,6 +354,7 @@ class Station(object):
                 raise RuntimeError("Invalid date to fetch")
 
         if num == 0:
+            log.debug("No playlists to fetch for %s", (self.name))
             return  # nothing to do
 
         # do this using ordinals instead of timedelta, since the math syntax is more native
@@ -361,6 +362,7 @@ class Station(object):
         start_ord = start_date.toordinal()
         end_ord   = start_ord + num
         ord_step  = (1, -1)[num < 0]
+        log.debug("Fetching %d playlist(s) starting with %s" % (num, start_date.strftime(STD_DATE_FMT)))
         for ord in range(start_ord, end_ord, ord_step):
             date = dt.date.fromordinal(ord)
             playlist_name = self.playlist_name(date)
@@ -398,8 +400,8 @@ class Station(object):
             playlist_content = r.content
         else:
             doc = {
+                'type': 'dummy',
                 'name': self.playlist_name(date),
-                'file': self.playlist_file(date),
                 'url':  self.build_url(date)
             }
             playlist_content = json.dumps(doc)

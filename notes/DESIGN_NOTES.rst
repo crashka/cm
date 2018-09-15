@@ -165,32 +165,30 @@ Working Notes
 * Only fetch if station is "active"
 
 **crontab entry**
-
 ::
 
-  15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all > /local/prod/cmprod/log/cm_station.log 2>&1
+  15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
 
 -------------------
 To Do - Bugs/Tweaks
 -------------------
 
 * add ``--force`` flag to overwrite existing playlists
-* get rid of playlists from station_info.json files
-* create backup files for station_info.json and playlists.json
+* get rid of ``playlists`` from ``station_info.json`` file
+* create backup files for ``station_info.json`` and ``playlists.json``
 
 ----------------
 To Do - Features
 ----------------
 
-* rotating log file handler
 * break out playlists module
 * create music module
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
 * fetch missing playlists
 * validate playlist contents, record as metadata
-* go older (to origins) for each station
+* get older playlists (to beginning of time) for all stations
 * archive function for playlists (and station info)
 * create database schema
 * Fork/port to python3 (rename to cmir)
-* locate ``stations`` directory in config.yml (can be outside of cmir)
+* locate ``stations`` directory in ``config.yml`` (can be outside of cmir)
