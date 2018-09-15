@@ -1,9 +1,8 @@
 #! /bin/bash    
 
-dir="$(dirname $(readlink -f $0))"
+scriptdir="$(dirname $(readlink -f $0))"
 
-cd $dir/..
+cd $scriptdir/..
 source venv/bin/activate
 
-cd cm
-python station.py "$@"
+python cm/station.py "$@"
