@@ -181,12 +181,14 @@ To Do - Bugs/Tweaks
 To Do - Features
 ----------------
 
-* break out playlists module
+* create playlists module
 * create music module
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
 * fetch missing playlists
 * validate playlist contents, record as metadata
+* decorator for throttling playlist fetches
+* job queue for playlist fetches (cycle through stations)
 * get older playlists (to beginning of time) for all stations
 * archive function for playlists (and station info)
 * create database schema

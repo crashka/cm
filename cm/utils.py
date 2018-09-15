@@ -4,8 +4,9 @@
 
 import re
 import json
-import yaml
 import datetime as dt
+
+import yaml
 
 #####################
 # config management #
@@ -20,7 +21,8 @@ class Config(object):
     cfg_profiles = dict()  # {config_file: {profile_name: {section_name: ...}}}
 
     def __init__(self, path):
-        """Initialize with path to YAML config file
+        """
+        :param path: path to YAML config file
         """
         self.path = path
         if Config.cfg_profiles.get(self.path) is None:
@@ -53,7 +55,36 @@ class Config(object):
 # util functions #
 ##################
 
+STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
+
+def str2date(datestr, fmt = STD_DATE_FMT):
+    """
+    :param datestr: string
+    :param fmt: [optional] defaults to Y-m-d
+    :return: dt.date object
+    """
+    return dt.datetime.strptime(datestr, fmt).date()
+
+def date2str(date, fmt = STD_DATE_FMT):
+    """
+    :param date: dt.date object
+    :param fmt: [optional] defaults to Y-m-d
+    :return: string
+    """
+    return date.strftime(fmt)
+
+def strtype(string):
+    """
+    :param string:
+    :return: bool
+    """
+    return type(string) in (unicode, str)
+
 def unixtime(tz = None):
+    """
+    :param tz: [optional] tzinfo
+    :return: int
+    """
     return int(dt.datetime.now(tz).strftime('%s'))
 
 def truthy(val):

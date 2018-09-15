@@ -9,16 +9,15 @@ import re
 import json
 import glob
 import datetime as dt
-import pytz
 from time import sleep
-from enum import Enum
 import logging
 import logging.handlers
 
+import pytz
 import click
 import requests
 
-from utils import Config, unixtime, prettyprint
+from utils import Config, prettyprint, str2date, date2str, strtype
 
 ################
 # config stuff #
@@ -39,7 +38,6 @@ STATIONS       = cfg.config('stations')
 REQUIRED_ATTRS = set(['url_fmt',
                       'date_fmt',
                       'playlist_ext'])
-STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
 INFO_KEYS      = set(['name',
                       'status',
                       'config',
@@ -52,23 +50,22 @@ NOPRINT_KEYS   = set(['playlists'])
 
 # REVISIT: with python3, may need to ditch native enums (since value is not implicit
 # in member reference)!!!
-class Status(Enum):
+class Status(object):
     """Station status values
     """
-    UNKNOWN  = 'unknown'
-    CREATED  = 'created'
+    NEW      = 'new'
     ACTIVE   = 'active'
     INVALID  = 'invalid'
     DISABLED = 'disabled'
 
-class Fetch(Enum):
+class Fetch(object):
     """Fetch target special values
     """
     CATCHUP  = 'catchup'
     MISSING  = 'missing'
     INVALID  = 'invalid'
 
-class State(Enum):
+class State(object):
     """State structure fields
     """
     TOTAL    = 'total'
@@ -78,14 +75,14 @@ class State(Enum):
     MISSING  = 'missing'
     INVALID  = 'invalid'
 
-class PlaylistAttr(Enum):
+class PlaylistAttr(object):
     """Attributes for playlists info section
     """
     FILE     = 'file'
     SIZE     = 'size'
     STATUS   = 'status'
 
-class PlaylistStatus(Enum):
+class PlaylistStatus(object):
     """Playlist status values
     """
     OK       = 'ok'
@@ -119,11 +116,6 @@ log.addHandler(dlft_hand)
 # requests session
 sess = requests.Session()
 
-def str2date(datestr, fmt = STD_DATE_FMT):
-    """Returns dt.date object
-    """
-    return dt.datetime.strptime(datestr, fmt).date()
-
 #################
 # Station class #
 #################
@@ -145,7 +137,7 @@ class Station(object):
         """
         log.debug("Instantiating Station(%s)" % (name))
         self.name = name
-        self.status = Status.CREATED
+        self.status = Status.NEW
         self.config = STATIONS.get(name)
         if not self.config:
             raise RuntimeError("Station \"%s\" not known" % (name))
@@ -168,14 +160,10 @@ class Station(object):
         self.state = None
         self.playlists = None
         self.load_state()
-        if self.status == Status.CREATED:
+        if self.status == Status.NEW:
             self.status = Status.ACTIVE if self.valid() else Status.INVALID
 
         self.last_fetch = dt.datetime.utcnow() - FETCH_DELTA
-        
-        # TEMP: just for initial dev/testing!!!
-        self.todays_date = self.build_date(dt.date.today())
-        self.todays_url = self.build_url(dt.date.today())
 
     def __getattr__(self, key):
         try:
@@ -186,6 +174,7 @@ class Station(object):
     def station_info(self, keys = INFO_KEYS, exclude = None):
         """Return station info (canonical fields) as a dict comprehension
         """
+        stat = str(self.status)
         if type(keys) not in (set, list, tuple):
             keys = [keys]
         elif type(exclude) == set and type(keys) == set:
@@ -224,15 +213,15 @@ class Station(object):
     def build_date(self, date):
         """Builds date string based on date_fmt, which is a required attribute in the station info
 
-        :param date: datetime.date
+        :param date: dt.date
         :return: string
         """
-        return date.strftime(self.date_fmt).lower()
+        return date2str(date, self.date_fmt).lower()
 
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
 
-        :param date: datetime.date
+        :param date: dt.date
         :return: string
         """
         # this is a magic variable name that matches a URL format token
@@ -280,7 +269,7 @@ class Station(object):
     def playlist_name(self, date):
         """Playlist name is just the standard date string
         """
-        return date.strftime(STD_DATE_FMT)
+        return date2str(date)
 
     def playlist_file(self, date):
         """Playlist file is playlist name plus data representation extension
@@ -288,10 +277,10 @@ class Station(object):
         filename = self.playlist_name(date) + '.' + self.playlist_ext
         return os.path.join(self.playlist_dir, filename)
 
-    def get_playlists(self, start_date = None, num = 1):
+    def get_playlists(self):
         """Return names of playlists (from playlists directory)
 
-        :return: set
+        :return: set iterator
         """
         files = glob.glob(os.path.join(self.playlist_dir, '*'))
         return {os.path.splitext(os.path.basename(file))[0] for file in files}
@@ -311,7 +300,7 @@ class Station(object):
         min_date = str2date(min(fs_playlists))
         max_date = str2date(max(fs_playlists))
         ord_list = range(min_date.toordinal(), max_date.toordinal())
-        all_dates = {dt.date.fromordinal(ord).strftime(STD_DATE_FMT) for ord in ord_list}
+        all_dates = {date2str(dt.date.fromordinal(ord)) for ord in ord_list}
         missing = all_dates.difference(fs_playlists)
         if len(missing) > 0:
             raise RuntimeError("Missing playlists for: " + str(sorted(missing)))
@@ -330,11 +319,11 @@ class Station(object):
 
         if not dryrun:
             self.store_state()
-    
+
     def fetch_playlists(self, start_date, num = 1, dryrun = False):
         """Write specified playlists to filesystem
         """
-        if type(start_date) in (unicode, str):
+        if strtype(start_date):
             try:
                 if start_date == Fetch.CATCHUP:
                     self.validate_playlists(dryrun=True)  # no need to store state yet
@@ -362,7 +351,7 @@ class Station(object):
         start_ord = start_date.toordinal()
         end_ord   = start_ord + num
         ord_step  = (1, -1)[num < 0]
-        log.debug("Fetching %d playlist(s) starting with %s" % (num, start_date.strftime(STD_DATE_FMT)))
+        log.debug("Fetching %d playlist(s) starting with %s" % (num, date2str(start_date)))
         for ord in range(start_ord, end_ord, ord_step):
             date = dt.date.fromordinal(ord)
             playlist_name = self.playlist_name(date)
@@ -378,7 +367,7 @@ class Station(object):
                     f.write(playlist_text)
                 status = PlaylistStatus.OK
                 if self.playlist_min and len(playlist_text) < self.playlist_min:
-                    log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_content)))
+                    log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_text)))
                     status = PlaylistStatus.NOTOK
                 self.playlists[playlist_name] = {
                     PlaylistAttr.FILE   : os.path.relpath(playlist_file, self.station_dir),
@@ -444,7 +433,7 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
         for station_name in station_names:
             station = Station(station_name)
             prettyprint(station.station_info(exclude=NOPRINT_KEYS))
-    if cmd == 'create':
+    elif cmd == 'create':
         for station_name in station_names:
             station = Station(station_name)
             station.create(dryrun)

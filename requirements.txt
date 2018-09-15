@@ -5,7 +5,6 @@ chardet==3.0.4
 click==6.7
 decorator==4.0.10
 docutils==0.14
-enum==0.4.7
 Genshi==0.7.1
 idna==2.7
 jellyfish==0.5.6
