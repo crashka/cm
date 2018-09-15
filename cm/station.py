@@ -13,6 +13,7 @@ import pytz
 from time import sleep
 from enum import Enum
 import logging
+import logging.handlers
 
 import click
 import requests
@@ -28,12 +29,12 @@ BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
 CONFIG_DIR   = 'config'
 CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
+cfg          = Config(CONFIG_PATH)
 
 ##############################
 # common constants/functions #
 ##############################
 
-cfg            = Config(CONFIG_PATH)
 STATIONS       = cfg.config('stations')
 REQUIRED_ATTRS = set(['url_fmt',
                       'date_fmt',
@@ -46,8 +47,11 @@ INFO_KEYS      = set(['name',
                       'playlists',
                       'shows'])
 
+# TODO: remove playlists from station_info!!!
 NOPRINT_KEYS   = set(['playlists'])
 
+# REVISIT: with python3, may need to ditch native enums (since value is not implicit
+# in member reference)!!!
 class Status(Enum):
     """Station status values
     """
@@ -87,18 +91,20 @@ class PlaylistStatus(Enum):
     OK       = 'ok'
     NOTOK    = 'notok'
 
-# kindly internet fetch interval
-FETCH_INT      = 2.0
-FETCH_DELTA    = dt.timedelta(0, FETCH_INT)
+# kindly internet fetch interval (TODO: move to config file!!!)
+FETCH_INT    = 2.0
+FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
 
-# create logger
-LOGGER_NAME = 'cm'
-LOG_DIR     = 'log'
-LOG_FILE    = LOGGER_NAME + '.log'
-LOG_PATH    = os.path.join(BASE_DIR, LOG_DIR, LOG_FILE)
-LOG_FMTR    = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s')
+# create logger (TODO: logging parameters belong in config file as well!!!)
+LOGGER_NAME  = 'cm'
+LOG_DIR      = 'log'
+LOG_FILE     = LOGGER_NAME + '.log'
+LOG_PATH     = os.path.join(BASE_DIR, LOG_DIR, LOG_FILE)
+LOG_FMTR     = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s')
+LOG_FILE_MAX = 50000000
+LOG_FILE_NUM = 99
 
-dlft_hand = logging.FileHandler(LOG_PATH)
+dlft_hand = logging.handlers.RotatingFileHandler(LOG_PATH, 'a', LOG_FILE_MAX, LOG_FILE_NUM)
 dlft_hand.setLevel(logging.DEBUG)
 dlft_hand.setFormatter(LOG_FMTR)
 
