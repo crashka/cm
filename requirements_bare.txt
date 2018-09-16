@@ -2,3 +2,5 @@ pytz
 pyyaml
 click
 requests
+psycopg2-binary
+sqlalchemy

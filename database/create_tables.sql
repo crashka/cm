@@ -8,7 +8,7 @@ CREATE TABLE station (
     frequency       TEXT        NULL       -- informational only
 );
 
-CREATE TABLE show (
+CREATE TABLE program (
     id              INTEGER     PRIMARY KEY,
     name            TEXT        NOT NULL,
     host_name       TEXT        NULL,
@@ -16,12 +16,12 @@ CREATE TABLE show (
     station_id      INTEGER     NULL REFERENCES station,
 
     -- canonicality
-    is_canonical    BOOLEAN     NULL,                  -- true if syndication master
-    cnl_show_id     INTEGER     NULL REFERENCES show,  -- points to self, if canonical
-    show_uri        TEXT        NULL
+    is_canonical    BOOLEAN     NULL,                     -- true if syndication master
+    cnl_program_id  INTEGER     NULL REFERENCES program,  -- points to self, if canonical
+    program_uri     TEXT        NULL
 );
 
-CREATE TABLE album (
+CREATE TABLE recording (
     id              INTEGER     PRIMARY KEY,
     name            TEXT        NOT NULL,
     label           TEXT        NULL,
@@ -94,7 +94,7 @@ CREATE TABLE play (
 
     -- foreign keys
     station_id      INTEGER      NULL REFERENCES station,
-    show_id         INTEGER      NULL REFERENCES show,
+    program_id      INTEGER      NULL REFERENCES program,
     composer_id     INTEGER      NULL REFERENCES person,
     piece_id        INTEGER      NULL REFERENCES piece,
     -- note: typically, there will be either artist(s) OR ensemble(s)
@@ -104,7 +104,7 @@ CREATE TABLE play (
     ensemble_ids    INTEGER[]    NULL,      -- REFERENCES ensemble
     conductor_id    INTEGER      NULL REFERENCES person,
     soloist_ids     INTEGER[]    NULL,      -- REFERENCES performer
-    album_id        INTEGER      NULL REFERENCES album,
+    recording_id    INTEGER      NULL REFERENCES recording,
 
     -- miscellaneous
     notes           TEXT[]       NULL,

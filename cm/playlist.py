@@ -10,18 +10,7 @@ import logging
 import click
 
 import station
-from utils import Config, prettyprint, str2date, date2str, strtype
-
-################
-# config stuff #
-################
-
-FILE_DIR     = os.path.dirname(os.path.realpath(__file__))
-BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
-CONFIG_DIR   = 'config'
-CONFIG_FILE  = 'config.yml'
-CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
-cfg          = Config(CONFIG_PATH)
+from utils import prettyprint, str2date, date2str, strtype
 
 ##############################
 # common constants/functions #
@@ -44,6 +33,7 @@ class Status(object):
     DISABLED = 'disabled'
 
 # shared resources from station
+cfg      = station.cfg
 log      = station.log
 sess     = station.sess
 dbg_hand = station.dbg_hand

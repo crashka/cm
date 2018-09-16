@@ -164,6 +164,71 @@ Working Notes
    * **invalid** (ignore if marked "dead" or "skip")
 * Only fetch if station is "active"
 
+**Parse playlists**
+
+* Structures
+   * Playlist info
+      * ``programs``
+      * ``plays`` (possibly child of programs)
+   * Program info
+      * start_datetime
+      * end_datetime
+      * duration
+      * master_program (dbref)
+      * prog_name
+      * prog_notes
+      * tags
+      * plays(???)
+   * Play info
+      * start_datetime
+      * end_datetime
+      * duration
+      * data (blob)
+      * fields_raw
+      * fields_tagged
+      * master_work (dbref)
+      * master_rec (dbref)
+      * master_comp (denorm from work)
+      * master_perfs[] (dbrefs)
+         * support "unknown" perf role
+* Steps
+   * loop through programs/plays
+      * set current prog
+      * set current play
+      * parse out raw fields
+         * normalize fields
+         * tag fields
+         * dblookups on fields
+
+**Music lib**
+
+* functions
+   * dedup program/plays
+   * dedup program fragments (sequences)
+   * create metadata for one-off programs/plays
+   * create masters for syndicated programs
+   * create masters for weekly programs
+   * create masters for syndicated plays
+   * archivmusic lookups
+* notes
+   * template for parsing
+      * DSL based on:
+         * formatting
+         * position
+         * keywords/regexp
+      * exception handling
+         * place unparseable entries in quarantine
+      * fuzzy matching (with confidence score) by field type
+         * person
+         * role (e.g. instrument, conductor, leader, etc.)
+         * performer (person + role)
+         * composer
+         * piece (work)
+         * recording (label + catno)
+         * recording date (esp. for live)
+         * program
+      * on fuzzy match, queue to learning module (qualified by score)
+        
 **crontab entry**
 ::
 
