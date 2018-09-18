@@ -22,7 +22,6 @@ import requests
 
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype
 
-
 ################
 # config stuff #
 ################
@@ -33,37 +32,45 @@ CONFIG_DIR   = 'config'
 CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
 cfg          = Config(CONFIG_PATH)
-
+STATIONS     = cfg.config('stations')
 
 ##############################
 # common constants/functions #
 ##############################
 
-STATIONS       = cfg.config('stations')
-REQUIRED_ATTRS = set(['url_fmt',
-                      'date_fmt',
-                      'playlist_ext'])
+ConfigKey      = LOV(['URL_FMT',
+                      'DATE_FMT',
+                      'DATE_FUNC',
+                      'DATE_METH',
+                      'EPOCH',
+                      'PLAYLIST_EXT',
+                      'PLAYLIST_MIN',
+                      'HTTP_HEADERS'], 'lower')
+REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
+                      ConfigKey.DATE_FMT,
+                      ConfigKey.PLAYLIST_EXT])
+
+# the following correspond to hardwired Station member variables
 INFO_KEYS      = set(['name',
                       'status',
                       'config',
-                      'state',
-                      'playlists',
-                      'shows'])
+                      'state'])
+# if any of the info keys should not be dumped to log file
+NOPRINT_KEYS   = set([])
 
-# TODO: remove playlists from station_info!!!
-NOPRINT_KEYS   = set(['playlists'])
-
-# Lists of Values
+# local module LOVs
 Status         = LOV(['NEW',
                       'ACTIVE',
                       'INVALID',
                       'DISABLED'], 'lower')
 FetchTarg      = LOV(['CATCHUP',
                       'MISSING',
-                      'INVALID'], 'lower')
+                      'INVALID',
+                      'OLDER'], 'lower')
 StateAttr      = LOV(['TOTAL',
                       'EARLIEST',
                       'LATEST',
+                      'EPOCH',
                       'VALID',
                       'MISSING',
                       'INVALID'], 'lower')
@@ -100,7 +107,6 @@ log.addHandler(dlft_hand)
 
 # requests session
 sess = requests.Session()
-
 
 #################
 # Station class #
@@ -142,10 +148,10 @@ class Station(object):
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
         # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
-        self.date_func         = self.config.get('date_func')
-        self.date_meth         = self.config.get('date_meth')
-        self.playlist_min      = self.config.get('playlist_min')
-        self.http_headers      = self.config.get('http_headers', {})
+        self.date_func         = self.config.get(ConfigKey.DATE_FUNC)
+        self.date_meth         = self.config.get(ConfigKey.DATE_METH)
+        self.playlist_min      = self.config.get(ConfigKey.PLAYLIST_MIN)
+        self.http_headers      = self.config.get(ConfigKey.HTTP_HEADERS, {})
 
         self.state = None
         self.playlists = None
@@ -307,6 +313,9 @@ class Station(object):
             StateAttr.TOTAL    : len(self.playlists),
             StateAttr.EARLIEST : min(fs_playlists),
             StateAttr.LATEST   : max(fs_playlists),
+            # TEMP: get epoch from config file, if known (later, figure it out while trying
+            # to fetch older playlists, and keep persistent in station_info.state)!!!
+            StateAttr.EPOCH    : self.config.get(ConfigKey.EPOCH),
             # TEMP: None means we don't know!
             StateAttr.VALID    : None,
             StateAttr.MISSING  : None,
