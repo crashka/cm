@@ -25,15 +25,12 @@ INFO_KEYS    = set(['sta_name',
                     'file'])
 NOPRINT_KEYS = set([])
 
-Status = LOV(['NEW', 'MISSING', 'VALID', 'INVALID', 'DISABLED'], 'lower')
-#class Status(object):
-#    """Playlist status values
-#    """
-#    NEW      = 'new'
-#    MISSING  = 'missing'
-#    VALID    = 'valid'
-#    INVALID  = 'invalid'
-#    DISABLED = 'disabled'
+# Lists of Values
+Status = LOV(['NEW',
+              'MISSING',
+              'VALID',
+              'INVALID',
+              'DISABLED'], 'lower')
 
 # shared resources from station
 cfg      = station.cfg

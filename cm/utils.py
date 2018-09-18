@@ -62,14 +62,14 @@ class LOV(object):
     only names are provided, corresponding values will be generated based on the names
     (either a straight copy, or with the specified string method applied)
     """
-    def __init__(self, values, strfunc = None):
+    def __init__(self, values, strmeth = None):
         """
         :param values: either list/set/tuple of names, or dict (for specified values)
-        :param strfunc: name of a string method to apply to LOV values (e.g. 'lower')
+        :param strmeth: name of a string method to apply to LOV values (e.g. 'lower')
         """
         if type(values) in (list, set, tuple):
-            if strfunc:
-                self._mydict = {m: getattr(m, strfunc)() for m in values if strtype(m)}
+            if strmeth:
+                self._mydict = {m: getattr(m, strmeth)() for m in values if strtype(m)}
             else:
                 self._mydict = {m: m for m in values if strtype(m)}
         elif type(values) == dict:

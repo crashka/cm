@@ -65,6 +65,7 @@ default:
     WBJC:
       sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
       url_fmt:      'http://www.wbjc.com/2018/playlists/playlist-<DATE_STR>/'
+      http_headers: {'User-Agent': 'Mozilla/5.0'}
       date_fmt:     '%b-%d-%y'
       date_meth:    'lower'
       time_zone:    'America/New_York'
