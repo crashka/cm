@@ -4,3 +4,4 @@ click
 requests
 psycopg2-binary
 sqlalchemy
+future

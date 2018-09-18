@@ -8,6 +8,21 @@ default:
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
 
+    CPR:
+      sample_url:   'http://playlist.cprnetwork.org/api/playlistCL/selectDate:MjAxOC0wOS0xMg=='
+      url_fmt:      'http://playlist.cprnetwork.org/api/playlistCL/selectDate:<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      date_func:    'b64encode'
+      time_zone:    'America/Denver'
+      playlist_ext: 'json'
+
+    HPR:
+      sample_url:   'https://www.houstonpublicmedia.org/classical/schedule/2018/09/12/'
+      url_fmt:      'https://www.houstonpublicmedia.org/classical/schedule/<DATE_STR>/'
+      date_fmt:     '%Y/%m/%d'
+      time_zone:    'America/Chicago'
+      playlist_ext: 'html'
+
     KDFC:
       sample_url:   'https://www.kdfc.com/playlist/2018/09/07/'
       sample_url2:  'https://www.kdfc.com/playlist/2018/09/06/?_pjax=%23main'
@@ -19,10 +34,17 @@ default:
 
     KING:
       sample_url:   'https://www.king.org/music-schedule/?npDate=010118'
-      url_fmt:      'https://www.king.org/music-schedule/?<DATE_STR>'
-      date_fmt:     'npDate=%m%d%y'
+      url_fmt:      'https://www.king.org/music-schedule/?npDate=<DATE_STR>'
+      date_fmt:     '%m%d%y'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+
+    KQAC:
+      sample_url:   'https://daisy.allclassical.org/api/playlist/date/2018-09-12/'
+      url_fmt:      'https://daisy.allclassical.org/api/playlist/date/<DATE_STR>/'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/Los_Angeles'
+      playlist_ext: 'json'
 
     KUSC:
       sample_url:   'https://www.kusc.org/playlist/2018/09/05/'
@@ -33,18 +55,33 @@ default:
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
 
+    MPR:
+      sample_url:   'https://www.classicalmpr.org/playlist/classical-mpr/2018-09-12'
+      url_fmt:      'https://www.classicalmpr.org/playlist/classical-mpr/<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/Chicago'
+      playlist_ext: 'html'
+
+    WBJC:
+      sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
+      url_fmt:      'http://www.wbjc.com/2018/playlists/playlist-<DATE_STR>/'
+      date_fmt:     '%b-%d-%y'
+      date_meth:    'lower'
+      time_zone:    'America/New_York'
+      playlist_ext: 'html'
+
     WCRB:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'
-      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?<DATE_STR>&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
       widgetkey:    '53877c98e1c80a130decb6c8'
-      date_fmt:     'date=%Y-%m-%d'
+      date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
 
     WDAV:
       sample_url:   'https://app.wdav.org/app-playlist/index.cfm?thisday=2017-09-05'
-      url_fmt:      'https://app.wdav.org/app-playlist/index.cfm?<DATE_STR>'
-      date_fmt:     'thisday=%Y-%m-%d'
+      url_fmt:      'https://app.wdav.org/app-playlist/index.cfm?thisday=<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
 
@@ -57,37 +94,47 @@ default:
 
 #    WETA-OLD:
 #      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
-#      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value]<DATE_STR>'
-#      date_fmt:     '[date]=%m/%d/%Y'
+#      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value][date]=<DATE_STR>'
+#      date_fmt:     '%m/%d/%Y'
 #      time_zone:    'America/New_York'
 #      playlist_ext: 'html'
 
     WFMT:
       sample_url:   'https://www.wfmt.com/schedule/?pldate=08/05/2018'
-      url_fmt:      'https://www.wfmt.com/schedule/?<DATE_STR>'
-      date_fmt:     'pldate=%m/%d/%Y'
+      url_fmt:      'https://www.wfmt.com/schedule/?pldate=<DATE_STR>'
+      date_fmt:     '%m/%d/%Y'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+
+    WNED:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/51929c5ce1c8c39684eeee82/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '51929c5ce1c8c39684eeee82'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/New_York'
+      playlist_ext: 'json'
 
     WQXR:
       sample_url:   'https://www.wqxr.org/api/schedule_playlist_json/wqxr/2017/sep/01/'
       url_fmt:      'https://www.wqxr.org/api/schedule_playlist_json/wqxr/<DATE_STR>/'
-      date_fmt:     '%Y/%b/%d'  # %b must be lowercased
+      date_fmt:     '%Y/%b/%d'
+      date_meth:    'lower'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
 
 #    WQXR-OLD:
 #      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
 #      url_fmt:      'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
-#      date_fmt:     '%Y/%b/%d'  # %b must be lowercased
+#      date_fmt:     '%Y/%b/%d'
+#      date_meth:    'lower'
 #      time_zone:    'America/New_York'
 #      playlist_ext: 'html'
 
     WWFM:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'
-      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?<DATE_STR>&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
       widgetkey:    '53a98e36e1c80647e855fc88'
-      date_fmt:     'date=%Y-%m-%d'
+      date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       playlist_min: 5000

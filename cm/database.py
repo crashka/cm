@@ -4,6 +4,8 @@
 """Database module
 """
 
+from __future__ import absolute_import, division, print_function
+
 from sqlalchemy import create_engine, MetaData
 from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint
 from sqlalchemy import Integer, Text, Boolean, Date, Time, Interval

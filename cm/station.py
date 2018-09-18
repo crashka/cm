@@ -4,12 +4,15 @@
 """Station module
 """
 
-import os
+from __future__ import absolute_import, division, print_function
+
+import os.path
 import re
 import json
 import glob
 import datetime as dt
 from time import sleep
+from base64 import b64encode
 import logging
 import logging.handlers
 
@@ -17,7 +20,8 @@ import pytz
 import click
 import requests
 
-from utils import Config, prettyprint, str2date, date2str, strtype
+from utils import Config, LOV, prettyprint, str2date, date2str, strtype
+
 
 ################
 # config stuff #
@@ -29,6 +33,7 @@ CONFIG_DIR   = 'config'
 CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
 cfg          = Config(CONFIG_PATH)
+
 
 ##############################
 # common constants/functions #
@@ -48,45 +53,25 @@ INFO_KEYS      = set(['name',
 # TODO: remove playlists from station_info!!!
 NOPRINT_KEYS   = set(['playlists'])
 
-# REVISIT: with python3, may need to ditch native enums (since value is not implicit
-# in member reference)!!!
-class Status(object):
-    """Station status values
-    """
-    NEW      = 'new'
-    ACTIVE   = 'active'
-    INVALID  = 'invalid'
-    DISABLED = 'disabled'
-
-class Fetch(object):
-    """Fetch target special values
-    """
-    CATCHUP  = 'catchup'
-    MISSING  = 'missing'
-    INVALID  = 'invalid'
-
-class State(object):
-    """State structure fields
-    """
-    TOTAL    = 'total'
-    EARLIEST = 'earliest'
-    LATEST   = 'latest'
-    VALID    = 'valid'
-    MISSING  = 'missing'
-    INVALID  = 'invalid'
-
-class PlaylistAttr(object):
-    """Attributes for playlists info section
-    """
-    FILE     = 'file'
-    SIZE     = 'size'
-    STATUS   = 'status'
-
-class PlaylistStatus(object):
-    """Playlist status values
-    """
-    OK       = 'ok'
-    NOTOK    = 'notok'
+# Lists of Values
+Status         = LOV(['NEW',
+                      'ACTIVE',
+                      'INVALID',
+                      'DISABLED'], 'lower')
+FetchTarg      = LOV(['CATCHUP',
+                      'MISSING',
+                      'INVALID'], 'lower')
+StateAttr      = LOV(['TOTAL',
+                      'EARLIEST',
+                      'LATEST',
+                      'VALID',
+                      'MISSING',
+                      'INVALID'], 'lower')
+PlaylistAttr   = LOV(['FILE',
+                      'SIZE',
+                      'STATUS'], 'lower')
+PlaylistStatus = LOV(['OK',
+                      'NOTOK'], 'lower')
 
 # kindly internet fetch interval (TODO: move to config file!!!)
 FETCH_INT    = 2.0
@@ -115,6 +100,7 @@ log.addHandler(dlft_hand)
 
 # requests session
 sess = requests.Session()
+
 
 #################
 # Station class #
@@ -154,6 +140,10 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
+        # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
+        # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
+        self.date_func         = self.config.get('date_func')
+        self.date_meth         = self.config.get('date_meth')
         self.playlist_min      = self.config.get('playlist_min')
         self.http_headers      = self.config.get('http_headers', {})
 
@@ -209,14 +199,21 @@ class Station(object):
                 self.playlists.update(playlists)
         log.debug("Loading playlists for %s" % (self.name))
 
-
     def build_date(self, date):
         """Builds date string based on date_fmt, which is a required attribute in the station info
+        (applying either date_func or date_meth, if specified)
 
         :param date: dt.date
         :return: string
         """
-        return date2str(date, self.date_fmt).lower()
+        datestr = date2str(date, self.date_fmt)
+        if self.date_func:
+            # note that date_func needs to be in the module namespace (e.g. imported)
+            return globals()[self.date_func](datestr)
+        elif self.date_meth:
+            return getattr(datestr, self.date_meth)()
+        else:
+            return datestr
 
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
@@ -307,13 +304,13 @@ class Station(object):
 
         # REVISIT: do we really want to just overwrite???
         self.state = {
-            State.TOTAL    : len(self.playlists),
-            State.EARLIEST : min(fs_playlists),
-            State.LATEST   : max(fs_playlists),
+            StateAttr.TOTAL    : len(self.playlists),
+            StateAttr.EARLIEST : min(fs_playlists),
+            StateAttr.LATEST   : max(fs_playlists),
             # TEMP: None means we don't know!
-            State.VALID    : None,
-            State.MISSING  : None,
-            State.INVALID  : None
+            StateAttr.VALID    : None,
+            StateAttr.MISSING  : None,
+            StateAttr.INVALID  : None
         }
         log.debug("Validating playlist info for %s" % (self.name))
 
@@ -325,17 +322,17 @@ class Station(object):
         """
         if strtype(start_date):
             try:
-                if start_date == Fetch.CATCHUP:
+                if start_date == FetchTarg.CATCHUP:
                     self.validate_playlists(dryrun=True)  # no need to store state yet
-                    start_date = str2date(self.state.get(State.LATEST)) + dt.timedelta(1)
+                    start_date = str2date(self.state.get(StateAttr.LATEST)) + dt.timedelta(1)
                     tz = pytz.timezone(self.time_zone)
                     today = dt.datetime.now(tz).date()
                     num = (today - start_date).days
                     if num < 0:
                         raise RuntimeError("Latest playlist newer than yesterday")
-                elif start_date == Fetch.MISSING:
+                elif start_date == FetchTarg.MISSING:
                     raise ValueError("Not yet implemented")
-                elif start_date == Fetch.INVALID:
+                elif start_date == FetchTarg.INVALID:
                     raise ValueError("Not yet implemented")
                 else:
                     start_date = str2date(start_date)
@@ -399,6 +396,7 @@ class Station(object):
         # TODO: this really needs to return metadata around the playlist, not
         # just the contents!!!
         return playlist_content
+
 
 #####################
 # command line tool #

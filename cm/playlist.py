@@ -4,13 +4,15 @@
 """Playlist module
 """
 
+from __future__ import absolute_import, division, print_function
+
 import os.path
 import logging
 
 import click
 
 import station
-from utils import prettyprint, str2date, date2str, strtype
+from utils import LOV, prettyprint, str2date, date2str, strtype
 
 ##############################
 # common constants/functions #
@@ -23,14 +25,15 @@ INFO_KEYS    = set(['sta_name',
                     'file'])
 NOPRINT_KEYS = set([])
 
-class Status(object):
-    """Playlist status values
-    """
-    NEW      = 'new'
-    MISSING  = 'missing'
-    VALID    = 'valid'
-    INVALID  = 'invalid'
-    DISABLED = 'disabled'
+Status = LOV(['NEW', 'MISSING', 'VALID', 'INVALID', 'DISABLED'], 'lower')
+#class Status(object):
+#    """Playlist status values
+#    """
+#    NEW      = 'new'
+#    MISSING  = 'missing'
+#    VALID    = 'valid'
+#    INVALID  = 'invalid'
+#    DISABLED = 'disabled'
 
 # shared resources from station
 cfg      = station.cfg
@@ -45,6 +48,11 @@ dbg_hand = station.dbg_hand
 class Playlist(object):
     """Represents a playlist for a station
     """
+    PARSER_MAP = {
+        'json': 'parse_json',
+        'html': 'parse_html'
+    }
+
     @staticmethod
     def list(sta):
         """List playlists for a station
@@ -77,6 +85,25 @@ class Playlist(object):
         elif type(exclude) == set and type(keys) == set:
             keys = keys - exclude
         return {k: v for k, v in self.__dict__.items() if k in keys}
+
+    def parse(self):
+        """Return station info (canonical fields) as a dict comprehension
+        """
+        format = self.station.playlist_ext
+        parser_name = Playlist.PARSER_MAP.get(format)
+        if not parser_name:
+            raise RuntimeError("playlist format %s not known" % (format))
+        return getattr(Playlist, parser_name)(self)
+
+    def parse_json(self):
+        """Return station info (canonical fields) as a dict comprehension
+        """
+        log.debug("parsing json")
+
+    def parse_html(self):
+        """Return station info (canonical fields) as a dict comprehension
+        """
+        log.debug("parsing html")
 
 #####################
 # command line tool #
@@ -117,7 +144,9 @@ def main(cmd, sta_name, dryrun, debug, playlists):
             playlist = Playlist(sta, playlist_name)
             prettyprint(playlist.playlist_info(exclude=NOPRINT_KEYS))
     elif cmd == 'parse':
-        raise RuntimeError("Not yet implemented")
+        for playlist_name in playlist_names:
+            playlist = Playlist(sta, playlist_name)
+            playlist.parse()
     elif cmd == 'validate':
         raise RuntimeError("Not yet implemented")
 

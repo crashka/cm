@@ -166,39 +166,126 @@ Working Notes
 
 **Parse playlists**
 
-* Structures
-   * Playlist info
-      * ``programs``
-      * ``plays`` (possibly child of programs)
-   * Program info
-      * start_datetime
-      * end_datetime
-      * duration
-      * master_program (dbref)
-      * prog_name
-      * prog_notes
-      * tags
-      * plays(???)
-   * Play info
-      * start_datetime
-      * end_datetime
-      * duration
-      * data (blob)
-      * fields_raw
-      * fields_tagged
-      * master_work (dbref)
-      * master_rec (dbref)
-      * master_comp (denorm from work)
-      * master_perfs[] (dbrefs)
-         * support "unknown" perf role
-* Steps
-   * loop through programs/plays
-      * set current prog
-      * set current play
-      * parse out raw fields
-         * normalize fields
-         * tag fields
-         * dblookups on fields
+* Playlist info
+   * ``programs`` (meaning a program plays/instances)
+   * ``plays`` (possibly child of programs)
+* Program info
+   * start_datetime
+   * end_datetime
+   * duration
+   * master_program (dbref)
+   * prog_name
+   * prog_notes
+   * tags
+   * plays(???)
+* Play info
+   * start_datetime
+   * end_datetime
+   * duration
+   * data (blob)
+   * fields_raw
+   * fields_tagged
+   * master_work (dbref)
+   * master_rec (dbref)
+   * master_comp (denorm from work)
+   * master_perfs[] (dbrefs)
+      * support "unknown" perf role
+* looping through programs/plays
+   * set current prog
+   * set current play
+   * parse out raw fields
+      * normalize fields
+      * tag fields
+      * dblookups on fields
+
+**parsing WWFM**
+::
+
+  params = playlist['params']
+
+  nprogs = len(playlist['onToday'])
+  prog_0 = playlist['onToday'][0]['program']
+
+  nplays = len(playlist['onToday'][0]['playlist'])
+  play_0 = playlist['onToday'][0]['playlist'][0]
+
+  param fields:
+  {
+      'date': '2018-09-14',
+      'format': 'json'
+  }
+
+  item fields:
+  {
+      '_id': '5b75c20045fee126f2ef53ae',
+      '_syndication': {   'date': '09-05-2018 12:53:55',
+                           'method': 'Song Stream'},
+      'conflict_edited': 1534444032227,
+      'conflicts': ['5b75c20045fee126f2ef53ae'],
+      'date': '2018-09-14',
+      'day': 'Fri',
+      'end_time': '00:00',
+      'end_utc': 'Sat Sep 15 2018 00:00:00 GMT-0400 (EDT)',
+      'event_id': '5b75c20045fee126f2ef53a8',
+      'fullend': '2018-09-15 00:00',
+      'fullstart': '2018-09-14 23:00',
+      'has_playlist': True,
+      'playlist': {...}
+      'program': {...}
+      'program_id': '5b75c20045fee126f2ef53a9',
+      'start_time': '23:00',
+      'start_utc': 'Fri Sep 14 2018 23:00:00 GMT-0400 (EDT)',
+      'widget_config': {}
+  }
+
+  program fields:
+  {
+      'facebook': '',
+      'hosts': [],
+      'isParent': False,
+      'name': 'Classical Music with Scott Blankenship',
+      'national_program_id': '',
+      'parentID': '524c7ea2e1c85d374d5a2f25',
+      'program_desc': '',
+      'program_format': 'Classical',
+      'program_id': '5b7af12e89d9bf2b60bf5fed',
+      'program_link': '',
+      'station_id': '',
+      'twitter': '',
+      'ucs': '53a98e36e1c80647e855fc88'
+  }
+
+  play fields:
+  {
+      '_date': '09132018',
+      '_duration': 70000,
+      '_end': '',
+      '_end_datetime': '2018-09-14T02:01:10.000Z',
+      '_end_time': '09-13-2018 23:01:10',
+      '_err': [],
+      '_id': '5b9009f61941cf501dc7596a',
+      '_source_song_id': '5b90095e1941cf501dc7324d',
+      '_start': '21:45:21',
+      '_start_datetime': '2018-09-14T01:45:21.000Z',
+      '_start_time': '09-13-2018 23:00:00',
+      'artistName': '',
+      'buy': {   },
+      'catalogNumber': '555392',
+      'collectionName': '',
+      'composerName': 'Anton Rubinstein',
+      'conductor': 'Stephen Gunzenhauser',
+      'copyright': 'Naxos',
+      'ensembles': 'Slovak Philharmonic Orchestra',
+      'episode_notes': '',
+      'imageURL': '',
+      'instruments': 'O',
+      'program': '',
+      'releaseDate': '',
+      'soloists': '',
+      'trackName': 'Symphony No. 2 "Ocean": 7th movement',
+      'trackNumber': '1-7',
+      'upc': ''
+  }
 
 **Music lib**
 
@@ -252,7 +339,7 @@ To Do - Features
 * write valid, missing, invalid to state structure
 * fetch missing playlists
 * validate playlist contents, record as metadata
-* decorator for throttling playlist fetches
+* context manager for throttling playlist fetches
 * job queue for playlist fetches (cycle through stations)
 * get older playlists (to beginning of time) for all stations
 * archive function for playlists (and station info)

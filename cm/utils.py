@@ -2,6 +2,8 @@
 """
 """
 
+from __future__ import absolute_import, division, print_function
+
 import re
 import json
 import datetime as dt
@@ -49,6 +51,49 @@ class Config(object):
             Config.cfg_profiles[self.path][profile] = {}
 
         return Config.cfg_profiles[self.path][profile].get(section, {})
+
+
+################
+# util classes #
+################
+
+class LOV(object):
+    """Create a closed List Of Values based on a dict or list/set/tuple of LOV names.  If
+    only names are provided, corresponding values will be generated based on the names
+    (either a straight copy, or with the specified string method applied)
+    """
+    def __init__(self, values, strfunc = None):
+        """
+        :param values: either list/set/tuple of names, or dict (for specified values)
+        :param strfunc: name of a string method to apply to LOV values (e.g. 'lower')
+        """
+        if type(values) in (list, set, tuple):
+            if strfunc:
+                self._mydict = {m: getattr(m, strfunc)() for m in values if strtype(m)}
+            else:
+                self._mydict = {m: m for m in values if strtype(m)}
+        elif type(values) == dict:
+            self._mydict = values
+        else:
+            self._mydict = {}
+
+    def __getattr__(self, key):
+        try:
+            return self._mydict[key]
+        except KeyError:
+            raise AttributeError()
+
+    def members(self):
+        """
+        :return: set of all member (attribute) names
+        """
+        return set(self._mydict.keys())
+
+    def values(self):
+        """
+        :return: set of all values
+        """
+        return set(self._mydict.values())
 
 
 ##################
