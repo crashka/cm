@@ -1,5 +1,8 @@
 ---
 default:
+  station_base:
+    http_headers:   {'User-Agent': 'Mozilla/5.0'}
+
   stations:
     C24:
       sample_url:   'http://classical24.publicradio.org/listings/listings.php?year=2018&month=09&day=06'
@@ -24,6 +27,15 @@ default:
       playlist_ext: 'html'
       epoch:        '2013-05-01'
 
+    IPR:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/518277f7e1c83ecee40d8eb1/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '518277f7e1c83ecee40d8eb1'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/Chicago'
+      playlist_ext: 'json'
+      epoch:        '2013-07-01'
+
     KDFC:
       sample_url:   'https://www.kdfc.com/playlist/2018/09/07/'
       sample_url2:  'https://www.kdfc.com/playlist/2018/09/06/?_pjax=%23main'
@@ -34,11 +46,12 @@ default:
       playlist_ext: 'html'
 
     KING:
-      sample_url:   'https://www.king.org/music-schedule/?npDate=010118'
+      sample_url:   'https://www.king.org/music-schedule/?npDate=01012018'
       url_fmt:      'https://www.king.org/music-schedule/?npDate=<DATE_STR>'
-      date_fmt:     '%m%d%y'
+      date_fmt:     '%m%d%Y'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+      epoch:        '2014-01-01'
 
     KQAC:
       sample_url:   'https://daisy.allclassical.org/api/playlist/date/2018-09-12/'
@@ -63,6 +76,15 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+
+    VPR:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/518028fee1c810b152ff9766/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '518028fee1c810b152ff9766'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2013-12-15'
 
     WBJC:
       sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
@@ -110,6 +132,24 @@ default:
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
 
+    WIAA:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/52615808e1c8fbf0ddcb3d04/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '52615808e1c8fbf0ddcb3d04'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2013-11-11'
+
+    WMHT:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/51892578e1c81d34d1474a5d/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '51892578e1c81d34d1474a5d'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2014-06-03'
+
     WNED:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/51929c5ce1c8c39684eeee82/day?date=2018-09-06&format=json'
       url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
@@ -118,6 +158,14 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2013-12-24'
+
+    WQED:
+      sample_url:   'https://www.wqed.org/fm/playlist?day=09/05/2018'
+      url_fmt:      'https://www.wqed.org/fm/playlist?day=<DATE_STR>'
+      date_fmt:     '%m/%d/%Y'
+      time_zone:    'America/New_York'
+      playlist_ext: 'html'
+      epoch:        '2018-07-10'
 
     WQXR:
       sample_url:   'https://www.wqxr.org/api/schedule_playlist_json/wqxr/2017/sep/01/'
@@ -134,6 +182,15 @@ default:
 #      date_meth:    'lower'
 #      time_zone:    'America/New_York'
 #      playlist_ext: 'html'
+
+    WRTI:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/53c7dbe1e1c8b9c77b4b9b6e/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '53c7dbe1e1c8b9c77b4b9b6e'
+      date_fmt:     '%Y-%m-%d'
+      time_zone:    'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2014-05-01'
 
     WWFM:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'

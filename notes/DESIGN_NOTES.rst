@@ -203,11 +203,12 @@ Working Notes
 
   params = playlist['params']
 
-  nprogs = len(playlist['onToday'])
-  prog_0 = playlist['onToday'][0]['program']
+  nitems = len(playlist['onToday'])
+  item_0 = playlist['onToday'][0]
+  prog_0 = item_0['program']
 
-  nplays = len(playlist['onToday'][0]['playlist'])
-  play_0 = playlist['onToday'][0]['playlist'][0]
+  nplays = len(item_0['playlist'])
+  play_0 = item_0['playlist'][0]
 
   param fields:
   {
@@ -230,7 +231,7 @@ Working Notes
       'fullend': '2018-09-15 00:00',
       'fullstart': '2018-09-14 23:00',
       'has_playlist': True,
-      'playlist': {...}
+      'playlist': [{...}, ...]
       'program': {...}
       'program_id': '5b75c20045fee126f2ef53a9',
       'start_time': '23:00',
@@ -328,6 +329,7 @@ To Do - Bugs/Tweaks
 * add ``--force`` flag to overwrite existing playlists
 * get rid of ``playlists`` from ``station_info.json`` file
 * create backup files for ``station_info.json`` and ``playlists.json``
+* uniform User-Agent HTTP header for requests (common section)
 
 ----------------
 To Do - Features

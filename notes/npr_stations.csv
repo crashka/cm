@@ -1,6 +1,6 @@
 Status	ID	Name	Location	StreamURL	Tagline
 	AZPM	Arizona Public Media Classical	Tucson, AZ	http://radio.azpm.org/kuaz/	Arizona's home for classical music for the past 35 years.
-	IPR	Iowa Public Radio	Iowa City, IA	http://iowapublicradio.org/topic/classical	
+Active	IPR	Iowa Public Radio	Iowa City, IA	http://iowapublicradio.org/topic/classical	
 	KBSU	Classical 24 on Boise State Public Radio	Boise, ID	http://www.boisestatepublicradio.org/	Music to its full potential.
 	KCNV	Classical 24 on KCNV	Las Vegas, NV	http://www.classical897.org/common/listen.cfm	Classical 89.7 KCNV
 Active	KDFC	Classical KDFC	San Francisco, CA	http://www.kdfc.com/Listen-Online-/5809385	San Francisco Classical
@@ -17,7 +17,7 @@ Active	KDFC	Classical KDFC	San Francisco, CA	http://www.kdfc.com/Listen-Online-/
 	KXPR	Capital Public Radio	Sacramento, CA	http://www.capradio.org/schedule?stationid=4	Capital Public Radio Music from Sacramento, California
 Active	MPR	Classical MPR	Saint Paul, MN	http://minnesota.publicradio.org/radio/services/cms/streams.shtml	The 24-hour classical station from Minnesota Public Radio and American Public Media.
 	NIPR	Northeast Indiana Public Radio	Roanoke, IN	http://www.nipr.fm/schedule/niprfm2	A 24/7 classical music station from Northeast Indiana Public Radio.
-	VPR	VPR Classical	Burlington, VT	http://digital.vpr.net/schedule/vpr-classical	The Voice Of Vermont's Classical Music Community
+Active	VPR	VPR Classical	Burlington, VT	http://digital.vpr.net/schedule/vpr-classical	The Voice Of Vermont's Classical Music Community
 	WABE	WABE Classical Radio	Atlanta, GA	http://wabe.org/schedule/wabe-classical	WABE Classical
 	WCLV	WCLV Classical 104.9 ideastream	Lorain, OH	http://wclv.ideastream.org/live/wclv	Northeast Ohio's Classical Music Station
 	WCPE	The Classical Station	Raleigh, NC	http://theclassicalstation.org/listen.shtml	
@@ -30,19 +30,19 @@ Active	WCRB	Classical Radio Boston	Boston, MA	http://classicalwcrb.org/#stream/0
 	WGUC	Cincinnati Public Radio	Cincinnati, OH	http://www.wguc.org/listen/streams.asp	Classical music for your heart, mind and spirit from Cincinnati Public Radio.
 	WHRO	Connoisseur Classics	Norfolk, VA	http://connoisseurclassics.org/	Connoisseur Classics offers alternative classical music for the more sophisticated listener.
 	WHRO	WHRO Classical	Norfolk, VA	http://dimensions.whro.org/index.php/whro-fm-home.html	One of the premier classical radio stations in the East, offering the world's greatest music.
-	WIAA	Classical IPR	Interlochen, MI	http://www.publicbroadcasting.net/wiaa/ppr/index.shtml	
+Dev	WIAA	Classical IPR	Interlochen, MI	http://www.publicbroadcasting.net/wiaa/ppr/index.shtml	
 	WKMS	Classical 24 on WKMS	Murray, KY	http://www.wkms.org/schedule/WKMS-HD2	WKMS All Music HD-2 Channel
 	WKSU	WKSU-3: Classical Music	Kent, OH	http://www.wksu.org/classical/	The WKSU Classical Channel offers a full day of symphonies, concertos, orchestras and string ensembles.
-	WMHT	Classical 24 on WMHT	Schenectady, NY	http://www.wmht.org/onlineradio	Comprehensive classical music programming by local and nationally recognized hosts.
+Active	WMHT	Classical 24 on WMHT	Schenectady, NY	http://www.wmht.org/onlineradio	Comprehensive classical music programming by local and nationally recognized hosts.
 	WNIJ	Classical 24 on WNIU	Rockford, IL	http://northernpublicradio.org/schedule/wniu	WNIJ Classical Music
 	WOSU	Classical 101	Grove Ctiy, OH	http://wosu.org/classical101	A 24/7 classical music service from WOSU Public Media.
-	WPLN	Classical from Nashville Public Radio	Nashville, TN	http://wpln.org/?page_id=150	Classical music every day until 8 p.m. CT, from Nashville Public Radio. 
+	WPLN	Classical from Nashville Public Radio	Nashville, TN	http://wpln.org/?page_id=150	Classical music every day until 8 p.m. CT, from Nashville Public Radio.
 	WPM	Classical 24 on Wyoming Public Radio	Laramie, WY	http://www.wyomingpublicmedia.org/schedule/wpr-hd2	24/7 Classical Music from Wyoming Public Media and the University of Wyoming
-	WQED	Classical QED	Pittsburgh, PA	http://www.wqed.org/fm/listen.php	Classical music by the greatest composers and performers in Pittsburgh and around the world.
+Dev	WQED	Classical QED	Pittsburgh, PA	http://www.wqed.org/fm/listen.php	Classical music by the greatest composers and performers in Pittsburgh and around the world.
 Active	WQXR	New York's Classical Station	New York, NY	http://www.wqxr.org	"World-renowned programming, including ""New York Philharmonic This Week"" with Alec Baldwin."
 	WQXR	Q2: Living Music. Living Composers.	New York, NY	http://q2music.org	Living Music. Living Composers.
 	WRKF	Classical 24 on WRKF	Baton Rouge, LA	http://wrkf.org/schedule/wrkf-hd2	All classical music all the time from WRKF in Baton Rouge.
-	WRTI	WRTI Classical	Philadelphia, PA	http://www.wrti.org/schedule/week/wrti	Explore the world of timeless musical works with WRTI's signature classical programming. With diverse selections from every period, you can hear your favorite composers spanning from Bach, Mozart, and Beethoven to 20th-century and contemporary masters, such as Rachmaninoff, Barber, and Adams.
+Active	WRTI	WRTI Classical	Philadelphia, PA	http://www.wrti.org/schedule/week/wrti	Explore the world of timeless musical works with WRTI's signature classical programming. With diverse selections from every period, you can hear your favorite composers spanning from Bach, Mozart, and Beethoven to 20th-century and contemporary masters, such as Rachmaninoff, Barber, and Adams.
 	WUIS	Classical 24 on WUIS	Springfield, IL	http://www.wuis.org/listen/wuishd2.html	Classical music around the clock, 24/7, when you want it.  Featuring the Illinois Symphony Orchestra performances and local arts groups.
 	WUOL	Classical 24 on WUOL	Louisville, KY	http://www.wuol.org/	Classical 90.5 WUOL is Louisville's 24-hour classical music station.
 	WUWF	Classical 24 on WUWF	Pensacola, FL	http://wuwf.org/radiotv/stream.shtml	
