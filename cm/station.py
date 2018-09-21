@@ -22,9 +22,6 @@ import requests
 
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype
 
-def wcpe_special():
-    pass
-
 ################
 # config stuff #
 ################
@@ -111,6 +108,25 @@ log.addHandler(dlft_hand)
 
 # requests session
 sess = requests.Session()
+
+#####################
+# Special functions #
+#####################
+
+def wcpe_special(datestr):
+    """Transform date string for WCPE
+
+    Need to roll back the date portion to the prior Monday (i.e. their start of the week),
+    and downcase the day of week string (e.g. '2018-09-17/Tuesday' -> 2018-09-16/tuesday')
+
+    :param datestr: format '%Y-%m-%d/%A'
+    :return: string
+    """
+    (ymd, dow) = datestr.split('/')  # can assume this always succeeds, since we built it
+    date = str2date(ymd)
+    days_since_mon = int(date.strftime('%u')) - 1  # %u: 1..7 = Mon..Sun
+    mon = date - dt.timedelta(days_since_mon)
+    return date2str(mon) + '/' + dow.lower()
 
 #################
 # Station class #

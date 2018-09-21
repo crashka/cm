@@ -93,14 +93,15 @@ default:
       playlist_ext: 'html'
       epoch:        '2018-01-01'
 
-#    WCPE:
-#      # Note: date in URL is the Monday of the week (needs to be handled in date_func)
-#      sample_url:   'https://theclassicalstation.org/music/archive/2018-09-17/tuesday.shtml'
-#      url_fmt:      'https://theclassicalstation.org/music/archive/<DATE_STR>.shtml'
-#      date_fmt:     '%Y-%m-%d/%A'
-#      date_func:    'wcpe_special'
-#      time_zone:    'America/New_York'
-#      playlist_ext: 'html'
+    WCPE:
+      # Note: date in URL is the Monday of the week (needs to be handled in date_func)
+      sample_url:   'https://theclassicalstation.org/music/archive/2018-09-17/tuesday.shtml'
+      url_fmt:      'https://theclassicalstation.org/music/archive/<DATE_STR>.shtml'
+      date_fmt:     '%Y-%m-%d/%A'
+      date_func:    'wcpe_special'
+      time_zone:    'America/New_York'
+      playlist_ext: 'html'
+      epoch:        '2011-08-15'
 
     WCRB:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'

@@ -5,7 +5,7 @@
 
 Note that the term "refdata" is used to mean both individual data sources, as well as the
 overall topic of reference (i.e. external) data for CMIR (we could use "refdatasrc" for
-the former, but it's kind of cumbesome, so we'll deal with the ambiguity, and resolve
+the former, but it's kind of cumbersome, so we'll deal with the ambiguity, and resolve
 in context/situ)
 """
 
@@ -162,8 +162,8 @@ class RefData(object):
     def build_url(self, cat, key):
         """Builds category data URL based on url_fmt, which is a required attribute in the refdata info
 
-        :param string: cat
-        :param string: key
+        :param cat: must be valid category name for refdata source
+        :param key: typically represents starting initial
         :return: string
         """
         catattrs = self.config[ConfigKey.CATEGORIES][cat]
