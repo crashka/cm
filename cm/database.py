@@ -90,18 +90,18 @@ if len(meta.tables) == 0:
         Column('archiv_uri',      Text)
     );
 
-    Table('piece', meta,
+    Table('work', meta,
         Column('id',              Integer,     primary_key=True),
         Column('name',            Text,        nullable=False),
 
         # parsed (and normalized!!!)
-        Column('piece_type',      Text),
-        Column('piece_key',       Text),
+        Column('work_type',       Text),
+        Column('work_key',        Text),
         Column('catalog_no',      Text),       # i.e. op., K., BWV, etc.
 
         # canonicality
         Column('is_canonical',    Boolean),
-        Column('cnl_piece_id',    Integer,     ForeignKey('piece.id')),  # points to self, if canonical
+        Column('cnl_work_id',     Integer,     ForeignKey('work.id')),  # points to self, if canonical
         Column('archiv_uri',      Text)
     );
 
@@ -118,7 +118,7 @@ if len(meta.tables) == 0:
         Column('station_id',      Integer,          ForeignKey('station.id')),
         Column('program_id',      Integer,          ForeignKey('program.id')),
         Column('composer_id',     Integer,          ForeignKey('person.id')),
-        Column('piece_id',        Integer,          ForeignKey('piece.id')),
+        Column('work_id',         Integer,          ForeignKey('work.id')),
         # note: typically, there will be either artist(s) OR ensemble(s)
         # (though there can also be both); conductors and soloists are
         # associated with ensembles

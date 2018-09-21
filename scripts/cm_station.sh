@@ -1,5 +1,6 @@
-#! /bin/bash    
+#!/usr/bin/env bash
 
+echo "`date` COMMAND:" $(basename $(readlink -f $0)) "$@"
 scriptdir="$(dirname $(readlink -f $0))"
 
 cd $scriptdir/..

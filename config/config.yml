@@ -2,6 +2,7 @@
 default:
   station_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
+    fetch_interval: 2.0
 
   stations:
     C24:
@@ -40,7 +41,6 @@ default:
       sample_url:   'https://www.kdfc.com/playlist/2018/09/07/'
       sample_url2:  'https://www.kdfc.com/playlist/2018/09/06/?_pjax=%23main'
       url_fmt:      'https://www.kdfc.com/playlist/<DATE_STR>/'
-      http_headers: {'User-Agent': 'Mozilla/5.0'}
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
@@ -65,7 +65,6 @@ default:
       sample_url:   'https://www.kusc.org/playlist/2018/09/05/'
       sample_url2:  'https://www.kusc.org/playlist/2018/09/05/?_pjax=%23main'
       url_fmt:      'https://www.kusc.org/playlist/<DATE_STR>/'
-      http_headers: {'User-Agent': 'Mozilla/5.0'}
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
@@ -89,12 +88,19 @@ default:
     WBJC:
       sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
       url_fmt:      'http://www.wbjc.com/2018/playlists/playlist-<DATE_STR>/'
-      http_headers: {'User-Agent': 'Mozilla/5.0'}
       date_fmt:     '%b-%d-%y'
-      date_meth:    'lower'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-01-01'
+
+#    WCPE:
+#      # Note: date in URL is the Monday of the week (needs to be handled in date_func)
+#      sample_url:   'https://theclassicalstation.org/music/archive/2018-09-17/tuesday.shtml'
+#      url_fmt:      'https://theclassicalstation.org/music/archive/<DATE_STR>.shtml'
+#      date_fmt:     '%Y-%m-%d/%A'
+#      date_func:    'wcpe_special'
+#      time_zone:    'America/New_York'
+#      playlist_ext: 'html'
 
     WCRB:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'
@@ -200,3 +206,23 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       playlist_min: 5000
+
+  refdata_base:
+    http_headers:   {'User-Agent': 'Mozilla/5.0'}
+    catdata_ext:   'html'
+    fetch_interval: 2.0
+
+  refdata:
+    archivmusic:
+      # LATER: abstract to 'browse_by'
+      url_fmt:      'http://www.arkivmusic.com/classical/NameList?alpha=<STARTS_WITH>&role_wanted=<ROLE>'
+
+      categories:
+        composers:
+          role:     1
+        performers:
+          role:     2
+        conductors:
+          role:     3
+        ensembles:
+          role:     4

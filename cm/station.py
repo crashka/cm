@@ -22,6 +22,9 @@ import requests
 
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype
 
+def wcpe_special():
+    pass
+
 ################
 # config stuff #
 ################
@@ -32,6 +35,7 @@ CONFIG_DIR   = 'config'
 CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
 cfg          = Config(CONFIG_PATH)
+STATION_BASE = cfg.config('station_base')
 STATIONS     = cfg.config('stations')
 
 ##############################
@@ -127,12 +131,13 @@ class Station(object):
     def __init__(self, name):
         """Sets status field locally (but not written back to info file)
         """
+        if name not in STATIONS:
+            raise RuntimeError("Station \"%s\" not known" % (name))
         log.debug("Instantiating Station(%s)" % (name))
         self.name = name
         self.status = Status.NEW
-        self.config = STATIONS.get(name)
-        if not self.config:
-            raise RuntimeError("Station \"%s\" not known" % (name))
+        self.config = STATION_BASE.copy()
+        self.config.update(STATIONS[name])
         for attr in REQUIRED_ATTRS:
             if attr not in self.config:
                 raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
@@ -326,7 +331,7 @@ class Station(object):
         if not dryrun:
             self.store_state()
 
-    def fetch_playlists(self, start_date, num = 1, dryrun = False):
+    def fetch_playlists(self, start_date, num = 1, dryrun = False, force = False):
         """Write specified playlists to filesystem
         """
         if strtype(start_date):
@@ -362,10 +367,14 @@ class Station(object):
             date = dt.date.fromordinal(ord)
             playlist_name = self.playlist_name(date)
             playlist_file = self.playlist_file(date)
-            # TODO: allow forcing an overwrite!!!
             if os.path.exists(playlist_file) and os.path.getsize(playlist_file) > 0:
-                log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
-                continue
+                if not force:
+                    log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
+                    continue
+                else:
+                    # STUPID to call getsize() again, but keeps things cleaner above!!!
+                    log.info("Forcing overwrite of existing file (size %d) for \"%s\"" %
+                             (os.path.getsize(playlist_file), playlist_name))
             playlist_text = self.fetch_playlist(date)
             log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
             if not dryrun:
@@ -382,24 +391,19 @@ class Station(object):
                 }
             self.validate_playlists(dryrun)  # implicitly stores state, if not dryrun
 
-    def fetch_playlist(self, date, dummy = False):
+    def fetch_playlist(self, date):
         """Fetch single playlist information (e.g. from internet)
         """
+        # TODO: create context manager for this HTTP throttling mechanism!!!
         elapsed = dt.datetime.utcnow() - self.last_fetch
         if elapsed < FETCH_DELTA:
             sleep_delta = FETCH_DELTA - elapsed
             sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
 
-        if not dummy:
-            r = sess.get(self.build_url(date), headers=self.http_headers)
-            playlist_content = r.content
-        else:
-            doc = {
-                'type': 'dummy',
-                'name': self.playlist_name(date),
-                'url':  self.build_url(date)
-            }
-            playlist_content = json.dumps(doc)
+        playlist_url = self.build_url(date)
+        log.debug("Fetching from %s (headers: %s)" % (playlist_url, self.http_headers))
+        r = sess.get(playlist_url, headers=self.http_headers)
+        playlist_content = r.content
 
         self.last_fetch = dt.datetime.utcnow()
         # TODO: this really needs to return metadata around the playlist, not
@@ -451,7 +455,7 @@ def main(cmd, date, num, skip, force, dryrun, debug, name):
     elif cmd == 'fetch':
         for station_name in station_names:
             station = Station(station_name)
-            station.fetch_playlists(date, num, dryrun)
+            station.fetch_playlists(date, num, dryrun, force)
     elif cmd == 'validate':
         for station_name in station_names:
             station = Station(station_name)

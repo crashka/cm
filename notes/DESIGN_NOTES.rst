@@ -11,6 +11,20 @@ Directory structure
         playlists.json
         playlists/
           2018-09-06.json
+    refdata/
+      archivmusic/
+        composers/
+          a.html
+          b.html
+             .
+             .
+             .
+        performers/
+          ...
+        conductors/
+          ...
+        ensembles/
+          ...
 
 -----------------
 station_info.json
@@ -201,22 +215,21 @@ Working Notes
 **parsing WWFM**
 ::
 
-  params = playlist['params']
+  pl_params = playlist['params']
 
-  nitems = len(playlist['onToday'])
-  item_0 = playlist['onToday'][0]
-  prog_0 = item_0['program']
+  pl_progs = playlist['onToday']
+  for prog in pl_progs:
+    prog_info = prog.get('program')
+    for play in prog.get('playlist'):
+      assert(type(play) == dict)
 
-  nplays = len(item_0['playlist'])
-  play_0 = item_0['playlist'][0]
-
-  param fields:
+  pl_param fields:
   {
       'date': '2018-09-14',
       'format': 'json'
   }
 
-  item fields:
+  prog fields:
   {
       '_id': '5b75c20045fee126f2ef53ae',
       '_syndication': {   'date': '09-05-2018 12:53:55',
@@ -239,7 +252,7 @@ Working Notes
       'widget_config': {}
   }
 
-  program fields:
+  prog_info fields:
   {
       'facebook': '',
       'hosts': [],
@@ -327,24 +340,28 @@ To Do - Bugs/Tweaks
 -------------------
 
 * add ``--force`` flag to overwrite existing playlists
-* get rid of ``playlists`` from ``station_info.json`` file
+   * force pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
-* uniform User-Agent HTTP header for requests (common section)
+* uniform User-Agent HTTP header for requests (station_base section)
 
 ----------------
 To Do - Features
 ----------------
 
-* create playlists module
-* create music module
+* **parsing playlists**
+   * clean up database.py module
+   * create playlists module
+   * add (daily) playlist and program_play as database entities
+   * create music module
+   * write playlist, program_play, and play entries (no normalization)
+* **music module integrity**
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
 * fetch missing playlists
 * validate playlist contents, record as metadata
 * context manager for throttling playlist fetches
 * job queue for playlist fetches (cycle through stations)
-* get older playlists (to beginning of time) for all stations
+* get older playlists (determine epoch/beginning of time) for all stations
 * archive function for playlists (and station info)
-* create database schema
 * Fork/port to python3 (rename to cmir)
 * locate ``stations`` directory in ``config.yml`` (can be outside of cmir)
