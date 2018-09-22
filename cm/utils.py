@@ -67,12 +67,12 @@ class LOV(object):
         :param values: either list/set/tuple of names, or dict (for specified values)
         :param strmeth: name of a string method to apply to LOV values (e.g. 'lower')
         """
-        if type(values) in (list, set, tuple):
+        if collecttype(values):
             if strmeth:
                 self._mydict = {m: getattr(m, strmeth)() for m in values if strtype(m)}
             else:
                 self._mydict = {m: m for m in values if strtype(m)}
-        elif type(values) == dict:
+        elif isinstance(values, dict):
             self._mydict = values
         else:
             self._mydict = {}
@@ -118,12 +118,19 @@ def date2str(date, fmt = STD_DATE_FMT):
     """
     return date.strftime(fmt)
 
-def strtype(string):
+def strtype(val):
     """
-    :param string:
+    :param val:
     :return: bool
     """
-    return type(string) in (unicode, str)
+    return isinstance(val, basestring)
+
+def collecttype(val):
+    """
+    :param val:
+    :return: bool
+    """
+    return isinstance(val, (set, list, tuple))
 
 def unixtime(tz = None):
     """

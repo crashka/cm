@@ -12,7 +12,7 @@ import logging
 import click
 
 import station
-from utils import LOV, prettyprint, str2date, date2str, strtype
+from utils import LOV, prettyprint, str2date, date2str, strtype, collecttype
 
 ##############################
 # common constants/functions #
@@ -77,10 +77,10 @@ class Playlist(object):
     def playlist_info(self, keys = INFO_KEYS, exclude = None):
         """Return station info (canonical fields) as a dict comprehension
         """
-        if type(keys) not in (set, list, tuple):
+        if not collecttype(keys):
             keys = [keys]
-        elif type(exclude) == set and type(keys) == set:
-            keys = keys - exclude
+        if collecttype(exclude):
+            keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def parse(self):

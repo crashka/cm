@@ -20,7 +20,7 @@ import pytz
 import click
 import requests
 
-from utils import Config, LOV, prettyprint, str2date, date2str, strtype
+from utils import Config, LOV, prettyprint, str2date, date2str, strtype, collecttype
 
 ################
 # config stuff #
@@ -192,10 +192,10 @@ class Station(object):
         """Return station info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if type(keys) not in (set, list, tuple):
+        if not collecttype(keys):
             keys = [keys]
-        elif type(exclude) == set and type(keys) == set:
-            keys = keys - exclude
+        if collecttype(exclude):
+            keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def store_state(self):

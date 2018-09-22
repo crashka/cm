@@ -23,7 +23,7 @@ import click
 import requests
 
 import station
-from utils import Config, LOV, prettyprint, strtype
+from utils import Config, LOV, prettyprint, strtype, collecttype
 
 ################
 # config stuff #
@@ -133,10 +133,10 @@ class RefData(object):
         """Return refdata info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if type(keys) not in (set, list, tuple):
+        if not collecttype(keys):
             keys = [keys]
-        elif type(exclude) == set and type(keys) == set:
-            keys = keys - exclude
+        if collecttype(exclude):
+            keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def store_state(self):
@@ -230,7 +230,7 @@ class RefData(object):
         if not cat or not key:
             log.debug("Both category(ies) and key(s) must be specified to fetch for %s", (self.name))
             return  # nothing to do
-        cats = [cat] if type(cat) not in (set, list, tuple) else cat
+        cats = [cat] if not collecttype(cat) else cat
         if strtype(key):
             m = re.match(r'([a-z])-([a-z])$', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
@@ -238,7 +238,7 @@ class RefData(object):
             else:
                 keys = [key]
         else:
-            keys = [key] if type(key) not in (set, list, tuple) else key
+            keys = [key] if not collecttype(key) else key
 
         log.debug("Fetching refdata for categories %s and keys %s" % (cats, keys))
         for cat in cats:
