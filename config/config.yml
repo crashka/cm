@@ -227,3 +227,7 @@ default:
           role:     3
         ensembles:
           role:     4
+
+  database:
+    dev:
+      connect_str:  'postgres://crash@/cmdev'
