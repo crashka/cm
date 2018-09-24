@@ -14,6 +14,10 @@ import click
 import station
 import schema
 
+##############################
+# common constants/functions #
+##############################
+
 # shared resources from station
 cfg       = station.cfg
 log       = station.log
@@ -21,42 +25,49 @@ sess      = station.sess
 dflt_hand = station.dflt_hand
 dbg_hand  = station.dbg_hand
 
-##############################
-# common constants/functions #
-##############################
-
-eng  = create_engine("postgres://crash@/cmdev")
-meta = MetaData(eng, reflect=True)
+DATABASE  = cfg.config('database')
 
 dblog = logging.getLogger('sqlalchemy.engine')
 dblog.setLevel(logging.INFO)
 dblog.addHandler(dflt_hand)
 
-def create_schema(tables = None, dryrun = False, force = False):
-    if len(meta.tables) > 0:
-        raise RuntimeError("Schema must be empty, create is aborted")
+####################
+# Database Context #
+####################
 
-    schema.load_schema(meta)
-    if not tables or tables == 'all':
-        meta.create_all()
-    else:
-        to_create = [meta.tables[tab] for tab in tables.split(',')]
-        meta.create_all(tables=to_create)
+class DatabaseCtx(object):
+    def __init__(self, dbname):
+        if dbname not in DATABASE:
+            raise RuntimeError("Database name \"%s\" not known" % (dbname))
+        self.db_info = DATABASE[dbname]
+        self.eng  = create_engine(self.db_info['connect_str'])
+        self.meta = MetaData(self.eng, reflect=True)
 
-def drop_schema(tables = None, dryrun = False, force = False):
-    if len(meta.tables) == 0:
-        raise RuntimeError("Schema is empty, nothing to drop")
+    def create_schema(self, tables = None, dryrun = False, force = False):
+        if len(self.meta.tables) > 0:
+            raise RuntimeError("Schema must be empty, create is aborted")
 
-    if not tables or tables == 'all':
-        if not force:
-            raise RuntimeError("Force must be specified if no list of tables given")
-        meta.drop_all()
-        meta.clear()
-    else:
-        to_drop = [meta.tables[tab] for tab in tables.split(',')]
-        meta.drop_all(tables=to_drop)
-        meta.clear()
-        meta.reflect()
+        schema.load_schema(self.meta)
+        if not tables or tables == 'all':
+            self.meta.create_all()
+        else:
+            to_create = [self.meta.tables[tab] for tab in tables.split(',')]
+            self.meta.create_all(tables=to_create)
+
+    def drop_schema(self, tables = None, dryrun = False, force = False):
+        if len(self.meta.tables) == 0:
+            raise RuntimeError("Schema is empty, nothing to drop")
+
+        if not tables or tables == 'all':
+            if not force:
+                raise RuntimeError("Force must be specified if no list of tables given")
+            self.meta.drop_all()
+            self.meta.clear()
+        else:
+            to_drop = [self.meta.tables[tab] for tab in tables.split(',')]
+            self.meta.drop_all(tables=to_drop)
+            self.meta.clear()
+            self.meta.reflect()
 
 #####################
 # command line tool #
@@ -83,12 +94,14 @@ def main(cmd, tables, force, dryrun, debug, dbname):
         #dblog.setLevel(logging.DEBUG)
         dblog.addHandler(dbg_hand)
 
+    db = DatabaseCtx(dbname)
+
     if cmd == 'list':
         pass
     elif cmd == 'create':
-        create_schema(tables, dryrun, force)
+        db.create_schema(tables, dryrun, force)
     elif cmd == 'drop':
-        drop_schema(tables, dryrun, force)
+        db.drop_schema(tables, dryrun, force)
     elif cmd == 'validate':
         pass
     elif cmd == 'upgrade':

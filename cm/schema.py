@@ -51,12 +51,13 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),  # TBD: normalized or raw?
 
-            # parsed (pieces of full_name)
+            # parsed (and normalized???)
             Column('prefix',            Text),
             Column('first_name',        Text),
             Column('middle_name',       Text),
             Column('last_name',         Text),
             Column('suffix',            Text),
+            Column('full_name',         Text),       # assembled from normalized name components
 
             # canonicality
             Column('is_canonical',      Boolean),
@@ -65,16 +66,21 @@ def load_schema(meta):
         ),
         Entity.PERFORMER: Table('performer', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('role',              Text,        nullable=False),  # instrument, voice, role, etc.
             Column('person_id',         Integer,     ForeignKey('person.id'), nullable=False),
+            Column('role',              Text,        nullable=False),  # instrument, voice, role, etc.
             Column('cnl_person_id',     Integer,     ForeignKey('person.id')),
 
-            # constraints
-            UniqueConstraint('role', 'person_id')
+            # constraints/indexes
+            UniqueConstraint('person_id', 'role')
         ),
         Entity.ENSEMBLE: Table('ensemble', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
+
+            # parsed and normalized
+            Column('ens_type',          Text),
+            Column('ens_name',          Text),
+            Column('ens_location',      Text),       # informational
 
             # canonicality
             Column('is_canonical',      Boolean),
@@ -85,8 +91,9 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
 
-            # parsed (and normalized!!!)
+            # parsed and normalized
             Column('work_type',         Text),
+            Column('work_name',         Text),
             Column('work_key',          Text),
             Column('catalog_no',        Text),       # i.e. op., K., BWV, etc.
 
@@ -106,25 +113,36 @@ def load_schema(meta):
         Entity.STATION: Table('station', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
-            Column('timezone',          Text,        nullable=False),  # POSIX format (e.g. PST8PDT)
-            Column('location',          Text),                         # e.g. "<city>, <state>"
-            Column('frequency',         Text)                          # informational only
+            Column('timezone',          Text,        nullable=False),  # tzdata (Olson/IANA) format
+            Column('notes',             ARRAY(Text)),
+
+            # the following are informational only
+            Column('location',          Text),       # e.g. "<city>, <state>"
+            Column('frequency',         Text),
+            Column('website',           Text),
+
+            # constraints/indexes
+            UniqueConstraint('name')
         ),
         Entity.PROGRAM: Table('program', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
             Column('host_name',         Text),
             Column('is_syndicated',     Boolean),
-            Column('station_id',        Integer,     ForeignKey('station.id')),
+            Column('station_id',        Integer,     ForeignKey('station.id'), nullable=True),
+            Column('notes',             ARRAY(Text)),
 
             # canonicality
             Column('is_canonical',      Boolean),    # true if syndication master
             Column('cnl_program_id',    Integer,     ForeignKey('program.id')),  # points to self, if canonical
-            Column('program_uri',       Text)
+            Column('website',           Text),
+
+            # constraints/indexes
+            UniqueConstraint('name', 'host_name')
         ),
         Entity.PROGRAM_PLAY: Table('program_play', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('station_id',        Integer,     ForeignKey('station.id')),
+            Column('station_id',        Integer,     ForeignKey('station.id'), nullable=False),
             Column('prog_play_info',    JSONB,       nullable=False),  # nornalized information
             Column('prog_play_date',    Date,        nullable=False),  # listed local date
             Column('prog_play_start',   Time,        nullable=False),  # listed local time
@@ -145,8 +163,8 @@ def load_schema(meta):
         ),
         Entity.PLAY: Table('play', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('station_id',        Integer,     ForeignKey('station.id')),
-            Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
+            Column('station_id',        Integer,     ForeignKey('station.id'), nullable=False),
+            Column('prog_play_id',      Integer,     ForeignKey('program_play.id'), nullable=True),
             Column('play_info',         JSONB,       nullable=False),  # nornalized information
             Column('play_date',         Date,        nullable=False),  # listed local date
             Column('play_start',        Time,        nullable=False),  # listed local time
@@ -177,26 +195,35 @@ def load_schema(meta):
             # technical
             Column('start_time',        TIMESTAMP(timezone=True)),
             Column('end_time',          TIMESTAMP(timezone=True)),
-            Column('duration',          Interval)
+            Column('duration',          Interval),
+
+            # constraints/indexes
+            Index('station_id', 'play_date', 'play_start')  # don't think we can make this unique
         ),
         Entity.PLAY_PERFORMER: Table('play_performer', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('play_id',           Integer,     ForeignKey('play.id')),
-            Column('performer_id',      Integer,     ForeignKey('performer.id')),
-            Column('notes',             ARRAY(Text))
+            Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),
+            Column('performer_id',      Integer,     ForeignKey('performer.id'), nullable=False),
+            Column('notes',             ARRAY(Text)),
+
+            # constraints/indexes
+            UniqueConstraint('play_id', 'performer_id')
         ),
         Entity.PLAY_ENSEMBLE: Table('play_ensemble', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('play_id',           Integer,     ForeignKey('play.id')),
-            Column('ensemble_id',       Integer,     ForeignKey('ensemble.id')),
-            Column('notes',             ARRAY(Text))
+            Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),
+            Column('ensemble_id',       Integer,     ForeignKey('ensemble.id'), nullable=False),
+            Column('notes',             ARRAY(Text)),
+
+            # constraints/indexes
+            UniqueConstraint('play_id', 'ensemble_id')
         ),
         Entity.PLAY_SEQ: Table('play_seq', meta,
             Column('id',                Integer,     primary_key=True),
             Column('seq_hash',          Integer,     nullable=False),
             Column('hash_level',        Integer,     nullable=False),
             Column('hash_type',         Integer,     nullable=False),
-            Column('play_id',           Integer,     ForeignKey('play.id')),
+            Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),
             # denorms
             Column('station_id',        Integer,     ForeignKey('station.id')),
             Column('program_name',      Text),
@@ -211,10 +238,10 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('seq_len',           Integer,     nullable=False),
             Column('seq_time',          Integer),    # elapsed time
-            Column('pub_start_play_id', Integer,     ForeignKey('play.id')),
-            Column('pub_end_play_id',   Integer,     ForeignKey('play.id')),
-            Column('sub_start_play_id', Integer,     ForeignKey('play.id')),
-            Column('sub_end_play_id',   Integer,     ForeignKey('play.id')),
+            Column('pub_start_play_id', Integer,     ForeignKey('play.id'), nullable=False),
+            Column('pub_end_play_id',   Integer,     ForeignKey('play.id'), nullable=False),
+            Column('sub_start_play_id', Integer,     ForeignKey('play.id'), nullable=False),
+            Column('sub_end_play_id',   Integer,     ForeignKey('play.id'), nullable=False),
             # denorms from {pub,sub}_start_play_id
             Column('pub_station_id',    Integer,     ForeignKey('station.id')),
             Column('sub_station_id',    Integer,     ForeignKey('station.id')),
