@@ -335,6 +335,12 @@ Working Notes
 
   15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
 
+**hash sequence matching**
+
+* Have a canonical list of stations ranked from most generic (closest to syndicated
+  programming) to most specialized, used to designate producer from subscriber for
+  sequence matches
+
 -------------------
 To Do - Bugs/Tweaks
 -------------------

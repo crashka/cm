@@ -15,17 +15,22 @@ import station
 import schema
 
 # shared resources from station
-cfg      = station.cfg
-log      = station.log
-sess     = station.sess
-dbg_hand = station.dbg_hand
+cfg       = station.cfg
+log       = station.log
+sess      = station.sess
+dflt_hand = station.dflt_hand
+dbg_hand  = station.dbg_hand
 
 ##############################
 # common constants/functions #
 ##############################
 
-eng  = create_engine("postgres://crash@/cmdev", echo=True)
+eng  = create_engine("postgres://crash@/cmdev")
 meta = MetaData(eng, reflect=True)
+
+dblog = logging.getLogger('sqlalchemy.engine')
+dblog.setLevel(logging.INFO)
+dblog.addHandler(dflt_hand)
 
 def create_schema(tables = None, dryrun = False, force = False):
     if len(meta.tables) > 0:
@@ -74,6 +79,9 @@ def main(cmd, tables, force, dryrun, debug, dbname):
     if debug > 0:
         log.setLevel(logging.DEBUG)
         log.addHandler(dbg_hand)
+        # NOTE: DEBUG mode enables showing of query results (very verbose)
+        #dblog.setLevel(logging.DEBUG)
+        dblog.addHandler(dbg_hand)
 
     if cmd == 'list':
         pass

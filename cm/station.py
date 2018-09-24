@@ -94,9 +94,9 @@ LOG_FMTR     = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(line
 LOG_FILE_MAX = 50000000
 LOG_FILE_NUM = 99
 
-dlft_hand = logging.handlers.RotatingFileHandler(LOG_PATH, 'a', LOG_FILE_MAX, LOG_FILE_NUM)
-dlft_hand.setLevel(logging.DEBUG)
-dlft_hand.setFormatter(LOG_FMTR)
+dflt_hand = logging.handlers.RotatingFileHandler(LOG_PATH, 'a', LOG_FILE_MAX, LOG_FILE_NUM)
+dflt_hand.setLevel(logging.DEBUG)
+dflt_hand.setFormatter(LOG_FMTR)
 
 dbg_hand = logging.StreamHandler()
 dbg_hand.setLevel(logging.DEBUG)
@@ -104,7 +104,7 @@ dbg_hand.setFormatter(LOG_FMTR)
 
 log = logging.getLogger(LOGGER_NAME)
 log.setLevel(logging.INFO)
-log.addHandler(dlft_hand)
+log.addHandler(dflt_hand)
 
 # requests session
 sess = requests.Session()
