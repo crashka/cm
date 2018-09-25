@@ -101,6 +101,7 @@ class LOV(object):
 ##################
 
 STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
+STD_TIME_FMT   = '%H:%M'     # same as ISO 8601
 
 def str2date(datestr, fmt = STD_DATE_FMT):
     """
@@ -117,6 +118,22 @@ def date2str(date, fmt = STD_DATE_FMT):
     :return: string
     """
     return date.strftime(fmt)
+
+def str2time(timestr, fmt = STD_TIME_FMT):
+    """
+    :param timestr: string
+    :param fmt: [optional] defaults to H:M
+    :return: dt.time object
+    """
+    return dt.datetime.strptime(timestr, fmt).time()
+
+def time2str(time, fmt = STD_TIME_FMT):
+    """
+    :param time: dt.time object
+    :param fmt: [optional] defaults to H:M
+    :return: string
+    """
+    return time.strftime(fmt)
 
 def strtype(val):
     """
