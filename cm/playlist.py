@@ -131,11 +131,10 @@ class Parser(object):
     def insert_program_play(self, playlist, data):
         """
         :param playlist: parent Playlist object
-        :param data: raw playlist key/value data (dict)
+        :param data: normalized playlist key/value data (dict)
         :return: key-value dict comprehension for inserted program_play fields
         """
         station = playlist.station
-        norm = self.map_program_play(data)
 
         sta = get_handle('station')
         sta_res = sta.select({'name': station.name})
@@ -150,7 +149,7 @@ class Parser(object):
             if not sta_row:
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
-        prog_data = norm['program']
+        prog_data = data['program']
         prog_name = prog_data['name']
         prog = get_handle('program')
         prog_res = prog.select({'name': prog_name})
@@ -158,14 +157,14 @@ class Parser(object):
             prog_row = prog_res.fetchone()
         else:
             log.debug("Inserting program \"%s\" into musiclib" % (prog_name))
-            ins_res = prog.insert(norm['program'])
+            ins_res = prog.insert(data['program'])
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert program \"%s\" into musiclib" % (prog_name))
             prog_row = prog.inserted_row(ins_res)
             if not prog_row:
                 raise RuntimeError("Program \"%s\" not in musiclib" % (prog_name))
 
-        pp_data = norm['program_play']
+        pp_data = data['program_play']
         pp_data['station_id'] = sta_row.id
         pp_data['program_id'] = prog_row.id
         prog_play = get_handle('program_play')
@@ -177,11 +176,10 @@ class Parser(object):
         """
         :param playlist: parent Playlist object
         :param prog_play: parent program_play fields (dict)
-        :param data: raw play key/value data (dict)
+        :param data: normalized play key/value data (dict)
         :return: key-value dict comprehension for inserted play fields
         """
         station = playlist.station
-        norm = self.map_play(data)
 
         sta = get_handle('station')
         sta_res = sta.select({'name': station.name})
@@ -196,7 +194,7 @@ class Parser(object):
             if not sta_row:
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
-        comp_data = norm['composer']
+        comp_data = data['composer']
         # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
         # on it (and there is no play without work, haha)
         if not comp_data['name']:
@@ -215,7 +213,7 @@ class Parser(object):
             if not comp_row:
                 raise RuntimeError("Composer/person \"%s\" not in musiclib" % (comp_name))
 
-        work_data = norm['work']
+        work_data = data['work']
         if not work_data['name']:
             log.debug("Work name not specified, skipping...")
             return None
@@ -235,7 +233,7 @@ class Parser(object):
                 raise RuntimeError("Work/person \"%s\" not in musiclib" % (work_name))
 
         cond_row = None
-        cond_data = norm['conductor']
+        cond_data = data['conductor']
         cond_name = cond_data['name']
         if cond_name:
             cond = get_handle('person')
@@ -251,7 +249,7 @@ class Parser(object):
                 if not cond_row:
                     raise RuntimeError("Conductor/person \"%s\" not in musiclib" % (cond_name))
 
-        play_data = norm['play']
+        play_data = data['play']
         play_data['station_id']   = sta_row.id
         play_data['prog_play_id'] = prog_play['id']
         play_data['program_id']   = prog_play['program_id']
@@ -293,7 +291,8 @@ class ParserWWFM(Parser):
             del prog_copy['playlist']
             log.debug(prettyprint(prog_copy, noprint=True))
 
-            pp_rec = self.insert_program_play(playlist, prog)
+            norm = self.map_program_play(prog)
+            pp_rec = self.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program play")
             else:
@@ -313,7 +312,8 @@ class ParserWWFM(Parser):
                         log.debug("PLAY: %s" % (play_name))
                         log.debug(prettyprint(play, noprint=True))
 
-                    play_rec = self.insert_play(playlist, pp_rec, play)
+                    norm = self.map_play(play)
+                    play_rec = self.insert_play(playlist, pp_rec, norm)
                     if not play_rec:
                         raise RuntimeError("Could not insert play")
                     else:
@@ -330,8 +330,8 @@ class ParserWWFM(Parser):
     def map_program_play(self, data):
         """This is the version for WWFM
 
-        data in: 'onToday' item from WWFM playlist file
-        data out: {
+        raw data in: 'onToday' item from WWFM playlist file
+        normalized data out: {
             'program': {},
             'program_play': {}
         }
@@ -373,8 +373,8 @@ class ParserWWFM(Parser):
     def map_play(self, data):
         """This is the version for WWFM
 
-        data in: 'playlist' item from WWFM playlist file
-        data out: {
+        raw data in: 'playlist' item from WWFM playlist file
+        normalized data out: {
             'composer'  : {},
             'work'      : {},
             'conductor' : {},
