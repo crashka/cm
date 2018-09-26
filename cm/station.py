@@ -389,6 +389,7 @@ class Station(object):
         log.debug("Fetching %d playlist(s) starting with %s" % (num, date2str(start_date)))
         for ord in range(start_ord, end_ord, ord_step):
             date = dt.date.fromordinal(ord)
+            # TODO: should really create a Playlist here and encapsulate all of the fetch stuff!!!
             playlist_name = self.playlist_name(date)
             playlist_file = self.playlist_file(date)
             if os.path.exists(playlist_file) and os.path.getsize(playlist_file) > 0:
