@@ -341,6 +341,17 @@ Working Notes
   programming) to most specialized, used to designate producer from subscriber for
   sequence matches
 
+------------------------
+To Do - Immediate/Active
+------------------------
+
+* "basic normalization" for person
+* musiclib: (\play_)performers, (\play_)ensembles, recordings
+* classify/fix anomalies for person
+* C24 (plus restructing of \map_ funcions)
+* play_seq
+* play_seq_match
+
 -------------------
 To Do - Bugs/Tweaks
 -------------------
@@ -348,18 +359,11 @@ To Do - Bugs/Tweaks
 * add ``--force`` flag to overwrite existing playlists
    * force pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
-* uniform User-Agent HTTP header for requests (station_base section)
 
 ----------------
 To Do - Features
 ----------------
 
-* **parsing playlists**
-   * clean up database.py module
-   * create playlists module
-   * add (daily) playlist and program_play as database entities
-   * create music module
-   * write playlist, program_play, and play entries (no normalization)
 * **music module integrity**
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
