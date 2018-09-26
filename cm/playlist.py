@@ -25,15 +25,13 @@ INFO_KEYS    = set(['sta_name',
                     'datestr',
                     'name',
                     'status',
-                    'file'])
-NOPRINT_KEYS = set([])
+                    'file',
+                    'parsed_info'])
+NOPRINT_KEYS = set(['parsed_info'])
 
 # Lists of Values
 Status = LOV(['NEW',
-              'MISSING',
-              'VALID',
-              'INVALID',
-              'DISABLED'], 'lower')
+              'PARSED'], 'lower')
 
 # shared resources from station
 cfg       = station.cfg
@@ -49,11 +47,6 @@ dbg_hand  = station.dbg_hand
 class Playlist(object):
     """Represents a playlist for a station
     """
-    PARSER_MAP = {
-        'json': 'parse_json',
-        'html': 'parse_html'
-    }
-
     @staticmethod
     def list(sta):
         """List playlists for a station
@@ -69,20 +62,22 @@ class Playlist(object):
         :param sta: station object
         "param date: dt.date (or Y-m-d string)
         """
-        self.station  = sta
-        self.sta_name = sta.name
-        self.date     = str2date(date) if strtype(date) else date
-        self.datestr  = date2str(self.date)
+        self.station     = sta
+        self.sta_name    = sta.name
+        self.parser      = sta.parser
+        self.date        = str2date(date) if strtype(date) else date
+        self.datestr     = date2str(self.date)
         log.debug("Instantiating Playlist(%s, %s)" % (sta.name, self.datestr))
-        self.name     = sta.playlist_name(self.date)
-        self.file     = sta.playlist_file(self.date)
-        self.status   = Status.NEW
+        self.name        = sta.playlist_name(self.date)
+        self.file        = sta.playlist_file(self.date)
+        self.status      = Status.NEW
         # TODO: preload trailing hash sequence from previous playlist (or add
         # task to fill the gap as to_do_list item)!!!
-        self.hash_seq = HashSeq()
+        self.hash_seq    = HashSeq()
+        self.parsed_info = None
 
     def playlist_info(self, keys = INFO_KEYS, exclude = None):
-        """Return station info (canonical fields) as a dict comprehension
+        """Return playlist info (canonical fields) as a dict comprehension
         """
         if not collecttype(keys):
             keys = [keys]
@@ -91,19 +86,55 @@ class Playlist(object):
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
     def parse(self, dryrun = False, force = False):
-        """Return station info (canonical fields) as a dict comprehension
-        """
-        format = self.station.playlist_ext
-        parser_name = Playlist.PARSER_MAP.get(format)
-        if not parser_name:
-            raise RuntimeError("playlist format %s not known" % (format))
-        return getattr(Playlist, parser_name)(self, dryrun, force)
+        """Parse current playlist using underlying parser
 
-    def parse_json(self, dryrun = False, force = False):
-        """Return station info (canonical fields) as a dict comprehension
+        :param dryrun: don't write to database
+        :param force: overwrite program_play/play in databsae
+        :return: dict with parsed program_play/play info
         """
-        log.debug("Parsing json for %s", os.path.relpath(self.file, self.station.station_dir))
-        with open(self.file) as f:
+        if self.parsed_info:
+            # LATER: overwrite existing parse information if force=True!!!
+            raise RuntimeError("Playlist already parsed (force not yet implemented)")
+        self.parsed_info = self.parser.parse(self, dryrun, force)
+        self.status = Status.PARSED
+        return self.parsed_info
+
+##################
+# Parser classes #
+##################
+
+def get_parser(cls_name):
+    cls = globals().get(cls_name)
+    return cls()
+
+# TODO: move to subdirectory(ies) when this gets too unwieldy!!!
+
+class Parser(object):
+    """Basically a helper class for Playlist, associated through station config
+    """
+    def __init__(self):
+        """Parser object is stateless, so constructor doesn't do anything
+        """
+        pass
+
+    def parse(self, playlist, dryrun = False, force = False):
+        """Abstract method for parse operation
+        """
+        raise RuntimeError("parse() not implemented in subclass (or base class called)")
+
+class ParserWWFM(Parser):
+    """Represents a playlist for a station
+    """
+    def parse(self, playlist, dryrun = False, force = False):
+        """Parse playlist, write to musiclib if not dryrun
+
+        :param playlist: Playlist object
+        :param dryrun: don't write to database
+        :param force: overwrite program_play/play in databsae
+        :return: dict with parsed program_play/play info
+        """
+        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        with open(playlist.file) as f:
             pl_info = json.load(f)
         pl_params = pl_info['params']
         pl_progs = pl_info['onToday']
@@ -121,11 +152,12 @@ class Playlist(object):
             del prog_copy['playlist']
             log.debug(prettyprint(prog_copy, noprint=True))
 
-            pp_rec = musiclib.insert_program_play(self.station, prog)
+            pp_rec = musiclib.insert_program_play(playlist.station, prog)
             if not pp_rec:
                 raise RuntimeError("Could not insert program play")
             else:
                 log.debug("Created program play ID %d" % (pp_rec['id']))
+            pp_rec['plays'] = []
 
             plays = prog.get('playlist')
             if plays:
@@ -140,22 +172,20 @@ class Playlist(object):
                         log.debug("PLAY: %s" % (play_name))
                         log.debug(prettyprint(play, noprint=True))
 
-                    play_rec = musiclib.insert_play(self.station, pp_rec, play)
+                    play_rec = musiclib.insert_play(playlist.station, pp_rec, play)
                     if not play_rec:
                         raise RuntimeError("Could not insert play")
                     else:
                         log.debug("Created play ID %d" % (play_rec['id']))
+                    pp_rec['plays'].append(play_rec)
 
                     # TODO: create separate hash sequence for top of each hour!!!
-                    play_seq = self.hash_seq.add(play_name)
+                    play_seq = playlist.hash_seq.add(play_name)
                     #log.debug('Hash seq: ' + str(play_seq))
             else:
                 log.debug("No plays for program \"%s\"" % (prog_name))
+        return pp_rec
 
-    def parse_html(self, dryrun = False, force = False):
-        """Return station info (canonical fields) as a dict comprehension
-        """
-        log.debug("parsing html")
 
 #####################
 # command line tool #

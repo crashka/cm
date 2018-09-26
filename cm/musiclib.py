@@ -22,13 +22,6 @@ from utils import LOV, prettyprint, str2date, str2time, collecttype
 # common constants/functions #
 ##############################
 
-INFO_KEYS    = set(['sta_name',
-                    'datestr',
-                    'name',
-                    'status',
-                    'file'])
-NOPRINT_KEYS = set([])
-
 # Lists of Values
 Name = LOV({'NONE'   : '<none>',
             'UNKNOWN': '<unknown>'})
@@ -176,8 +169,8 @@ def map_play(data):
         'composer'  : {},
         'work'      : {},
         'conductor' : {},
-        'performers': {},
-        'ensembles' : {},
+        'performers': [{}, ...],
+        'ensembles' : [{}, ...],
         'recording' : {},
         'play'      : {}
     }
@@ -250,7 +243,7 @@ def map_play(data):
     data.get('_end')             #
     data.get('_end_time')        # 09-20-2018 03:39:42
     data.get('_end_datetime')    # 2018-09-20T06:39:42.000Z
-    data.get('_duration')        # 1762000 (msecs)
+    data.get('_duration')        # 1762000 [msecs]
 
     data.get('composerName')     # Mauro Giuliani
     data.get('trackName')        # Guitar Concerto No. 3
@@ -359,14 +352,6 @@ def insert_play(station, prog_play, data):
     :param prog_play: parent program_play fields (dict)
     :param data: raw play key/value data (dict)
     :return: key-value dict comprehension for inserted play fields
-
-    'composer'  : {},
-    'work'      : {},
-    'conductor' : {},
-    'performers': [],
-    'ensembles' : [],
-    'recording' : {},
-    'play'      : {}
     """
     norm = map_play(data)
 

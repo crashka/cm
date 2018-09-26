@@ -46,10 +46,12 @@ ConfigKey      = LOV(['URL_FMT',
                       'EPOCH',
                       'PLAYLIST_EXT',
                       'PLAYLIST_MIN',
-                      'HTTP_HEADERS'], 'lower')
+                      'HTTP_HEADERS',
+                      'PARSER_CLS'], 'lower')
 REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
                       ConfigKey.DATE_FMT,
-                      ConfigKey.PLAYLIST_EXT])
+                      ConfigKey.PLAYLIST_EXT,
+                      ConfigKey.PARSER_CLS])
 
 # the following correspond to hardwired Station member variables
 INFO_KEYS      = set(['name',
@@ -132,6 +134,11 @@ def wcpe_special(datestr):
 # Station class #
 #################
 
+# UGLY: need to include this after shared resources (e.g. cfg, log, etc.) are defined;
+# should really move that stuff to a core module (or __init__.py) so imports aren't so
+# temperamental!!!
+from playlist import get_parser
+
 class Station(object):
     """Represents a station defined in config.yml
     """
@@ -167,6 +174,7 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
+        self.parser            = get_parser(self.parser_cls)
         # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
         self.date_func         = self.config.get(ConfigKey.DATE_FUNC)

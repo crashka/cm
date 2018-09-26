@@ -11,6 +11,7 @@ default:
       date_fmt:     'year=%Y&month=%m&day=%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'ParserC24'
 
     CPR:
       sample_url:   'http://playlist.cprnetwork.org/api/playlistCL/selectDate:MjAxOC0wOS0xMg=='
@@ -19,6 +20,7 @@ default:
       date_func:    'b64encode'
       time_zone:    'America/Denver'
       playlist_ext: 'json'
+      parser_cls:   'ParserCPR'
 
     HPR:
       sample_url:   'https://www.houstonpublicmedia.org/classical/schedule/2018/09/12/'
@@ -27,6 +29,7 @@ default:
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
       epoch:        '2013-05-01'
+      parser_cls:   'ParserHPR'
 
     IPR:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/518277f7e1c83ecee40d8eb1/day?date=2018-09-06&format=json'
@@ -36,6 +39,7 @@ default:
       time_zone:    'America/Chicago'
       playlist_ext: 'json'
       epoch:        '2013-07-01'
+      parser_cls:   'ParserIPR'
 
     KDFC:
       sample_url:   'https://www.kdfc.com/playlist/2018/09/07/'
@@ -44,6 +48,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+      parser_cls:   'ParserKDFC'
 
     KING:
       sample_url:   'https://www.king.org/music-schedule/?npDate=01012018'
@@ -52,6 +57,7 @@ default:
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
       epoch:        '2014-01-01'
+      parser_cls:   'ParserKING'
 
     KQAC:
       sample_url:   'https://daisy.allclassical.org/api/playlist/date/2018-09-12/'
@@ -60,6 +66,7 @@ default:
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'json'
       epoch:        '2015-05-01'
+      parser_cls:   'ParserKQAC'
 
     KUSC:
       sample_url:   'https://www.kusc.org/playlist/2018/09/05/'
@@ -68,6 +75,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+      parser_cls:   'ParserKUSC'
 
     MPR:
       sample_url:   'https://www.classicalmpr.org/playlist/classical-mpr/2018-09-12'
@@ -75,6 +83,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'ParserMPR'
 
     VPR:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/518028fee1c810b152ff9766/day?date=2018-09-06&format=json'
@@ -84,6 +93,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2013-12-15'
+      parser_cls:   'ParserVPR'
 
     WBJC:
       sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
@@ -92,6 +102,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-01-01'
+      parser_cls:   'ParserWBJC'
 
     WCPE:
       # Note: date in URL is the Monday of the week (needs to be handled in date_func)
@@ -102,6 +113,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2011-08-15'
+      parser_cls:   'ParserWCPE'
 
     WCRB:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'
@@ -110,6 +122,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
+      parser_cls:   'ParserWCRB'
 
     WDAV:
       sample_url:   'https://app.wdav.org/app-playlist/index.cfm?thisday=2017-09-05'
@@ -117,6 +130,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
+      parser_cls:   'ParserWDAV'
 
     WETA:
       sample_url:   'https://weta.org/fm/playlists/2018-09-08'
@@ -124,6 +138,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
+      parser_cls:   'ParserWETA'
 
 #    WETA-OLD:
 #      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
@@ -138,6 +153,7 @@ default:
       date_fmt:     '%m/%d/%Y'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'ParserWFMT'
 
     WIAA:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/52615808e1c8fbf0ddcb3d04/day?date=2018-09-06&format=json'
@@ -147,6 +163,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2013-11-11'
+      parser_cls:   'ParserWIAA'
 
     WMHT:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/51892578e1c81d34d1474a5d/day?date=2018-09-06&format=json'
@@ -156,6 +173,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2014-06-03'
+      parser_cls:   'ParserWMHT'
 
     WNED:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/51929c5ce1c8c39684eeee82/day?date=2018-09-06&format=json'
@@ -165,6 +183,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2013-12-24'
+      parser_cls:   'ParserWNED'
 
     WQED:
       sample_url:   'https://www.wqed.org/fm/playlist?day=09/05/2018'
@@ -173,6 +192,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-07-10'
+      parser_cls:   'ParserWQED'
 
     WQXR:
       sample_url:   'https://www.wqxr.org/api/schedule_playlist_json/wqxr/2017/sep/01/'
@@ -181,6 +201,7 @@ default:
       date_meth:    'lower'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
+      parser_cls:   'ParserWQXR'
 
 #    WQXR-OLD:
 #      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
@@ -198,6 +219,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       epoch:        '2014-05-01'
+      parser_cls:   'ParserWRTI'
 
     WWFM:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'
@@ -207,6 +229,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'json'
       playlist_min: 5000
+      parser_cls:   'ParserWWFM'
 
   refdata_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
