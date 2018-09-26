@@ -121,12 +121,15 @@ class Playlist(object):
             del prog_copy['playlist']
             log.debug(prettyprint(prog_copy, noprint=True))
 
-            musiclib.insert_program_play(self.station, prog)
+            pp_id = musiclib.insert_program_play(self.station, prog)
+            if not pp_id:
+                raise RuntimeError("Could not insert program play")
 
             plays = prog.get('playlist')
             if plays:
                 for play in plays:
                     assert isinstance(play, dict)
+
                     play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
                     if play.get('_start_time'):
                         log.debug("PLAY [%s]: %s" % (play.get('_start_time'), play_name))
@@ -134,6 +137,9 @@ class Playlist(object):
                     else:
                         log.debug("PLAY: %s" % (play_name))
                         log.debug(prettyprint(play, noprint=True))
+
+                    #musiclib.insert_play(self.station, play)
+
                     # TODO: create separate hash sequence for top of each hour!!!
                     play_seq = self.hash_seq.add(play_name)
                     #log.debug('Hash seq: ' + str(play_seq))

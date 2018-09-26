@@ -100,8 +100,10 @@ class LOV(object):
 # util functions #
 ##################
 
-STD_DATE_FMT   = '%Y-%m-%d'  # same as ISO 8601
-STD_TIME_FMT   = '%H:%M'     # same as ISO 8601
+# same as ISO 8601
+STD_DATE_FMT  = '%Y-%m-%d'
+STD_TIME_FMT  = '%H:%M:%S'
+STD_TIME_FMT2 = '%H:%M'
 
 def str2date(datestr, fmt = STD_DATE_FMT):
     """
@@ -122,15 +124,17 @@ def date2str(date, fmt = STD_DATE_FMT):
 def str2time(timestr, fmt = STD_TIME_FMT):
     """
     :param timestr: string
-    :param fmt: [optional] defaults to H:M
+    :param fmt: [optional] defaults to H:M:S
     :return: dt.time object
     """
+    if len(timestr) == 5 and fmt == STD_TIME_FMT:
+        fmt = STD_TIME_FMT2
     return dt.datetime.strptime(timestr, fmt).time()
 
 def time2str(time, fmt = STD_TIME_FMT):
     """
     :param time: dt.time object
-    :param fmt: [optional] defaults to H:M
+    :param fmt: [optional] defaults to H:M:S
     :return: string
     """
     return time.strftime(fmt)

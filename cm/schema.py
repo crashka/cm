@@ -41,7 +41,8 @@ def load_schema(meta):
     return {
         Entity.PERSON: Table('person', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('name',              Text,        nullable=False),  # TBD: normalized or raw?
+            Column('name',              Text,        nullable=False),  # basic normalization
+            Column('raw_name',          JSONB,       nullable=True),   # raw fields (if available)
 
             # parsed (and normalized???)
             Column('prefix',            Text),
@@ -59,7 +60,7 @@ def load_schema(meta):
         Entity.PERFORMER: Table('performer', meta,
             Column('id',                Integer,     primary_key=True),
             Column('person_id',         Integer,     ForeignKey('person.id'), nullable=False),
-            Column('role',              Text,        nullable=False),  # instrument, voice, role, etc.
+            Column('role',              Text,        nullable=True),  # instrument, voice, role, etc.
             Column('cnl_person_id',     Integer,     ForeignKey('person.id')),
 
             # constraints/indexes
@@ -96,7 +97,7 @@ def load_schema(meta):
         ),
         Entity.RECORDING: Table('recording', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('name',              Text,        nullable=False),
+            Column('name',              Text,        nullable=True),  # if null, need label/catalog_no
             Column('label',             Text),
             Column('catalog_no',        Text),
             Column('release_date',      Date),
@@ -151,7 +152,10 @@ def load_schema(meta):
             # technical
             Column('start_time',        TIMESTAMP(timezone=True)),
             Column('end_time',          TIMESTAMP(timezone=True)),
-            Column('duration',          Interval)
+            Column('duration',          Interval),
+
+            # constraints/indexes
+            UniqueConstraint('station_id', 'prog_play_date', 'prog_play_start', 'program_id')
         ),
         Entity.PLAY: Table('play', meta,
             Column('id',                Integer,     primary_key=True),
