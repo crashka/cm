@@ -55,7 +55,11 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_person_id',     Integer,     ForeignKey('person.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text)
+            Column('archiv_uri',        Text),
+
+            # constraints/indexes
+            UniqueConstraint('name'),
+            UniqueConstraint('full_name')
         ),
         Entity.PERFORMER: Table('performer', meta,
             Column('id',                Integer,     primary_key=True),
@@ -78,10 +82,14 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_ensemble_id',   Integer,     ForeignKey('ensemble.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text)
+            Column('archiv_uri',        Text),
+
+            # constraints/indexes
+            UniqueConstraint('name')
         ),
         Entity.WORK: Table('work', meta,
             Column('id',                Integer,     primary_key=True),
+            Column('composer_id',       Integer,     ForeignKey('person.id'), nullable=False),
             Column('name',              Text,        nullable=False),
 
             # parsed and normalized
@@ -93,7 +101,10 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_work_id',       Integer,     ForeignKey('work.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text)
+            Column('archiv_uri',        Text),
+
+            # constraints/indexes
+            UniqueConstraint('composer_id', 'name')
         ),
         Entity.RECORDING: Table('recording', meta,
             Column('id',                Integer,     primary_key=True),
@@ -101,7 +112,10 @@ def load_schema(meta):
             Column('label',             Text),
             Column('catalog_no',        Text),
             Column('release_date',      Date),
-            Column('archiv_uri',        Text)
+            Column('archiv_uri',        Text),
+
+            # constraints/indexes
+            UniqueConstraint('label', 'catalog_no')
         ),
         Entity.STATION: Table('station', meta,
             Column('id',                Integer,     primary_key=True),

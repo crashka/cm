@@ -30,11 +30,8 @@ INFO_KEYS    = set(['sta_name',
 NOPRINT_KEYS = set([])
 
 # Lists of Values
-Status = LOV(['NEW',
-              'MISSING',
-              'VALID',
-              'INVALID',
-              'DISABLED'], 'lower')
+Name = LOV({'NONE'   : '<none>',
+            'UNKNOWN': '<unknown>'})
 
 # shared resources from station
 cfg       = station.cfg
@@ -59,8 +56,8 @@ def get_handle(entity):
 
 class MusicLib(object):
     def __init__(self, entity):
-        self.entity = entity
-        self.tab = db.get_table(entity)
+        self.ent = entity
+        self.tab = db.get_table(self.ent)
         self.cols = set([c.name for c in self.tab.columns])
 
     def select(self, crit):
@@ -75,6 +72,11 @@ class MusicLib(object):
             raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.ent, str(unknown)))
         sel = self.tab.select()
         for col, val in crit.items():
+            # REVISIT: don't why this doesn't work, but we don't really need it; the better
+            # overall fix is specifying only the consequential/defining keys when requerying
+            # a newly inserted row!!!
+            if isinstance(val, dt.timedelta):
+                continue
             sel = sel.where(self.tab.c[col] == val)
 
         with db.conn.begin() as trans:
@@ -144,8 +146,8 @@ def map_program_play(data):
     data.get('end_time')    # 13:00
     data.get('end_utc')     # Wed Sep 19 2018 13:00:00 GMT-0400 (EDT)
 
-    (sdate, stime) = data['fullstart'].split()
-    (edate, etime) = data['fullend'].split()
+    sdate, stime = data['fullstart'].split()
+    edate, etime = data['fullend'].split()
     if sdate != data['date']:
         log.debug("Date mismatch %s != %s" % (sdate, data['date']))
     if stime != data['start_time']:
@@ -171,13 +173,13 @@ def map_play(data):
 
     data in: 'playlist' item from WWFM playlist file
     data out: {
-        'composer': {},
-        'work': {},
+        'composer'  : {},
+        'work'      : {},
+        'conductor' : {},
         'performers': {},
-        'ensembles': {},
-        'conductor': {},
-        'recording': {},
-        'play': {}
+        'ensembles' : {},
+        'recording' : {},
+        'play'      : {}
     }
     """
     # do the easy stuff first (don't worry about empty records for now)
@@ -225,6 +227,7 @@ def map_play(data):
             while fields:
                 if len(fields) == 1:
                     ensembles_data.append({'name': fields.pop(0).strip()})
+                    break  # same as continue
                 # more reliable to do this moving backward from the end (sez me)
                 if ' ' not in fields[-1]:
                     # REVISIT: we presume a single-word field to be a city/location (for now);
@@ -268,8 +271,12 @@ def map_play(data):
     data.get('episode_notes')    #
     data.get('_err')             # []
 
-    (sdate, stime) = data['_start_time'].split()
-    (edate, etime) = data['_end_time'].split()
+    sdate, stime = data['_start_time'].split()
+    if '_end_time' in data:
+        edate, etime = data['_end_time'].split()
+    else:
+        edate, etime = (None, None)
+
     # NOTE: would like to do integrity check, but need to rectify formatting difference
     # for date, hour offset for time, non-empty value for _end!!!
     #if sdate != data['_date']:
@@ -283,9 +290,9 @@ def map_play(data):
 
     play_data = {}
     play_data['play_info'] =  data
-    play_data['play_date'] =  str2date(sdate)
+    play_data['play_date'] =  str2date(sdate, '%m-%d-%Y')
     play_data['play_start'] = str2time(stime)
-    play_data['play_end'] =   str2time(etime)
+    play_data['play_end'] =   str2time(etime) if etime else None
     play_data['play_dur'] =   dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
     play_data['notes'] =      None # ARRAY(Text)),
     play_data['start_time'] = None # TIMESTAMP(timezone=True)),
@@ -295,17 +302,18 @@ def map_play(data):
     return {
         'composer':   composer_data,
         'work':       work_data,
+        'conductor':  conductor_data,
         'performers': performers_data,
         'ensembles':  ensembles_data,
-        'conductor':  conductor_data,
         'recording':  recording_data,
         'play':       play_data
     }
 
 def insert_program_play(station, data):
     """
-    :param data: dict of playlist key/value fields
-    :return: bool whether record was inserted
+    :param station: parent Station object
+    :param data: raw playlist key/value data (dict)
+    :return: key-value dict comprehension for inserted program_play fields
     """
     norm = map_program_play(data)
 
@@ -341,46 +349,110 @@ def insert_program_play(station, data):
     pp_data['station_id'] = sta_row.id
     pp_data['program_id'] = prog_row.id
     prog_play = get_handle('program_play')
-    res = prog_play.insert(pp_data)
-    return prog_play.inserted_primary_key(res)
+    ins_res = prog_play.insert(pp_data)
+    pp_row = prog_play.inserted_row(ins_res)
+    return {k: v for k, v in pp_row.items()} if pp_row else None
 
 def insert_play(station, prog_play, data):
     """
-    :param data: dict of playlist key/value fields
-    :return: bool whether record was inserted
+    :param station: parent Station object
+    :param prog_play: parent program_play fields (dict)
+    :param data: raw play key/value data (dict)
+    :return: key-value dict comprehension for inserted play fields
+
+    'composer'  : {},
+    'work'      : {},
+    'conductor' : {},
+    'performers': [],
+    'ensembles' : [],
+    'recording' : {},
+    'play'      : {}
     """
-    norm = map_program_play(data)
+    norm = map_play(data)
 
     sta = get_handle('station')
     sta_res = sta.select({'name': station.name})
-    if not sta_res:
+    if sta_res.rowcount == 1:
+        sta_row = sta_res.fetchone()
+    else:
         log.debug("Inserting station \"%s\" into musiclib" % (station.name))
-        res = sta.insert({'name': station.name, 'timezone': station.time_zone})
-        if res.rowcount == 0:
+        ins_res = sta.insert({'name': station.name, 'timezone': station.time_zone})
+        if ins_res.rowcount == 0:
             raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
-        sta_res = sta.select({'name': station.name})
-        if not sta_res:
+        sta_row = sta.inserted_row(ins_res)
+        if not sta_row:
             raise RuntimeError("Station %s not in musiclib" % (station.name))
 
-    prog_data = norm['program']
-    prog_name = prog_data['name']
-    prog = get_handle('program')
-    prog_res = prog.select({'name': prog_name})
-    if not prog_res:
-        log.debug("Inserting program \"%s\" into musiclib" % (prog_name))
-        res = prog.insert(norm['program'])
-        if res.rowcount == 0:
-            raise RuntimeError("Could not insert program \"%s\" into musiclib" % (prog_name))
-        prog_res = prog.select({'name': prog_name})
-        if not prog_res:
-            raise RuntimeError("Program \"%s\" not in musiclib" % (prog_name))
+    comp_data = norm['composer']
+    # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
+    # on it (and there is no play without work, haha)
+    if not comp_data['name']:
+        comp_data['name'] = Name.NONE
+    comp_name = comp_data['name']
+    comp = get_handle('person')
+    comp_res = comp.select({'name': comp_name})
+    if comp_res.rowcount == 1:
+        comp_row = comp_res.fetchone()
+    else:
+        log.debug("Inserting composer \"%s\" into musiclib" % (comp_name))
+        ins_res = comp.insert(comp_data)
+        if ins_res.rowcount == 0:
+            raise RuntimeError("Could not insert composer/person \"%s\" into musiclib" % (comp_name))
+        comp_row = comp.inserted_row(ins_res)
+        if not comp_row:
+            raise RuntimeError("Composer/person \"%s\" not in musiclib" % (comp_name))
 
-    pp_data = norm['program_play']
-    pp_data['station_id'] = sta_res[0].id
-    pp_data['program_id'] = prog_res[0].id
-    prog_play = get_handle('program_play')
-    res = play.insert(pp_data)
-    return play.inserted_primary_key(res)
+    work_data = norm['work']
+    if not work_data['name']:
+        log.debug("Work name not specified, skipping...")
+        return None
+    work_name = work_data['name']
+    work_data['composer_id'] = comp_row.id
+    work = get_handle('work')
+    work_res = work.select({'name': work_name, 'composer_id': comp_row.id})
+    if work_res.rowcount == 1:
+        work_row = work_res.fetchone()
+    else:
+        log.debug("Inserting work \"%s\" into musiclib" % (work_name))
+        ins_res = work.insert(work_data)
+        if ins_res.rowcount == 0:
+            raise RuntimeError("Could not insert work/person \"%s\" into musiclib" % (work_name))
+        work_row = work.inserted_row(ins_res)
+        if not work_row:
+            raise RuntimeError("Work/person \"%s\" not in musiclib" % (work_name))
+
+    cond_row = None
+    cond_data = norm['conductor']
+    cond_name = cond_data['name']
+    if cond_name:
+        cond = get_handle('person')
+        cond_res = cond.select({'name': cond_name})
+        if cond_res.rowcount == 1:
+            cond_row = cond_res.fetchone()
+        else:
+            log.debug("Inserting conductor \"%s\" into musiclib" % (cond_name))
+            ins_res = cond.insert(cond_data)
+            if ins_res.rowcount == 0:
+                raise RuntimeError("Could not insert conductor/person \"%s\" into musiclib" % (cond_name))
+            cond_row = cond.inserted_row(ins_res)
+            if not cond_row:
+                raise RuntimeError("Conductor/person \"%s\" not in musiclib" % (cond_name))
+
+    play_data = norm['play']
+    play_data['station_id']   = sta_row.id
+    play_data['prog_play_id'] = prog_play['id']
+    play_data['program_id']   = prog_play['program_id']
+    play_data['composer_id']  = comp_row.id
+    play_data['work_id']      = work_row.id
+    play_data['conductor_id'] = cond_row.id if cond_row else None
+    play = get_handle('play')
+    ins_res = play.insert(play_data)
+    play_row = play.inserted_row(ins_res)
+    return {k: v for k, v in play_row.items()} if play_row else None
+
+#####################
+# command line tool #
+#####################
 
 if __name__ == '__main__':
     if len(sys.argv) < 4:
