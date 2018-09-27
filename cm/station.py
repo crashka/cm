@@ -14,24 +14,29 @@ import datetime as dt
 from time import sleep
 from base64 import b64encode
 import logging
-import logging.handlers
 
 import pytz
 import click
 import requests
 
+import core
+import playlist
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype, collecttype
 
-################
-# config stuff #
-################
+#####################
+# core/config stuff #
+#####################
 
-FILE_DIR     = os.path.dirname(os.path.realpath(__file__))
-BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
-CONFIG_DIR   = 'config'
-CONFIG_FILE  = 'config.yml'
-CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
-cfg          = Config(CONFIG_PATH)
+# shared resources from core
+BASE_DIR     = core.BASE_DIR
+cfg          = core.cfg
+log          = core.log
+sess         = core.sess
+dflt_hand    = core.dflt_hand
+dbg_hand     = core.dbg_hand
+FETCH_INT    = core.FETCH_INT
+FETCH_DELTA  = core.FETCH_DELTA
+
 STATION_BASE = cfg.config('station_base')
 STATIONS     = cfg.config('stations')
 
@@ -83,34 +88,6 @@ PlaylistAttr   = LOV(['FILE',
 PlaylistStatus = LOV(['OK',
                       'NOTOK'], 'lower')
 
-# kindly internet fetch interval (TODO: move to config file!!!)
-FETCH_INT    = 2.0
-FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
-
-# create logger (TODO: logging parameters belong in config file as well!!!)
-LOGGER_NAME  = 'cm'
-LOG_DIR      = 'log'
-LOG_FILE     = LOGGER_NAME + '.log'
-LOG_PATH     = os.path.join(BASE_DIR, LOG_DIR, LOG_FILE)
-LOG_FMTR     = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s')
-LOG_FILE_MAX = 50000000
-LOG_FILE_NUM = 99
-
-dflt_hand = logging.handlers.RotatingFileHandler(LOG_PATH, 'a', LOG_FILE_MAX, LOG_FILE_NUM)
-dflt_hand.setLevel(logging.DEBUG)
-dflt_hand.setFormatter(LOG_FMTR)
-
-dbg_hand = logging.StreamHandler()
-dbg_hand.setLevel(logging.DEBUG)
-dbg_hand.setFormatter(LOG_FMTR)
-
-log = logging.getLogger(LOGGER_NAME)
-log.setLevel(logging.INFO)
-log.addHandler(dflt_hand)
-
-# requests session
-sess = requests.Session()
-
 #####################
 # Special functions #
 #####################
@@ -133,11 +110,6 @@ def wcpe_special(datestr):
 #################
 # Station class #
 #################
-
-# UGLY: need to include this after shared resources (e.g. cfg, log, etc.) are defined;
-# should really move that stuff to a core module (or __init__.py) so imports aren't so
-# temperamental!!!
-from playlist import get_parser
 
 class Station(object):
     """Represents a station defined in config.yml
@@ -174,7 +146,7 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
-        self.parser            = get_parser(self.parser_cls)
+        self.parser            = playlist.get_parser(self.parser_cls)
         # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
         self.date_func         = self.config.get(ConfigKey.DATE_FUNC)

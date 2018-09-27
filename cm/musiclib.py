@@ -13,20 +13,27 @@ from sqlalchemy.sql import func
 from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import DateTime
 
-import station
+import core
 from database import DatabaseCtx
 from utils import prettyprint, collecttype
+
+#####################
+# core/config stuff #
+#####################
+
+# shared resources from core
+BASE_DIR     = core.BASE_DIR
+cfg          = core.cfg
+log          = core.log
+sess         = core.sess
+dflt_hand    = core.dflt_hand
+dbg_hand     = core.dbg_hand
+FETCH_INT    = core.FETCH_INT
+FETCH_DELTA  = core.FETCH_DELTA
 
 ##############################
 # common constants/functions #
 ##############################
-
-# shared resources from station
-cfg       = station.cfg
-log       = station.log
-sess      = station.sess
-dflt_hand = station.dflt_hand
-dbg_hand  = station.dbg_hand
 
 db = DatabaseCtx('dev')
 ml_cache = {}

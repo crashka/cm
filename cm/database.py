@@ -16,21 +16,24 @@ from sqlalchemy.ext.compiler import compiles
 
 import click
 
-import station
+import core
 import schema
 
-##############################
-# common constants/functions #
-##############################
+#####################
+# core/config stuff #
+#####################
 
-# shared resources from station
-cfg       = station.cfg
-log       = station.log
-sess      = station.sess
-dflt_hand = station.dflt_hand
-dbg_hand  = station.dbg_hand
+# shared resources from core
+BASE_DIR     = core.BASE_DIR
+cfg          = core.cfg
+log          = core.log
+sess         = core.sess
+dflt_hand    = core.dflt_hand
+dbg_hand     = core.dbg_hand
+FETCH_INT    = core.FETCH_INT
+FETCH_DELTA  = core.FETCH_DELTA
 
-DATABASE  = cfg.config('database')
+DATABASE     = cfg.config('database')
 
 dblog = logging.getLogger('sqlalchemy')
 dblog.setLevel(logging.INFO)

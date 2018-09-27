@@ -20,21 +20,23 @@ from time import sleep
 import logging
 
 import click
-import requests
 
-import station
-from utils import Config, LOV, prettyprint, strtype, collecttype
+import core
+from utils import LOV, prettyprint, strtype, collecttype
 
-################
-# config stuff #
-################
+#####################
+# core/config stuff #
+#####################
 
-# shared resources from station
-BASE_DIR     = station.BASE_DIR
-cfg          = station.cfg
-log          = station.log
-sess         = station.sess
-dbg_hand     = station.dbg_hand
+# shared resources from core
+BASE_DIR     = core.BASE_DIR
+cfg          = core.cfg
+log          = core.log
+sess         = core.sess
+dflt_hand    = core.dflt_hand
+dbg_hand     = core.dbg_hand
+FETCH_INT    = core.FETCH_INT
+FETCH_DELTA  = core.FETCH_DELTA
 
 REFDATA_BASE = cfg.config('refdata_base')
 REFDATA      = cfg.config('refdata')
@@ -68,10 +70,6 @@ CatDataAttr    = LOV(['FILE',
                       'TIMESTAMP'], 'lower')
 CatDataStatus  = LOV(['OK',
                       'NOTOK'], 'lower')
-
-# kindly internet fetch interval (TODO: move to config file!!!)
-FETCH_INT    = 2.0
-FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
 
 #################
 # RefData class #

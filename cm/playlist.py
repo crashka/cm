@@ -13,10 +13,25 @@ import datetime as dt
 
 import click
 
+import core
 import station
 from musiclib import get_handle
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, strtype, collecttype
+
+#####################
+# core/config stuff #
+#####################
+
+# shared resources from core
+BASE_DIR     = core.BASE_DIR
+cfg          = core.cfg
+log          = core.log
+sess         = core.sess
+dflt_hand    = core.dflt_hand
+dbg_hand     = core.dbg_hand
+FETCH_INT    = core.FETCH_INT
+FETCH_DELTA  = core.FETCH_DELTA
 
 ##############################
 # common constants/functions #
@@ -36,13 +51,6 @@ Status       = LOV(['NEW',
 
 Name         = LOV({'NONE'   : '<none>',
                     'UNKNOWN': '<unknown>'})
-
-# shared resources from station
-cfg       = station.cfg
-log       = station.log
-sess      = station.sess
-dflt_hand = station.dflt_hand
-dbg_hand  = station.dbg_hand
 
 ##################
 # Playlist class #
@@ -109,7 +117,7 @@ class Playlist(object):
 
 def get_parser(cls_name):
     cls = globals().get(cls_name)
-    return cls()
+    return cls() if cls else None
 
 # TODO: move to subdirectory(ies) when this gets too unwieldy!!!
 
