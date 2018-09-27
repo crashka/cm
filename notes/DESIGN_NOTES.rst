@@ -364,6 +364,7 @@ To Do - Bugs/Tweaks
 To Do - Features
 ----------------
 
+* track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure

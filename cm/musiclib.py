@@ -45,6 +45,35 @@ def get_handle(entity):
     ml_cache[entity] = handle
     return handle
 
+user_keys = {
+    'person'        : ['name'],
+    'performer'     : ['person_id', 'role'],
+    'ensemble'      : ['name'],
+    'work'          : ['composer_id', 'name'],
+    'recording'     : ['label', 'catalog_no'],
+    'station'       : ['name'],
+    'program'       : ['name', 'host_name'],
+    'program_play'  : ['station_id', 'prog_play_date', 'prog_play_start', 'program_id'],
+    'play'          : ['station_id', 'play_date', 'play_start', 'work_id'],
+    'play_performer': ['play_id', 'performer_id'],
+    'play_ensemble' : ['play_id', 'ensemble_id']
+}
+
+lookup_fields = {
+    'person'        : [],
+    'performer'     : ['name'],
+    'ensemble'      : [],
+    'work'          : [],
+    'recording'     : [],
+    'station'       : [],
+    'program'       : [],
+    'program_play'  : [],
+    'play'          : [],
+    'play_performer': [],
+    'play_ensemble' : []
+}
+
+
 ##################
 # MusicLib class #
 ##################
@@ -101,7 +130,9 @@ class MusicLib(object):
         :return: SQLAlchemy RowProxy if exactly one row returned, otherwise None
         """
         params = res.last_inserted_params()
-        sel_res = self.select(params)
+
+        sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.ent]})
+        #sel_res = self.select(params)
         return sel_res.fetchone() if sel_res.rowcount == 1 else None
 
     def inserted_primary_key(self, res):

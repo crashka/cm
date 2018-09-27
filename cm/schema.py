@@ -208,7 +208,7 @@ def load_schema(meta):
             Column('duration',          Interval),
 
             # constraints/indexes
-            Index('station_id', 'play_date', 'play_start')  # don't think we can make this unique
+            UniqueConstraint('station_id', 'play_date', 'play_start', 'work_id')
         ),
         Entity.PLAY_PERFORMER: Table('play_performer', meta,
             Column('id',                Integer,     primary_key=True),

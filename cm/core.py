@@ -1,7 +1,6 @@
-#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 
-"""Core module
+"""Core module - shared/common resources
 """
 
 from __future__ import absolute_import, division, print_function
@@ -26,9 +25,9 @@ CONFIG_FILE  = 'config.yml'
 CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
 cfg          = Config(CONFIG_PATH)
 
-# kindly internet fetch interval (TODO: move to config file!!!)
-FETCH_INT    = 2.0
-FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
+###########
+# logging #
+###########
 
 # create logger (TODO: logging parameters belong in config file as well!!!)
 LOGGER_NAME  = 'cm'
@@ -51,5 +50,13 @@ log = logging.getLogger(LOGGER_NAME)
 log.setLevel(logging.INFO)
 log.addHandler(dflt_hand)
 
-# requests session
+############
+# requests #
+############
+
+# kindly internet fetch interval (TODO: move to config file!!!)
+FETCH_INT    = 2.0
+FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
+
+# shared requests session
 sess = requests.Session()
