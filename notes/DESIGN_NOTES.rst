@@ -346,9 +346,10 @@ To Do - Immediate/Active
 ------------------------
 
 * "basic normalization" for person
-* musiclib: (\play_)performers, (\play_)ensembles, recordings
-* classify/fix anomalies for person
-* C24 (plus restructing of \map_ funcions)
+* musiclib: recordings
+* classify/fix anomalies for person (track fixes!!!)
+* add C24
+* add other staions using WWFM format
 * play_seq
 * play_seq_match
 

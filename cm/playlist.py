@@ -16,7 +16,7 @@ import click
 
 import core
 import station
-from musiclib import get_handle, user_keys, lookup_fields
+from musiclib import get_handle, key_data, entity_data
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, strtype, collecttype
 
@@ -184,7 +184,7 @@ class Parser(object):
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
             log.debug("Skipping insert of duplicate program play record")
-            sel_res = prog_play.select({k: pp_data[k] for k in pp_data.viewkeys() & user_keys['program_play']})
+            sel_res = prog_play.select(key_data(pp_data, 'program_play'))
             if sel_res.rowcount == 1:
                 pp_row = sel_res.fetchone()
         return {k: v for k, v in pp_row.items()} if pp_row else None
@@ -217,7 +217,7 @@ class Parser(object):
         if not comp_data['name']:
             comp_data['name'] = Name.NONE
         comp = get_handle('person')
-        sel_res = comp.select({k: comp_data[k] for k in comp_data.viewkeys() & user_keys['person']})
+        sel_res = comp.select(key_data(comp_data, 'person'))
         if sel_res.rowcount == 1:
             comp_row = sel_res.fetchone()
         else:
@@ -236,7 +236,7 @@ class Parser(object):
             return None
         work_data['composer_id'] = comp_row.id
         work = get_handle('work')
-        sel_res = work.select({k: work_data[k] for k in work_data.viewkeys() & user_keys['work']})
+        sel_res = work.select(key_data(work_data, 'work'))
         if sel_res.rowcount == 1:
             work_row = sel_res.fetchone()
         else:
@@ -253,7 +253,7 @@ class Parser(object):
         cond_data = data['conductor']
         if cond_data['name']:
             cond = get_handle('person')
-            sel_res = cond.select({k: cond_data[k] for k in cond_data.viewkeys() & user_keys['person']})
+            sel_res = cond.select(key_data(cond_data, 'person'))
             if sel_res.rowcount == 1:
                 cond_row = sel_res.fetchone()
             else:
@@ -270,17 +270,13 @@ class Parser(object):
         for perf_data in data['performers']:
             # STEP 1 -: insert/select underlying person record
             perf_person = get_handle('person')  # cached, so okay to re-get for each loop
-            # REVISIT: this is a little tricky, but presumes/requires that all user key fields for 'person'
-            # are also used in the same way for 'performer' (specifically here, to identify records); the
-            # better way to do this is create a legit person sub-record within the performer record!!!
-            sel_res = perf_person.select({k: perf_data[k] for k in perf_data.viewkeys() & user_keys['person']})
+            sel_res = perf_person.select(key_data(perf_data['person'], 'person'))
             if sel_res.rowcount == 1:
                 perf_person_row = sel_res.fetchone()
             else:
-                perf_name = perf_data['name']  # for convenience
-                log.debug("Inserting performer \"%s\" into musiclib" % (perf_name))
-                # TEMP: this is a hack, see REVISIT comment above!!!
-                ins_res = perf_person.insert({k: perf_data[k] for k in perf_data.viewkeys() & user_keys['person']})
+                perf_name = perf_data['person']['name']  # for convenience
+                log.debug("Inserting performer/person \"%s\" into musiclib" % (perf_name))
+                ins_res = perf_person.insert(perf_data['person'])
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % (perf_name))
                 perf_person_row = perf_person.inserted_row(ins_res)
@@ -290,24 +286,27 @@ class Parser(object):
 
             # STEP 2 - now deal with performer record (since we have the person)
             perf = get_handle('performer')  # cached, so okay to re-get for each loop
-            sel_res = perf.select({k: perf_data[k] for k in perf_data.viewkeys() & user_keys['performer']})
+            sel_res = perf.select(key_data(perf_data, 'performer'))
             if sel_res.rowcount == 1:
                 perf_row = sel_res.fetchone()
             else:
-                perf_name = perf_data['name']  # for convenience
+                perf_name = perf_data['person']['name']  # for convenience
+                perf_role = perf_data['role']
+                if perf_role:
+                    perf_name += " (%s)" % (perf_role)
                 log.debug("Inserting performer \"%s\" into musiclib" % (perf_name))
-                ins_res = perf.insert({k: v for k, v in perf_data.items() if k not in lookup_fields['performer']})
+                ins_res = perf.insert(entity_data(perf_data, 'performer'))
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % (perf_name))
+                    raise RuntimeError("Could not insert performer \"%s\" into musiclib" % (perf_name))
                 perf_row = perf.inserted_row(ins_res)
                 if not perf_row:
-                    raise RuntimeError("Performer/person \"%s\" not in musiclib" % (perf_name))
+                    raise RuntimeError("Performer \"%s\" not in musiclib" % (perf_name))
             perf_rows.append(perf_row)
 
         ens_rows = []
         for ens_data in data['ensembles']:
             ens = get_handle('ensemble')  # cached, so okay to re-get for each loop
-            sel_res = ens.select({k: ens_data[k] for k in ens_data.viewkeys() & user_keys['ensemble']})
+            sel_res = ens.select(key_data(ens_data, 'ensemble'))
             if sel_res.rowcount == 1:
                 ens_row = sel_res.fetchone()
             else:
@@ -341,7 +340,7 @@ class Parser(object):
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
             log.debug("Skipping insert of duplicate play record")
-            sel_res = play.select({k: play_data[k] for k in play_data.viewkeys() & user_keys['play']})
+            sel_res = play.select(key_data(play_data, 'play'))
             if sel_res.rowcount == 1:
                 play_row = sel_res.fetchone()
 
@@ -497,6 +496,7 @@ class ParserWWFM(Parser):
         # comma- or semi-colon-delimited)
         performers_data = []
         for perf_str in (data.get('artistName'), data.get('soloists')):
+            mkperf = lambda name, role: {'person': {'name': name}, 'role': role}
             if not perf_str:
                 continue
             if ';' in perf_str:
@@ -504,18 +504,22 @@ class ParserWWFM(Parser):
                 for perf in perfs:
                     fields = perf.rsplit(',', 1)
                     if len(fields) == 1:
-                        performers_data.append({'name': fields[0], 'role': None})
+                        performers_data.append(mkperf(fields[0], None))
+                        #performers_data.append({'name': fields[0], 'role': None})
                     else:
-                        performers_data.append({'name': fields[0].strip(), 'role': fields[1].strip()})
+                        performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
+                        #performers_data.append({'name': fields[0].strip(), 'role': fields[1].strip()})
             elif perf_str.count(',') % 2 == 1:
                 fields = perf_str.split(',')
                 while fields:
                     pers, role = (fields.pop(0), fields.pop(0))
-                    performers_data.append({'name': pers.strip(), 'role': role.strip()})
+                    performers_data.append(mkperf(pers.strip(), role.strip()))
+                    #performers_data.append({'name': pers.strip(), 'role': role.strip()})
             else:
                 # TODO: if even number of commas, need to look closer at string contents/format
                 # to figure out what to do!!!
-                performers_data.append({'name': perf_str, 'role': None})
+                performers_data.append(mkperf(perf_str, None))
+                #performers_data.append({'name': perf_str, 'role': None})
 
         # treat ensembles similar to performers, except no need to parse within semi-colon-delimited
         # fields, and slightly different logic for comma-delimited fields
@@ -611,7 +615,6 @@ class ParserWWFM(Parser):
             'recording':  recording_data,
             'play':       play_data
         }
-
 
 #####################
 # command line tool #

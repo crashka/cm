@@ -59,9 +59,9 @@ user_keys = {
     'play_ensemble' : ['play_id', 'ensemble_id']
 }
 
-lookup_fields = {
+child_recs = {
     'person'        : [],
-    'performer'     : ['name'],
+    'performer'     : ['person'],
     'ensemble'      : [],
     'work'          : [],
     'recording'     : [],
@@ -73,6 +73,24 @@ lookup_fields = {
     'play_ensemble' : []
 }
 
+def key_data(data, entity):
+    """Return elements of entity data that are key fields
+
+    :param data: dict of data elements
+    :param entity: [string] name of entity
+    :return: dict comprehension for key data elements
+    """
+    return {k: data[k] for k in data.viewkeys() & user_keys[entity]}
+
+def entity_data(data, entity):
+    """Return elements of entity data, excluding embedded child records (and later,
+    other fields not belonging to the entity definition)
+
+    :param data: dict of data elements
+    :param entity: [string] name of entity
+    :return: dict comprehension for entity data elements
+    """
+    return {k: v for k, v in data.items() if k not in child_recs[entity]}
 
 ##################
 # MusicLib class #
@@ -136,8 +154,8 @@ class MusicLib(object):
         return sel_res.fetchone() if sel_res.rowcount == 1 else None
 
     def inserted_primary_key(self, res):
-        """res.inserted_primary_key is not currently working (probably due to the use_identity() hack),
-        so need to requery new row to get the primary key
+        """res.inserted_primary_key is not currently working (probably due to the use_identity()
+        hack), so need to requery new row to get the primary key
 
         :param res: SQLAlchemy ResultProxy from insert statement
         :return: primary key of inserted row (or None, if row not [uniquely] identified)
