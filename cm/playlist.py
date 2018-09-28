@@ -398,7 +398,6 @@ class ParserWWFM(Parser):
             log.debug("PROGRAM [%s]: %s" % (prog['fullstart'], prog_name))
             prog_copy = prog.copy()
             del prog_copy['playlist']
-            log.debug(prettyprint(prog_copy, noprint=True))
 
             # Step 1 - Parse out program play info
             norm = self.map_program_play(prog)
@@ -680,7 +679,6 @@ class ParserMPR(Parser):
         m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
         start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
         end_time = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
-        print("Program name: %s (%s start %s, end %s)" % (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
@@ -716,7 +714,6 @@ class ParserMPR(Parser):
         play_start = play_head.find('a', class_="song-time").time
         start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
-        print("  Play date/time: %s %s" % (start_date, start_time))
         data['start_date'] = start_date  # %Y-%m-%d
         data['start_time'] = start_time  # %H:%M %p (12-hour format)
 
@@ -726,7 +723,6 @@ class ParserMPR(Parser):
             url_fields = parse_qs(res.query)
             label = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
-            print("    Recording: %s %s" % (label, catalog_no))
             data['label'] = label
             data['catalog_no'] = catalog_no
 
@@ -736,8 +732,6 @@ class ParserMPR(Parser):
             if isinstance(field_name, list):
                 field_name = ' '.join(field_name)
             field_value = play_field.string.strip()
-            if field_value:
-                print("    %s: %s" % (field_name, field_value))
             data[field_name] = field_value or None
             """
             song-title: Prelude
@@ -900,8 +894,6 @@ class ParserC24(Parser):
             raise RuntimeError("Could not parse prog_times \"%s\"" % (prog_times))
         start_time = dt.datetime.strptime(m.group(1), '%I%p').time()
         end_time = dt.datetime.strptime(m.group(2), '%I%p').time()
-        print("Program name: %s (%s start %s, end %s)" %
-              (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
@@ -944,7 +936,6 @@ class ParserC24(Parser):
         # needs to be cleaned up!!!
         start_date = date2str(pp_date)
         start_time = play_start.string.strip()  # "12:01AM"
-        print("  Play date/time: %s %s" % (start_date, start_time))
         data['start_date'] = start_date  # %Y-%m-%d
         data['start_time'] = start_time  # %H:%M%p (12-hour format)
 
@@ -961,7 +952,6 @@ class ParserC24(Parser):
         if rec_buy_url.name == 'a':
             res = urlsplit(rec_buy_url['href'])
             url_fields = parse_qs(res.query)
-            print("URL fields: %s" % (url_fields))
             label      = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
             composer   = url_fields['composer'][0]
@@ -992,7 +982,7 @@ class ParserC24(Parser):
         #           stuff we've already parsed out (absent meta-metadata)
         for field in play_body.find_all(['b', 'i']):
             if field.string in processed:
-                log.debug("Skipping field \"%s\", already parsed" % (field.string))
+                #log.debug("Skipping field \"%s\", already parsed" % (field.string))
                 continue
             m = re.match(r'(.+), ([\w\. ]+)$', field.string)
             if m:
@@ -1018,8 +1008,6 @@ class ParserC24(Parser):
                     # should really parse the contents and categorize properly!!!
                     assert not data.get('ensemble')
                     data['ensemble'] = field.string
-
-        log.debug(prettyprint(data, noprint=True))
 
         composer_data  =  {'name'      : data.get('composer')}
         work_data      =  {'name'      : data.get('work')}
