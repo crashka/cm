@@ -92,6 +92,14 @@ def entity_data(data, entity):
     """
     return {k: v for k, v in data.items() if k not in child_recs[entity]}
 
+#################
+# Parsing logic #
+#################
+
+COND_STRS = set(['conductor',
+                 'cond.',
+                 'cond'])
+
 ##################
 # MusicLib class #
 ##################

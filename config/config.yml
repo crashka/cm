@@ -11,6 +11,7 @@ default:
       date_fmt:     'year=%Y&month=%m&day=%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'ParserC24'
 
     CPR:
       sample_url:   'http://playlist.cprnetwork.org/api/playlistCL/selectDate:MjAxOC0wOS0xMg=='
@@ -19,6 +20,7 @@ default:
       date_func:    'b64encode'
       time_zone:    'America/Denver'
       playlist_ext: 'json'
+      parser_cls:   'Parser'
 
     HPR:
       sample_url:   'https://www.houstonpublicmedia.org/classical/schedule/2018/09/12/'
@@ -27,6 +29,7 @@ default:
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
       epoch:        '2013-05-01'
+      parser_cls:   'Parser'
 
     IPR:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/518277f7e1c83ecee40d8eb1/day?date=2018-09-06&format=json'
@@ -45,6 +48,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+      parser_cls:   'Parser'
 
     KING:
       sample_url:   'https://www.king.org/music-schedule/?npDate=01012018'
@@ -53,6 +57,7 @@ default:
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
       epoch:        '2014-01-01'
+      parser_cls:   'Parser'
 
     KQAC:
       sample_url:   'https://daisy.allclassical.org/api/playlist/date/2018-09-12/'
@@ -61,6 +66,7 @@ default:
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'json'
       epoch:        '2015-05-01'
+      parser_cls:   'Parser'
 
     KUSC:
       sample_url:   'https://www.kusc.org/playlist/2018/09/05/'
@@ -69,6 +75,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       time_zone:    'America/Los_Angeles'
       playlist_ext: 'html'
+      parser_cls:   'Parser'
 
     MPR:
       sample_url:   'https://www.classicalmpr.org/playlist/classical-mpr/2018-09-12'
@@ -95,6 +102,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-01-01'
+      parser_cls:   'Parser'
 
     WCPE:
       # Note: date in URL is the Monday of the week (needs to be handled in date_func)
@@ -105,6 +113,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2011-08-15'
+      parser_cls:   'Parser'
 
     WCRB:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53877c98e1c80a130decb6c8/day?date=2018-09-06&format=json'
@@ -121,6 +130,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
+      parser_cls:   'Parser'
 
     WETA:
       sample_url:   'https://weta.org/fm/playlists/2018-09-08'
@@ -128,6 +138,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/New_York'
       playlist_ext: 'html'
+      parser_cls:   'Parser'
 
 #    WETA-OLD:
 #      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
@@ -142,6 +153,7 @@ default:
       date_fmt:     '%m/%d/%Y'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'Parser'
 
     WIAA:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/52615808e1c8fbf0ddcb3d04/day?date=2018-09-06&format=json'
@@ -180,6 +192,7 @@ default:
       time_zone:    'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-07-10'
+      parser_cls:   'Parser'
 
     WQXR:
       sample_url:   'https://www.wqxr.org/api/schedule_playlist_json/wqxr/2017/sep/01/'
@@ -188,6 +201,7 @@ default:
       date_meth:    'lower'
       time_zone:    'America/New_York'
       playlist_ext: 'json'
+      parser_cls:   'Parser'
 
 #    WQXR-OLD:
 #      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'

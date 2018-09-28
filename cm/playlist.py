@@ -19,7 +19,7 @@ import click
 
 import core
 import station
-from musiclib import get_handle, key_data, entity_data
+from musiclib import get_handle, key_data, entity_data, COND_STRS
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
@@ -643,7 +643,7 @@ class ParserMPR(Parser):
             soup = BeautifulSoup(f, "lxml")
 
         title = soup.title.string.strip()
-        m = re.match('Playlist for (\w+ \d+, \d+)', title)
+        m = re.match(r'Playlist for (\w+ \d+, \d+)', title)
         pl_date = dt.datetime.strptime(m.group(1), '%B %d, %Y').date()
         pl_root = soup.find('dl', id="playlist")
         for prog_head in pl_root('dt', recursive=False):
@@ -682,7 +682,7 @@ class ParserMPR(Parser):
         }
         """
         prog_name = prog_head.h2.string.strip().encode('utf-8')
-        m = re.match('(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
+        m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
         start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
         end_time = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
         print("Program name: %s (%s start %s, end %s)" % (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
@@ -706,7 +706,7 @@ class ParserMPR(Parser):
     def map_play(self, pp_start, play_head):
         data = {}
         play_start = play_head.find('a', class_="song-time").time
-        start_date = play_start.attrs['datetime']
+        start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
         print("  Play date/time: %s %s" % (start_date, start_time))
         data['start_date'] = start_date  # %Y-%m-%d
@@ -714,7 +714,7 @@ class ParserMPR(Parser):
 
         buy_button = play_head.find('a', class_="buy-button", href=True)
         if (buy_button):
-            res = urlsplit(buy_button.attrs['href'])
+            res = urlsplit(buy_button['href'])
             url_fields = parse_qs(res.query)
             label = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
@@ -724,7 +724,7 @@ class ParserMPR(Parser):
 
         play_body = play_head.find('div', class_="song-info")
         for play_field in play_body(['h3', 'h4'], recusive=False):
-            field_name = play_field.attrs['class']
+            field_name = play_field['class']
             if isinstance(field_name, list):
                 field_name = ' '.join(field_name)
             field_value = play_field.string.strip()
@@ -815,6 +815,143 @@ class ParserMPR(Parser):
             'recording':  recording_data,
             'play':       play_data
         }
+
+class ParserC24(Parser):
+    def parse(self, playlist, dryrun = False, force = False):
+        """
+        """
+        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        with open(playlist.file) as f:
+            soup = BeautifulSoup(f, "lxml")
+
+        top = soup.find('a', attrs={'name': 'top'})
+        tab = top.find_next('table')
+        pl_head = tab('tr', recursive=False)[0]
+        pl_body = tab('tr', recursive=False)[1]
+
+        title = pl_head.find('span', class_='title')
+        datestr = title.find_next_sibling('i').string  # "Monday, September 17, 2018 Central Time"
+        m = re.match(r'(\w+), (\w+ \d+, \d+) (.+)', datestr)
+        if not m:
+            raise RuntimeError("could not parse datestr \"%s\"" % (datestr))
+        pl_date = dt.datetime.strptime(m.group(2), '%B %d, %Y').date()
+
+        dividers = [rule.parent for rule in pl_body.select('div > hr')]
+        for divider in dividers:
+            # Step 1 - Parse out program play info
+            prog_head = divider.find_next('p')
+            if not prog_head:
+                break
+            prog_name = prog_head.string.strip()  # "MID -  1AM"
+            play_tables = divider.find_next_siblings('table')
+
+            prog_times = prog_name.replace('MID', '12AM').replace('12N', '12PM')
+            m = re.match(r'(\d+(?:AM|PM)).+?(\d+(?:AM|PM))', prog_times)
+            if not m:
+                raise RuntimeError("Could not parse prog_times \"%s\"" % (prog_times))
+            start_time = dt.datetime.strptime(m.group(1), '%I%p').time()
+            end_time = dt.datetime.strptime(m.group(2), '%I%p').time()
+            print("Program name: %s (%s start %s, end %s)" %
+                  (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
+            # TODO: lookup host name from refdata!!!
+            prog_data = {'name': prog_name}
+
+            pp_data = {}
+            # TODO: convert prog_head into dict for prog_play_info!!!
+            pp_data['prog_play_info'] =  {}
+            pp_data['prog_play_date'] =  pl_date
+            pp_data['prog_play_start'] = start_time
+            pp_data['prog_play_end'] =   end_time
+            pp_data['prog_play_dur'] =   None # Interval, if listed
+            pp_data['notes'] =           None # ARRAY(Text)),
+            pp_data['start_time'] =      None # TIMESTAMP(timezone=True)),
+            pp_data['end_time'] =        None # TIMESTAMP(timezone=True)),
+            pp_data['duration'] =        None # Interval)
+
+            norm = {'program': prog_data, 'program_play': pp_data}
+            #log.debug(prettyprint(norm, noprint=True))
+            #norm = self.map_program_play(pl_date, prog_head)
+
+            # Step 2 - Parse out play info
+            for play_table in play_tables:
+                data = {}
+                processed = set()
+                elems = play_table.tr('td', recursive=False)
+                play_start = elems[0].string.strip()  # "12:01AM"
+                play_body = elems[1]
+                print("Program name: %s (%s start %s, end %s)" %
+                      (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
+
+                # Step 2a - try and find label information (<i>...</i> - <a href=...>)
+                rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
+                rec_listing = rec_center.previous_sibling
+                m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
+                if m:
+                    data['label'] = m.group(1)
+                    data['catalog_no'] = m.group(2)
+                    processed.add(rec_listing.string)
+                rec_buy_url = rec_center.next_sibling
+                # Step 2b - get as much info as we can from the "BUY" url
+                if rec_buy_url.name == 'a':
+                    res = urlsplit(rec_buy_url['href'])
+                    url_fields = parse_qs(res.query)
+                    print("URL fields: %s" % (url_fields))
+                    label      = url_fields['label'][0]
+                    catalog_no = url_fields['catalog'][0]
+                    composer   = url_fields['composer'][0]
+                    work       = url_fields['work'][0]
+                    url_title  = "%s - %s" % (composer, work)
+                    url_rec    = "%s %s" % (label, catalog_no)
+                    processed.add(url_title)
+                    if data.get('label') and data.get('catalog_no'):
+                        if label != data['label'] or catalog_no != data['catalog_no']:
+                            log.debug("Recording in URL (%s) mismatch with listing (%s)" %
+                                      (url_rec, rec_listing.string))
+                        elif url_rec != rec_listing.string:
+                            raise RuntimeError("Rec string mismatch \"%s\" != \"%s\"",
+                                               (url_rec, rec_listing.string))
+                    else:
+                        if data.get('label') or data.get('catalog_no'):
+                            log.debug("Overwriting listing (%s) with recording from URL (%s)" %
+                                      (rec_listing.string, url_rec))
+                        data['label'] = label
+                        data['catalog_no'] = catalog_no
+                        processed.add(url_rec)
+                else:
+                    raise RuntimeError("Expected <a>, got <%s> instead" % (rec_buy_url.name))
+
+                # Step 2c - now parse the individual text fields, skipping and/or validating
+                #           stuff we've already parsed out (absent meta-metadata)
+                for field in play_body.find_all(['b', 'i']):
+                    if field.string in processed:
+                        log.debug("Skipping field \"%s\", already parsed" % (field.string))
+                        continue
+                    m = re.match(r'(.+), ([\w\. ]+)$', field.string)
+                    if m:
+                        if m.group(2).lower() in COND_STRS:
+                            data['conductor'] = m.group(1)
+                        else:
+                            data['performer'] = field.string
+                    else:
+                        subfields = field.string.split(' - ')
+                        if len(subfields) == 2 and subfields[0][-1] != ' ' and subfields[1][0] != ' ':
+                            composer = subfields[0]
+                            work = subfields[1]
+                            if data.get('composer'):
+                                log.debug("Overwriting composer \"%s\" with \"%s\"" %
+                                          (data['composer'], composer))
+                                data['composer'] = composer
+                            if data.get('work'):
+                                log.debug("Overwriting work \"%s\" with \"%s\"" %
+                                          (data['work'], work))
+                                data['work'] = work
+                        else:
+                            # REVISIT: for now, just assume we have an ensemble name, though we
+                            # should really parse the contents and categorize properly!!!
+                            assert not data.get('ensemble')
+                            data['ensemble'] = field.string
+                #norm = self.map_play(pp_start, play_head)
+                log.debug(prettyprint(data, noprint=True))
 
 #####################
 # command line tool #
