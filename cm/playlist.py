@@ -516,21 +516,17 @@ class ParserWWFM(Parser):
                     fields = perf.rsplit(',', 1)
                     if len(fields) == 1:
                         performers_data.append(mkperf(fields[0], None))
-                        #performers_data.append({'name': fields[0], 'role': None})
                     else:
                         performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
-                        #performers_data.append({'name': fields[0].strip(), 'role': fields[1].strip()})
             elif perf_str.count(',') % 2 == 1:
                 fields = perf_str.split(',')
                 while fields:
                     pers, role = (fields.pop(0), fields.pop(0))
                     performers_data.append(mkperf(pers.strip(), role.strip()))
-                    #performers_data.append({'name': pers.strip(), 'role': role.strip()})
             else:
                 # TODO: if even number of commas, need to look closer at string contents/format
                 # to figure out what to do!!!
                 performers_data.append(mkperf(perf_str, None))
-                #performers_data.append({'name': perf_str, 'role': None})
 
         # treat ensembles similar to performers, except no need to parse within semi-colon-delimited
         # fields, and slightly different logic for comma-delimited fields
@@ -747,8 +743,56 @@ class ParserMPR(Parser):
         conductor_data =  {'name'      : data.get('song-conductor')}
         recording_data =  {'label'     : data.get('label'),
                            'catalog_no': data.get('catalog_no')}
+
+        # FIX/NO MORE COPY-PASTE: need to abstract out the logic for performers and ensembles
+        # across parser subclasses!!!
         performers_data = []
-        ensembles_data = []
+        perf_str = data.get('song-soloist soloist-1')
+        if perf_str:
+            mkperf = lambda name, role: {'person': {'name': name}, 'role': role}
+            if ';' in perf_str:
+                perfs = perf_str.split(';')
+                for perf in perfs:
+                    fields = perf.rsplit(',', 1)
+                    if len(fields) == 1:
+                        performers_data.append(mkperf(fields[0], None))
+                    else:
+                        performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
+            elif perf_str.count(',') % 2 == 1:
+                fields = perf_str.split(',')
+                while fields:
+                    pers, role = (fields.pop(0), fields.pop(0))
+                    performers_data.append(mkperf(pers.strip(), role.strip()))
+            else:
+                # TODO: if even number of commas, need to look closer at string contents/format
+                # to figure out what to do!!!
+                performers_data.append(mkperf(perf_str, None))
+
+        # FIX: see above!!!
+        ensembles_data  =  []
+        ensembles_str = data.get('song-orch_ensemble')
+        if ensembles_str:
+            if ';' in ensembles_str:
+                ensembles = ensembles_str.split(';')
+                ensembles_data += [{'name': ens.strip()} for ens in ensembles]
+            elif ',' in ensembles_str:
+                fields = ensembles_str.split(',')
+                while fields:
+                    if len(fields) == 1:
+                        ensembles_data.append({'name': fields.pop(0).strip()})
+                        break  # same as continue
+                    # more reliable to do this moving backward from the end (sez me)
+                    if ' ' not in fields[-1]:
+                        # REVISIT: we presume a single-word field to be a city/location (for now);
+                        # as above, we should really look at field contents to properly parse!!!
+                        ens = ','.join([fields.pop(-2), fields.pop(-1)])
+                        ensembles_data.append({'name': ens.strip()})
+                    else:
+                        # yes, do this twice!
+                        ensembles_data.append({'name': fields.pop(-1).strip()})
+                        ensembles_data.append({'name': fields.pop(-1).strip()})
+            else:
+                ensembles_data.append({'name': ensembles_str})
 
         play_data = {}
         # TODO: convert play_body into dict for play_info!!!
