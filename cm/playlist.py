@@ -390,8 +390,6 @@ class ParserWWFM(Parser):
         pl_progs = pl_info['onToday']
 
         for prog in pl_progs:
-            assert isinstance(prog, dict)
-
             # TEMP: get rid of dev/debugging stuff (careful, prog_name used below)!!!
             prog_info = prog.get('program')
             assert isinstance(prog_info, dict)
@@ -402,6 +400,7 @@ class ParserWWFM(Parser):
             del prog_copy['playlist']
             log.debug(prettyprint(prog_copy, noprint=True))
 
+            # Step 1 - Parse out program play info
             norm = self.map_program_play(prog)
             pp_rec = self.insert_program_play(playlist, norm)
             if not pp_rec:
@@ -410,32 +409,22 @@ class ParserWWFM(Parser):
                 log.debug("Created program play ID %d" % (pp_rec['id']))
             pp_rec['plays'] = []
 
-            plays = prog.get('playlist')
-            if plays:
-                for play in plays:
-                    assert isinstance(play, dict)
+            # Step 2 - Parse out play info (if present)
+            plays = prog.get('playlist') or []
+            for play in plays:
+                norm = self.map_play(play)
+                play_rec = self.insert_play(playlist, pp_rec, norm)
+                if not play_rec:
+                    raise RuntimeError("Could not insert play")
+                else:
+                    log.debug("Created play ID %d" % (play_rec['id']))
+                pp_rec['plays'].append(play_rec)
 
-                    play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
-                    if play.get('_start_time'):
-                        log.debug("PLAY [%s]: %s" % (play.get('_start_time'), play_name))
-                        log.debug(prettyprint(play, noprint=True))
-                    else:
-                        log.debug("PLAY: %s" % (play_name))
-                        log.debug(prettyprint(play, noprint=True))
+                play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
+                # TODO: create separate hash sequence for top of each hour!!!
+                play_seq = playlist.hash_seq.add(play_name)
+                #log.debug('Hash seq: ' + str(play_seq))
 
-                    norm = self.map_play(play)
-                    play_rec = self.insert_play(playlist, pp_rec, norm)
-                    if not play_rec:
-                        raise RuntimeError("Could not insert play")
-                    else:
-                        log.debug("Created play ID %d" % (play_rec['id']))
-                    pp_rec['plays'].append(play_rec)
-
-                    # TODO: create separate hash sequence for top of each hour!!!
-                    play_seq = playlist.hash_seq.add(play_name)
-                    #log.debug('Hash seq: ' + str(play_seq))
-            else:
-                log.debug("No plays for program \"%s\"" % (prog_name))
         return pp_rec
 
     def map_program_play(self, data):
@@ -876,8 +865,10 @@ class ParserC24(Parser):
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info
-            play_heads = prog_div.find_next_siblings('table')
+            play_heads = prog_div.find_next_siblings(['table', 'div'])
             for play_head in play_heads:
+                if play_head.name == 'div':
+                    break
                 norm = self.map_play(pp_date, play_head)
                 play_rec = self.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
