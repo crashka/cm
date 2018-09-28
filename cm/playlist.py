@@ -9,8 +9,11 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import logging
 import json
+import re
 import datetime as dt
+from urlparse import urlsplit, parse_qs
 
+from bs4 import BeautifulSoup
 from sqlalchemy.exc import *
 import click
 
@@ -18,7 +21,7 @@ import core
 import station
 from musiclib import get_handle, key_data, entity_data
 from datasci import HashSeq
-from utils import LOV, prettyprint, str2date, date2str, str2time, strtype, collecttype
+from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
 #####################
 # core/config stuff #
@@ -112,15 +115,9 @@ class Playlist(object):
         self.status = Status.PARSED
         return self.parsed_info
 
-##################
-# Parser classes #
-##################
-
-def get_parser(cls_name):
-    cls = globals().get(cls_name)
-    return cls() if cls else None
-
-# TODO: move to subdirectory(ies) when this gets too unwieldy!!!
+#####################
+# Parser base class #
+#####################
 
 class Parser(object):
     """Basically a helper class for Playlist, associated through station config
@@ -361,6 +358,20 @@ class Parser(object):
 
         return {k: v for k, v in play_row.items()}
 
+##########################
+# Parser adapter classes #
+##########################
+
+def get_parser(cls_name):
+    cls = globals().get(cls_name)
+    return cls() if cls else None
+
+# TODO: move to subdirectory(ies) when this gets too unwieldy!!!
+
+#+------------+
+#| ParserWWFM |
+#+------------+
+
 class ParserWWFM(Parser):
     """Represents a playlist for a station
     """
@@ -380,10 +391,10 @@ class ParserWWFM(Parser):
 
         for prog in pl_progs:
             assert isinstance(prog, dict)
-            prog_info = prog.get('program')
-            assert isinstance(prog_info, dict)
 
             # TEMP: get rid of dev/debugging stuff (careful, prog_name used below)!!!
+            prog_info = prog.get('program')
+            assert isinstance(prog_info, dict)
             prog_desc = prog_info.get('program_desc')
             prog_name = prog_info.get('name') + (' - ' + prog_desc if prog_desc else '')
             log.debug("PROGRAM [%s]: %s" % (prog['fullstart'], prog_name))
@@ -616,6 +627,151 @@ class ParserWWFM(Parser):
             'play':       play_data
         }
 
+#+-----------+
+#| ParserMPR |
+#+-----------+
+
+class ParserMPR(Parser):
+    """Represents a playlist for a station
+    """
+    def parse(self, playlist, dryrun = False, force = False):
+        """Parse playlist, write to musiclib if not dryrun
+
+        :param playlist: Playlist object
+        :param dryrun: don't write to database
+        :param force: overwrite program_play/play in databsae
+        :return: dict with parsed program_play/play info
+        """
+        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        with open(playlist.file) as f:
+            soup = BeautifulSoup(f, "lxml")
+
+        title = soup.title.string.strip()
+        m = re.match('Playlist for (\w+ \d+, \d+)', title)
+        pl_date = dt.datetime.strptime(m.group(1), '%B %d, %Y').date()
+        pl_root = soup.find('dl', id="playlist")
+        for prog_head in pl_root('dt', recursive=False):
+            norm = self.map_program_play(pl_date, prog_head)
+            pp_rec = self.insert_program_play(playlist, norm)
+            if not pp_rec:
+                raise RuntimeError("Could not insert program play")
+            else:
+                log.debug("Created program play ID %d" % (pp_rec['id']))
+            pp_start = pp_rec['prog_play_start']
+            pp_rec['plays'] = []
+
+            prog_body = prog_head.find_next_sibling('dd')
+            for play_head in prog_body.ul('li', recursive=False):
+                norm = self.map_play(pp_start, play_head)
+                play_rec = self.insert_play(playlist, pp_rec, norm)
+                if not play_rec:
+                    raise RuntimeError("Could not insert play")
+                else:
+                    log.debug("Created play ID %d" % (play_rec['id']))
+                pp_rec['plays'].append(play_rec)
+
+                play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
+                # TODO: create separate hash sequence for top of each hour!!!
+                play_seq = playlist.hash_seq.add(play_name)
+                #log.debug('Hash seq: ' + str(play_seq))
+        return pp_rec
+
+    def map_program_play(self, pl_date, prog_head):
+        """This is the version for MPR
+
+        raw data in: 'onToday' item from WWFM playlist file
+        normalized data out: {
+            'program': {},
+            'program_play': {}
+        }
+        """
+        prog_name = prog_head.h2.string.strip().encode('utf-8')
+        m = re.match('(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
+        start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
+        end_time = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
+        print("Program name: %s (%s start %s, end %s)" % (prog_name, date2str(pl_date), time2str(start_time), time2str(end_time)))
+        # TODO: lookup host name from refdata!!!
+        prog_data = {'name': prog_name}
+
+        pp_data = {}
+        # TODO: convert prog_head into dict for prog_play_info!!!
+        pp_data['prog_play_info'] =  {}
+        pp_data['prog_play_date'] =  pl_date
+        pp_data['prog_play_start'] = start_time
+        pp_data['prog_play_end'] =   end_time
+        pp_data['prog_play_dur'] =   None # Interval, if listed
+        pp_data['notes'] =           None # ARRAY(Text)),
+        pp_data['start_time'] =      None # TIMESTAMP(timezone=True)),
+        pp_data['end_time'] =        None # TIMESTAMP(timezone=True)),
+        pp_data['duration'] =        None # Interval)
+
+        return {'program': prog_data, 'program_play': pp_data}
+
+    def map_play(self, pp_start, play_head):
+        data = {}
+        play_start = play_head.find('a', class_="song-time").time
+        start_date = play_start.attrs['datetime']
+        start_time = play_start.string + ' ' + time2str(pp_start, '%p')
+        print("  Play date/time: %s %s" % (start_date, start_time))
+        data['start_date'] = start_date  # %Y-%m-%d
+        data['start_time'] = start_time  # %H:%M %p (12-hour format)
+
+        buy_button = play_head.find('a', class_="buy-button", href=True)
+        if (buy_button):
+            res = urlsplit(buy_button.attrs['href'])
+            url_fields = parse_qs(res.query)
+            label = url_fields['label'][0]
+            catalog_no = url_fields['catalog'][0]
+            print("    Recording: %s %s" % (label, catalog_no))
+            data['label'] = label
+            data['catalog_no'] = catalog_no
+
+        play_body = play_head.find('div', class_="song-info")
+        for play_field in play_body(['h3', 'h4'], recusive=False):
+            field_name = play_field.attrs['class']
+            if isinstance(field_name, list):
+                field_name = ' '.join(field_name)
+            field_value = play_field.string.strip()
+            if field_value:
+                print("    %s: %s" % (field_name, field_value))
+            data[field_name] = field_value or None
+            """
+            song-title: Prelude
+            song-composer: Walter Piston
+            song-conductor: Carlos Kalmar
+            song-orch_ensemble: Grant Park Orchestra
+            song-soloist soloist-1: David Schrader, organ
+            """
+        composer_data  =  {'name'      : data.get('song-composer')}
+        work_data      =  {'name'      : data.get('song-title')}
+        conductor_data =  {'name'      : data.get('song-conductor')}
+        recording_data =  {'label'     : data.get('label'),
+                           'catalog_no': data.get('catalog_no')}
+        performers_data = []
+        ensembles_data = []
+
+        play_data = {}
+        # TODO: convert play_body into dict for play_info!!!
+        play_data['play_info'] =  {}
+        play_data['play_date'] =  str2date(data['start_date'])
+        play_data['play_start'] = str2time(data['start_time'], '%H:%M %p')
+        play_data['play_end'] =   None # Time
+        play_data['play_dur'] =   None # Interval
+        play_data['notes'] =      None # ARRAY(Text)),
+        play_data['start_time'] = None # TIMESTAMP(timezone=True)),
+        play_data['end_time'] =   None # TIMESTAMP(timezone=True)),
+        play_data['duration'] =   None # Interval)
+
+        return {
+            'composer':   composer_data,
+            'work':       work_data,
+            'conductor':  conductor_data,
+            'performers': performers_data,
+            'ensembles':  ensembles_data,
+            'recording':  recording_data,
+            'play':       play_data
+        }
+
 #####################
 # command line tool #
 #####################
@@ -634,7 +790,7 @@ class ParserWWFM(Parser):
 @click.argument('playlists', default='all', required=True)
 def main(cmd, sta_name, force, dryrun, debug, playlists):
     """Manage playlist information for playlists within a station
-    
+
     Currently, playlist date (or 'all') is specified.
 
     Later, be able to parse out range of playlists.

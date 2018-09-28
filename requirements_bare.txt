@@ -1,7 +1,9 @@
+future
 pytz
 pyyaml
 click
 requests
 psycopg2-binary
 sqlalchemy
-future
+beautifulsoup4
+lxml

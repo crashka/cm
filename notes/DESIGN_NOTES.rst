@@ -301,6 +301,48 @@ Working Notes
       'upc': ''
   }
 
+**Parsing MPR**
+::
+
+  <dl data-playlist-service-base="/playlist/classical-mpr" id="playlist">
+    <dt>
+      <h2>
+        11:00 PM – 12:00 AM
+      </h2>
+    </dt>
+    <dd>
+      <ul>
+        <li id="song349393">
+          <a class="button small buy-button" href="http://www.arkivmusic.com/..." title="Purchase...">
+            Buy
+          </a>
+          <a class="song-time" data-pjax="true" href="https://www.classicalmpr.org/playlist/...">
+            <time datetime="2018-09-26">
+              11:44
+            </time>
+          </a>
+          <div class="song-info">
+            <h3 class="song-title">
+              Supplica
+            </h3>
+            <h4 class="song-composer">
+              Christopher Rouse
+            </h4>
+            <h4 class="song-conductor">
+              Carlos Kalmar
+            </h4>
+            <h4 class="song-orch_ensemble">
+              Oregon Symphony
+            </h4>
+            <h4 class="song-soloist soloist-1">
+              Francisco Fullana, violin
+            </h4>
+          </div>
+        </li>
+      </ul>
+    </dd>
+  </dl>
+
 **Music lib**
 
 * functions
@@ -357,6 +399,7 @@ To Do - Immediate/Active
 To Do - Bugs/Tweaks
 -------------------
 
+* figure out duplicate start time (different works) for plays (WWFM)
 * add ``--force`` flag to overwrite existing playlists
    * force pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``

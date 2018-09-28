@@ -11,7 +11,6 @@ default:
       date_fmt:     'year=%Y&month=%m&day=%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
-      parser_cls:   'ParserC24'
 
     CPR:
       sample_url:   'http://playlist.cprnetwork.org/api/playlistCL/selectDate:MjAxOC0wOS0xMg=='
@@ -77,6 +76,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       time_zone:    'America/Chicago'
       playlist_ext: 'html'
+      parser_cls:   'ParserMPR'
 
     VPR:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/518028fee1c810b152ff9766/day?date=2018-09-06&format=json'
@@ -239,4 +239,4 @@ default:
 
   database:
     dev:
-      connect_str:  'postgres://crash@/cmdev'
+      connect_str:  'postgresql+psycopg2://crash@/cmdev'

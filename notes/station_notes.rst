@@ -1,3 +1,9 @@
+-------------------------
+Classical24 Host Schedule
+-------------------------
+
+http://www2.pri.org/infosite/programs/class24/index.cfm?fa=PGschedule
+
 ------
 To Do?
 ------
