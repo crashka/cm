@@ -493,7 +493,7 @@ class ParserMPR(Parser):
         buy_button = play_head.find('a', class_="buy-button", href=True)
         if (buy_button):
             res = urlsplit(buy_button['href'])
-            url_fields = parse_qs(res.query)
+            url_fields = parse_qs(res.query, keep_blank_values=True)
             label = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
             data['label'] = label
@@ -724,7 +724,7 @@ class ParserC24(Parser):
         # Step 2b - get as much info as we can from the "BUY" url
         if rec_buy_url.name == 'a':
             res = urlsplit(rec_buy_url['href'])
-            url_fields = parse_qs(res.query)
+            url_fields = parse_qs(res.query, keep_blank_values=True)
             label      = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
             composer   = url_fields['composer'][0]
@@ -757,7 +757,7 @@ class ParserC24(Parser):
             if field.string in processed:
                 #log.debug("Skipping field \"%s\", already parsed" % (field.string))
                 continue
-            m = re.match(r'(.+), ([\w\. ]+)$', field.string)
+            m = re.match(r'(.+), ([\w\./ ]+)$', field.string)
             if m:
                 if m.group(2).lower() in COND_STRS:
                     data['conductor'] = m.group(1)
@@ -777,9 +777,12 @@ class ParserC24(Parser):
                                   (data['work'], work))
                         data['work'] = work
                 else:
-                    # REVISIT: for now, just assume we have an ensemble name, though we
-                    # should really parse the contents and categorize properly!!!
-                    assert not data.get('ensemble')
+                    # REVISIT: for now, just assume we have an ensemble name, though we can't
+                    # really know what to do on conflict unless/until we parse the contents and
+                    # categorize properly (though, could also add both and debug later)!!!
+                    if data.get('ensemble'):
+                        raise RuntimeError("Can't overwrite ensemble \"%s\" with \"%s\"" %
+                                           (data['ensemble'], field.string))
                     data['ensemble'] = field.string
 
         composer_data  =  {'name'      : data.get('composer')}

@@ -122,8 +122,11 @@ COND_STRS = set(['conductor',
 
 class MusicEnt(object):
     def __init__(self, entity):
-        self.ent = entity
-        self.tab = db.get_table(self.ent)
+        """
+        :param entity: [string] name of entity (same as table name)
+        """
+        self.name = entity
+        self.tab  = db.get_table(self.name)
         self.cols = set([c.name for c in self.tab.columns])
 
     def select(self, crit):
@@ -135,7 +138,7 @@ class MusicEnt(object):
             raise RuntimeError("Query criteria must be specified")
         unknown = set(crit) - self.cols
         if unknown:
-            raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.ent, str(unknown)))
+            raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
         sel = self.tab.select()
         for col, val in crit.items():
             # REVISIT: don't why this doesn't work, but we don't really need it; the better
@@ -159,7 +162,7 @@ class MusicEnt(object):
         tab = db.get_table('station')
         unknown = set(data) - self.cols
         if unknown:
-            raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.ent, str(unknown)))
+            raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
 
         ins = self.tab.insert()
         with db.conn.begin() as trans:
@@ -177,7 +180,7 @@ class MusicEnt(object):
         if ent_override:
             sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[ent_override]})
         else:
-            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.ent]})
+            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.name]})
         #sel_res = self.select(params)
         return sel_res.fetchone() if sel_res.rowcount == 1 else None
 
