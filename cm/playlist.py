@@ -195,6 +195,7 @@ class ParserWWFM(Parser):
                 play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
+                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
                 #log.debug('Hash seq: ' + str(play_seq))
 
         return pp_rec
@@ -435,6 +436,7 @@ class ParserMPR(Parser):
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
+                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
                 #log.debug('Hash seq: ' + str(play_seq))
 
         return pp_rec
@@ -647,6 +649,7 @@ class ParserC24(Parser):
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
+                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
                 #log.debug('Hash seq: ' + str(play_seq))
 
         return pp_rec

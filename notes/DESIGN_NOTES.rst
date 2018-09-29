@@ -398,12 +398,13 @@ Working Notes
 To Do - Immediate/Active
 ------------------------
 
+* investigate seq_hash = 0
 * "basic normalization" for person
-* musiclib: recordings
-* classify/fix anomalies for person (track fixes!!!)
-* add C24
+* debug/fix anomalies for person
+* debug/fix work/play with composer/person '<none>'
 * play_seq
-* play_seq_match
+* add UTC start_time/end_time for program_play and play
+* play_seq_match (utilizing UTC?)
 
 -------------------
 To Do - Bugs/Tweaks
@@ -411,7 +412,7 @@ To Do - Bugs/Tweaks
 
 * figure out duplicate start time (different works) for plays (WWFM)
 * add ``--force`` flag to overwrite existing playlists
-   * force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
+* force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
 
 ----------------

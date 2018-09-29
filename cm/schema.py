@@ -6,8 +6,8 @@ abstractly (though that may never really happen)
 
 from __future__ import absolute_import, division, print_function
 
-from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint, Index
-from sqlalchemy import Integer, Text, Boolean, DateTime, Date, Time, Interval
+from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint, Index, text
+from sqlalchemy import Integer, BigInteger, Text, Boolean, DateTime, Date, Time, Interval
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TIMESTAMP
 
 from utils import LOV
@@ -132,6 +132,9 @@ def load_schema(meta):
             Column('frequency',         Text),
             Column('website',           Text),
 
+            # canonicality/analytics metadata
+            Column('synd_level',        Integer,     server_default=text('10')),  # 0-100 (default: 10)
+
             # constraints/indexes
             UniqueConstraint('name')
         ),
@@ -143,8 +146,9 @@ def load_schema(meta):
             Column('station_id',        Integer,     ForeignKey('station.id'), nullable=True),
             Column('notes',             ARRAY(Text)),
 
-            # canonicality
-            Column('is_canonical',      Boolean),    # true if syndication master
+            # canonicality/analytics metadata
+            Column('synd_level',        Integer,     server_default=text('10')),  # 0-100 (default: 10)
+            Column('is_canonical',      Boolean),    # true if syndication master (synd_level = 100)
             Column('cnl_program_id',    Integer,     ForeignKey('program.id')),  # points to self, if canonical
             Column('website',           Text),
 
@@ -163,6 +167,7 @@ def load_schema(meta):
             # foreign key lookups (OPEN ISSUE: should we create additional metadata
             # at this level for associations to composers, performers, etc.???)
             Column('program_id',        Integer,     ForeignKey('program.id')),
+            Column('mstr_prog_play_id', Integer,     ForeignKey('program_play.id')),  # not null if syndicated
 
             # miscellaneous
             Column('notes',             ARRAY(Text)),
@@ -202,6 +207,7 @@ def load_schema(meta):
             # distinct from performers
             #Column('soloist_ids',     ARRAY(Integer)),    # ForeignKey('performer.id')
             Column('recording_id',      Integer,     ForeignKey('recording.id')),
+            Column('mstr_play_id',      Integer,     ForeignKey('program_play.id')),  # not null if syndicated
 
             # miscellaneous
             Column('notes',             ARRAY(Text)),
@@ -218,6 +224,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),
             Column('performer_id',      Integer,     ForeignKey('performer.id'), nullable=False),
+            Column('mstr_play_perf_id', Integer,     ForeignKey('play_performer.id')),  # not null if syndicated (denorm)
             Column('notes',             ARRAY(Text)),
 
             # constraints/indexes
@@ -227,6 +234,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),
             Column('ensemble_id',       Integer,     ForeignKey('ensemble.id'), nullable=False),
+            Column('mstr_play_ens_id',  Integer,     ForeignKey('play_ensemble.id')),  # not null if syndicated (denorm)
             Column('notes',             ARRAY(Text)),
 
             # constraints/indexes
@@ -234,7 +242,7 @@ def load_schema(meta):
         ),
         Entity.PLAY_SEQ: Table('play_seq', meta,
             Column('id',                Integer,     primary_key=True),
-            Column('seq_hash',          Integer,     nullable=False),
+            Column('seq_hash',          BigInteger,  nullable=False),
             Column('hash_level',        Integer,     nullable=False),
             Column('hash_type',         Integer,     nullable=False),
             Column('play_id',           Integer,     ForeignKey('play.id'), nullable=False),

@@ -62,7 +62,8 @@ user_keys = {
     'program_play'  : ['station_id', 'prog_play_date', 'prog_play_start', 'program_id'],
     'play'          : ['station_id', 'play_date', 'play_start', 'work_id'],
     'play_performer': ['play_id', 'performer_id'],
-    'play_ensemble' : ['play_id', 'ensemble_id']
+    'play_ensemble' : ['play_id', 'ensemble_id'],
+    'play_seq'      : ['hash_level', 'hash_type', 'play_id']
 }
 
 child_recs = {
@@ -467,6 +468,35 @@ class MusicLib(object):
                 play_ens_rows.append(play_ens.inserted_row(ins_res))
 
         return {k: v for k, v in play_row.items()}
+
+    @staticmethod
+    def insert_play_seq(play_rec, play_seq, hash_type):
+        """
+        :param play_rec:
+        :param prog_seq:
+        :param hash_type:
+        :return: list of key-value dict comprehensions for inserted play_seq fields
+        """
+        ret = []
+        ps = get_entity('play_seq')
+        while play_seq:
+            level = len(play_seq)
+            hashval = play_seq.pop(0)
+            data = {
+                'hash_level': level,
+                'hash_type' : hash_type,
+                'play_id'   : play_rec['id'],
+                'seq_hash'  : hashval
+            }
+
+            try:
+                ins_res = ps.insert(data)
+                ps_row = ps.inserted_row(ins_res)
+                ret.append({k: v for k, v in ps_row.items()})
+            except IntegrityError:
+                log.debug("Could not insert play_seq %s into musiclib" % (data))
+
+        return ret
 
 #####################
 # command line tool #
