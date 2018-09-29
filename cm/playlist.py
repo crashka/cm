@@ -14,12 +14,11 @@ import datetime as dt
 from urlparse import urlsplit, parse_qs
 
 from bs4 import BeautifulSoup
-from sqlalchemy.exc import *
 import click
 
 import core
 import station
-from musiclib import get_handle, key_data, entity_data, clean_user_keys, COND_STRS
+from musiclib import MusicLib, COND_STRS
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
@@ -50,11 +49,8 @@ INFO_KEYS    = set(['sta_name',
 NOPRINT_KEYS = set(['parsed_info'])
 
 # Lists of Values
-Status       = LOV(['NEW',
-                    'PARSED'], 'lower')
-
-Name         = LOV({'NONE'   : '<none>',
-                    'UNKNOWN': '<unknown>'})
+PLStatus = LOV(['NEW',
+                'PARSED'], 'lower')
 
 ##################
 # Playlist class #
@@ -86,7 +82,7 @@ class Playlist(object):
         log.debug("Instantiating Playlist(%s, %s)" % (sta.name, self.datestr))
         self.name        = sta.playlist_name(self.date)
         self.file        = sta.playlist_file(self.date)
-        self.status      = Status.NEW
+        self.status      = PLStatus.NEW
         # TODO: preload trailing hash sequence from previous playlist (or add
         # task to fill the gap as to_do_list item)!!!
         self.hash_seq    = HashSeq()
@@ -112,7 +108,7 @@ class Playlist(object):
             # LATER: overwrite existing parse information if force=True!!!
             raise RuntimeError("Playlist already parsed (force not yet implemented)")
         self.parsed_info = self.parser.parse(self, dryrun, force)
-        self.status = Status.PARSED
+        self.status = PLStatus.PARSED
         return self.parsed_info
 
 #####################
@@ -120,9 +116,10 @@ class Playlist(object):
 #####################
 
 class Parser(object):
-    """Basically a helper class for Playlist, associated through station config
+    """Basically a helper class for Playlist, proper subclass is associated through
+    station config
 
-    Note: could (should???) implement all methods as static
+    Note: probably could (should???) implement all methods as static
     """
     def __init__(self):
         """Parser object is stateless, so constructor doesn't do anything
@@ -133,270 +130,6 @@ class Parser(object):
         """Abstract method for parse operation
         """
         raise RuntimeError("parse() not implemented in subclass (or base class called)")
-
-    def insert_program_play(self, playlist, data):
-        """
-        :param playlist: parent Playlist object
-        :param data: normalized playlist key/value data (dict)
-        :return: key-value dict comprehension for inserted program_play fields
-        """
-        station = playlist.station
-
-        sta = get_handle('station')
-        sel_res = sta.select({'name': station.name})
-        if sel_res.rowcount == 1:
-            sta_row = sel_res.fetchone()
-        else:
-            log.debug("Inserting station \"%s\" into musiclib" % (station.name))
-            ins_res = sta.insert({'name': station.name, 'timezone': station.time_zone})
-            if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
-            sta_row = sta.inserted_row(ins_res)
-            if not sta_row:
-                raise RuntimeError("Station %s not in musiclib" % (station.name))
-
-        prog_data = data['program']
-        prog_name = prog_data['name']
-        prog = get_handle('program')
-        sel_res = prog.select({'name': prog_name})
-        if sel_res.rowcount == 1:
-            prog_row = sel_res.fetchone()
-        else:
-            log.debug("Inserting program \"%s\" into musiclib" % (prog_name))
-            ins_res = prog.insert(data['program'])
-            if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert program \"%s\" into musiclib" % (prog_name))
-            prog_row = prog.inserted_row(ins_res)
-            if not prog_row:
-                raise RuntimeError("Program \"%s\" not in musiclib" % (prog_name))
-
-        pp_row = None
-        pp_data = data['program_play']
-        pp_data['station_id'] = sta_row.id
-        pp_data['program_id'] = prog_row.id
-        prog_play = get_handle('program_play')
-        try:
-            ins_res = prog_play.insert(pp_data)
-            pp_row = prog_play.inserted_row(ins_res)
-        except IntegrityError:
-            # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate program play record")
-            sel_res = prog_play.select(key_data(pp_data, 'program_play'))
-            if sel_res.rowcount == 1:
-                pp_row = sel_res.fetchone()
-        return {k: v for k, v in pp_row.items()} if pp_row else None
-
-    def insert_play(self, playlist, prog_play, data):
-        """
-        :param playlist: parent Playlist object
-        :param prog_play: parent program_play fields (dict)
-        :param data: normalized play key/value data (dict)
-        :return: key-value dict comprehension for inserted play fields
-        """
-        station = playlist.station
-
-        sta = get_handle('station')
-        sel_res = sta.select({'name': station.name})
-        if sel_res.rowcount == 1:
-            sta_row = sel_res.fetchone()
-        else:
-            log.debug("Inserting station \"%s\" into musiclib" % (station.name))
-            ins_res = sta.insert({'name': station.name, 'timezone': station.time_zone})
-            if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
-            sta_row = sta.inserted_row(ins_res)
-            if not sta_row:
-                raise RuntimeError("Station %s not in musiclib" % (station.name))
-
-        comp_data = data['composer']
-        # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
-        # on it (and there is no play without work, haha)
-        if not comp_data['name']:
-            comp_data['name'] = Name.NONE
-        comp = get_handle('person')
-        sel_res = comp.select(key_data(comp_data, 'person'))
-        if sel_res.rowcount == 1:
-            comp_row = sel_res.fetchone()
-        else:
-            comp_name = comp_data['name']  # for convenience
-            log.debug("Inserting composer \"%s\" into musiclib" % (comp_name))
-            ins_res = comp.insert(comp_data)
-            if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert composer/person \"%s\" into musiclib" % (comp_name))
-            comp_row = comp.inserted_row(ins_res)
-            if not comp_row:
-                raise RuntimeError("Composer/person \"%s\" not in musiclib" % (comp_name))
-
-        work_data = data['work']
-        if not work_data['name']:
-            log.debug("Work name not specified, skipping...")
-            return None
-        work_data['composer_id'] = comp_row.id
-        work = get_handle('work')
-        sel_res = work.select(key_data(work_data, 'work'))
-        if sel_res.rowcount == 1:
-            work_row = sel_res.fetchone()
-        else:
-            work_name = work_data['name']  # for convenience
-            log.debug("Inserting work \"%s\" into musiclib" % (work_name))
-            ins_res = work.insert(work_data)
-            if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert work/person \"%s\" into musiclib" % (work_name))
-            work_row = work.inserted_row(ins_res)
-            if not work_row:
-                raise RuntimeError("Work/person \"%s\" not in musiclib" % (work_name))
-
-        cond_row = None
-        cond_data = data['conductor']
-        if cond_data['name']:
-            cond = get_handle('person')
-            sel_res = cond.select(key_data(cond_data, 'person'))
-            if sel_res.rowcount == 1:
-                cond_row = sel_res.fetchone()
-            else:
-                cond_name = cond_data['name']  # for convenience
-                log.debug("Inserting conductor \"%s\" into musiclib" % (cond_name))
-                ins_res = cond.insert(cond_data)
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert conductor/person \"%s\" into musiclib" % (cond_name))
-                cond_row = cond.inserted_row(ins_res)
-                if not cond_row:
-                    raise RuntimeError("Conductor/person \"%s\" not in musiclib" % (cond_name))
-
-        rec_row = None
-        rec_data = data['recording']
-        clean_user_keys(rec_data, 'recording')
-        clean_user_keys(rec_data, 'recording_alt')
-        if rec_data.get('label') and rec_data.get('catalog_no'):
-            rec = get_handle('recording')
-            sel_res = rec.select(key_data(rec_data, 'recording'))
-            if sel_res.rowcount == 1:
-                rec_row = sel_res.fetchone()
-            else:
-                rec_ident = "%s %s" % (rec_data['label'], rec_data['catalog_no'])  # for convenience
-                log.debug("Inserting recording \"%s\" into musiclib" % (rec_ident))
-                ins_res = rec.insert(rec_data)
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_ident))
-                rec_row = rec.inserted_row(ins_res)
-                if not rec_row:
-                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_ident))
-        elif rec_data.get('name'):
-            rec = get_handle('recording')
-            sel_res = rec.select(key_data(rec_data, 'recording_alt'))
-            if sel_res.rowcount == 1:
-                rec_row = sel_res.fetchone()
-            elif sel_res.rowcount > 1:
-                # REVISIT: just pick the first one randomly???
-                rec_row = sel_res.fetchone()
-            else:
-                rec_name = rec_data['name']  # for convenience
-                log.debug("Inserting recording \"%s\" into musiclib" % (rec_name))
-                ins_res = rec.insert(rec_data)
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_name))
-                rec_row = rec.inserted_row(ins_res, 'recording_alt')
-                if not rec_row:
-                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_name))
-
-        perf_rows = []
-        for perf_data in data['performers']:
-            # STEP 1 -: insert/select underlying person record
-            perf_person = get_handle('person')  # cached, so okay to re-get for each loop
-            sel_res = perf_person.select(key_data(perf_data['person'], 'person'))
-            if sel_res.rowcount == 1:
-                perf_person_row = sel_res.fetchone()
-            else:
-                perf_name = perf_data['person']['name']  # for convenience
-                log.debug("Inserting performer/person \"%s\" into musiclib" % (perf_name))
-                ins_res = perf_person.insert(perf_data['person'])
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % (perf_name))
-                perf_person_row = perf_person.inserted_row(ins_res)
-                if not perf_person_row:
-                    raise RuntimeError("Performer/person \"%s\" not in musiclib" % (perf_name))
-            perf_data['person_id'] = perf_person_row.id
-
-            # STEP 2 - now deal with performer record (since we have the person)
-            perf = get_handle('performer')  # cached, so okay to re-get for each loop
-            sel_res = perf.select(key_data(perf_data, 'performer'))
-            if sel_res.rowcount == 1:
-                perf_row = sel_res.fetchone()
-            else:
-                perf_name = perf_data['person']['name']  # for convenience
-                perf_role = perf_data['role']
-                if perf_role:
-                    perf_name += " (%s)" % (perf_role)
-                log.debug("Inserting performer \"%s\" into musiclib" % (perf_name))
-                ins_res = perf.insert(entity_data(perf_data, 'performer'))
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer \"%s\" into musiclib" % (perf_name))
-                perf_row = perf.inserted_row(ins_res)
-                if not perf_row:
-                    raise RuntimeError("Performer \"%s\" not in musiclib" % (perf_name))
-            perf_rows.append(perf_row)
-
-        ens_rows = []
-        for ens_data in data['ensembles']:
-            ens = get_handle('ensemble')  # cached, so okay to re-get for each loop
-            sel_res = ens.select(key_data(ens_data, 'ensemble'))
-            if sel_res.rowcount == 1:
-                ens_row = sel_res.fetchone()
-            else:
-                ens_name = ens_data['name']  # for convenience
-                log.debug("Inserting ensemble \"%s\" into musiclib" % (ens_name))
-                ins_res = ens.insert(ens_data)
-                if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert ensemble \"%s\" into musiclib" % (ens_name))
-                ens_row = ens.inserted_row(ins_res)
-                if not ens_row:
-                    raise RuntimeError("Ensemble \"%s\" not in musiclib" % (ens_name))
-            ens_rows.append(ens_row)
-
-        play_new = False
-        play_row = None
-        play_data = data['play']
-        play_data['station_id']   = sta_row.id
-        play_data['prog_play_id'] = prog_play['id']
-        play_data['program_id']   = prog_play['program_id']
-        play_data['composer_id']  = comp_row.id
-        play_data['work_id']      = work_row.id
-        if cond_row:
-            play_data['conductor_id'] = cond_row.id
-        # NOTE: performer_ids and ensemble_ids are denorms, with no integrity checking
-        if perf_rows:
-            play_data['performer_ids'] = [perf_row.id for perf_row in perf_rows]
-        if ens_rows:
-            play_data['ensemble_ids'] = [ens_row.id for ens_row in ens_rows]
-        play = get_handle('play')
-        try:
-            ins_res = play.insert(play_data)
-            play_row = play.inserted_row(ins_res)
-            play_new = True
-        except IntegrityError:
-            # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate play record")
-            sel_res = play.select(key_data(play_data, 'play'))
-            if sel_res.rowcount == 1:
-                play_row = sel_res.fetchone()
-
-        # write intersect records that are authoritative (denormed as arrays of keys, above)
-        play_perf_rows = []
-        play_ens_rows = []
-        if play_new:
-            for perf_row in perf_rows:
-                play_perf_data = {'play_id': play_row.id, 'performer_id': perf_row.id}
-                play_perf = get_handle('play_performer')
-                ins_res = play_perf.insert(play_perf_data)
-                play_perf_rows.append(play_perf.inserted_row(ins_res))
-
-            for ens_row in ens_rows:
-                play_ens_data = {'play_id': play_row.id, 'ensemble_id': ens_row.id}
-                play_ens = get_handle('play_ensemble')
-                ins_res = play_ens.insert(play_ens_data)
-                play_ens_rows.append(play_ens.inserted_row(ins_res))
-
-        return {k: v for k, v in play_row.items()}
 
 ##########################
 # Parser adapter classes #
@@ -441,7 +174,7 @@ class ParserWWFM(Parser):
 
             # Step 1 - Parse out program play info
             norm = self.map_program_play(prog)
-            pp_rec = self.insert_program_play(playlist, norm)
+            pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program play")
             else:
@@ -452,7 +185,7 @@ class ParserWWFM(Parser):
             plays = prog.get('playlist') or []
             for play in plays:
                 norm = self.map_play(play)
-                play_rec = self.insert_play(playlist, pp_rec, norm)
+                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 else:
@@ -680,7 +413,7 @@ class ParserMPR(Parser):
         for prog_head in pl_root('dt', recursive=False):
             # Step 1 - Parse out program play info
             norm = self.map_program_play(pl_date, prog_head)
-            pp_rec = self.insert_program_play(playlist, norm)
+            pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program play")
             else:
@@ -692,7 +425,7 @@ class ParserMPR(Parser):
             prog_body = prog_head.find_next_sibling('dd')
             for play_head in prog_body.ul('li', recursive=False):
                 norm = self.map_play(pp_start, play_head)
-                play_rec = self.insert_play(playlist, pp_rec, norm)
+                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 else:
@@ -890,7 +623,7 @@ class ParserC24(Parser):
             if not prog_head:
                 break
             norm = self.map_program_play(pl_date, prog_head)
-            pp_rec = self.insert_program_play(playlist, norm)
+            pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program play")
             else:
@@ -904,7 +637,7 @@ class ParserC24(Parser):
                 if play_head.name == 'div':
                     break
                 norm = self.map_play(pp_date, play_head)
-                play_rec = self.insert_play(playlist, pp_rec, norm)
+                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 else:
