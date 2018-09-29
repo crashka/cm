@@ -51,6 +51,7 @@ user_keys = {
     'ensemble'      : ['name'],
     'work'          : ['composer_id', 'name'],
     'recording'     : ['label', 'catalog_no'],
+    'recording_alt' : ['name', 'label'],
     'station'       : ['name'],
     'program'       : ['name', 'host_name'],
     'program_play'  : ['station_id', 'prog_play_date', 'prog_play_start', 'program_id'],
@@ -72,6 +73,16 @@ child_recs = {
     'play_performer': [],
     'play_ensemble' : []
 }
+
+def clean_user_keys(data, entity):
+    """Remove empty strings in user keys (set to None)
+
+    :param data: dict of data elements
+    :param entity: [string] name of entity
+    """
+    for k in user_keys[entity]:
+        if data.get(k) == '':
+            data[k] = None
 
 def key_data(data, entity):
     """Return elements of entity data that are key fields
@@ -150,25 +161,30 @@ class MusicLib(object):
             res = db.conn.execute(ins, data)
         return res
 
-    def inserted_row(self, res):
+    def inserted_row(self, res, ent_override = None):
         """
         :param res: SQLAlchemy ResultProxy from insert statement
+        :param ent_override: e.g. used if _alt entity
         :return: SQLAlchemy RowProxy if exactly one row returned, otherwise None
         """
         params = res.last_inserted_params()
 
-        sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.ent]})
+        if ent_override:
+            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[ent_override]})
+        else:
+            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.ent]})
         #sel_res = self.select(params)
         return sel_res.fetchone() if sel_res.rowcount == 1 else None
 
-    def inserted_primary_key(self, res):
+    def inserted_primary_key(self, res, ent_override = None):
         """res.inserted_primary_key is not currently working (probably due to the use_identity()
         hack), so need to requery new row to get the primary key
 
         :param res: SQLAlchemy ResultProxy from insert statement
+        :param ent_override: e.g. used if _alt entity
         :return: primary key of inserted row (or None, if row not [uniquely] identified)
         """
-        ins_row = self.inserted_row(res)
+        ins_row = self.inserted_row(res, ent_override)
         return ins_row.id if ins_row else None
 
 #####################

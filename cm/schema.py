@@ -115,6 +115,10 @@ def load_schema(meta):
             Column('archiv_uri',        Text),
 
             # constraints/indexes
+            # TODO: put a partial index on ('name', 'label')!!!
+            #       CREATE UNIQUE INDEX recording_altkey
+            #           ON recording (name, label)
+            #        WHERE catalog_no IS NULL;
             UniqueConstraint('label', 'catalog_no')
         ),
         Entity.STATION: Table('station', meta,

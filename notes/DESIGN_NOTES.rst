@@ -383,6 +383,17 @@ Working Notes
   programming) to most specialized, used to designate producer from subscriber for
   sequence matches
 
+**basic normalization for person**
+
+* take context into account
+* additional overrides for inclusion/exclusion of specific fixups
+* fixups
+   * field bracketed with quotes (may indicate complex field)
+   * preserve "Jr.", "Sr.", etc. (factor out from regular comma processing)
+   * fix "Last, First" (handle "Last, First Middle")
+   * multiple names (e.g. "/" or "&" or "and" or ",")
+   * "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
+
 ------------------------
 To Do - Immediate/Active
 ------------------------
@@ -400,7 +411,7 @@ To Do - Bugs/Tweaks
 
 * figure out duplicate start time (different works) for plays (WWFM)
 * add ``--force`` flag to overwrite existing playlists
-   * force pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
+   * force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
 
 ----------------

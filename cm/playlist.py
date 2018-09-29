@@ -19,7 +19,7 @@ import click
 
 import core
 import station
-from musiclib import get_handle, key_data, entity_data, COND_STRS
+from musiclib import get_handle, key_data, entity_data, clean_user_keys, COND_STRS
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
@@ -263,6 +263,42 @@ class Parser(object):
                 if not cond_row:
                     raise RuntimeError("Conductor/person \"%s\" not in musiclib" % (cond_name))
 
+        rec_row = None
+        rec_data = data['recording']
+        clean_user_keys(rec_data, 'recording')
+        clean_user_keys(rec_data, 'recording_alt')
+        if rec_data.get('label') and rec_data.get('catalog_no'):
+            rec = get_handle('recording')
+            sel_res = rec.select(key_data(rec_data, 'recording'))
+            if sel_res.rowcount == 1:
+                rec_row = sel_res.fetchone()
+            else:
+                rec_ident = "%s %s" % (rec_data['label'], rec_data['catalog_no'])  # for convenience
+                log.debug("Inserting recording \"%s\" into musiclib" % (rec_ident))
+                ins_res = rec.insert(rec_data)
+                if ins_res.rowcount == 0:
+                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_ident))
+                rec_row = rec.inserted_row(ins_res)
+                if not rec_row:
+                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_ident))
+        elif rec_data.get('name'):
+            rec = get_handle('recording')
+            sel_res = rec.select(key_data(rec_data, 'recording_alt'))
+            if sel_res.rowcount == 1:
+                rec_row = sel_res.fetchone()
+            elif sel_res.rowcount > 1:
+                # REVISIT: just pick the first one randomly???
+                rec_row = sel_res.fetchone()
+            else:
+                rec_name = rec_data['name']  # for convenience
+                log.debug("Inserting recording \"%s\" into musiclib" % (rec_name))
+                ins_res = rec.insert(rec_data)
+                if ins_res.rowcount == 0:
+                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_name))
+                rec_row = rec.inserted_row(ins_res, 'recording_alt')
+                if not rec_row:
+                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_name))
+
         perf_rows = []
         for perf_data in data['performers']:
             # STEP 1 -: insert/select underlying person record
@@ -327,6 +363,9 @@ class Parser(object):
         play_data['work_id']      = work_row.id
         if cond_row:
             play_data['conductor_id'] = cond_row.id
+        # NOTE: performer_ids and ensemble_ids are denorms, with no integrity checking
+        if perf_rows:
+            play_data['performer_ids'] = [perf_row.id for perf_row in perf_rows]
         if ens_rows:
             play_data['ensemble_ids'] = [ens_row.id for ens_row in ens_rows]
         play = get_handle('play')
@@ -341,6 +380,7 @@ class Parser(object):
             if sel_res.rowcount == 1:
                 play_row = sel_res.fetchone()
 
+        # write intersect records that are authoritative (denormed as arrays of keys, above)
         play_perf_rows = []
         play_ens_rows = []
         if play_new:
