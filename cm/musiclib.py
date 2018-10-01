@@ -6,6 +6,7 @@
 from __future__ import absolute_import, division, print_function
 
 import sys
+import re
 import datetime as dt
 
 from sqlalchemy import bindparam
@@ -116,6 +117,58 @@ def entity_data(data, entity):
 COND_STRS = set(['conductor',
                  'cond.',
                  'cond'])
+
+SUFFIX_TOKEN = '<<SUFFIX>>'
+
+# TEMP: for now, just do this as a stand-alone function; need to figure out how to abstract
+# this for other person fixups in a context-sensitive manner (need to include the performer-
+# role parsing, currently enmeshed in the various parser map_play methods)!!!
+def normalize_composer(data):
+    """Modifies data in-place
+
+    :param data: composer data dict
+    :return: additional data parsed out of composer (or None)
+    """
+    if not data['name']:
+        return
+
+    # step 0 - setup
+    orig_name = data['name']
+    suffix = None
+    addl_data = None
+
+    # step 1 - field bracketed with quotes (may indicate complex field)
+    m = re.match(r'"([^"]*)"$', data['name'])
+    if m:
+        data['name'] = m.group(1)  # note: could be empty string, handle downstream!
+
+    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
+    # from regular comma processing)
+    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', data['name'])
+    if m:
+        suffix = m.group(1)
+        data['name'] = data['name'].replace(suffix, SUFFIX_TOKEN, 1)
+
+    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
+    # coelescing spaces (might as well)
+    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', data['name'])
+    if m:
+        data['name'] = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
+
+    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
+    # Vaughan Williams)
+
+    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
+
+    # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
+
+    # step N - finally...
+    if suffix:
+        data['name'] = data['name'].replace(SUFFIX_TOKEN, suffix, 1)
+    if data['name'] != orig_name:
+        data['raw_name'] = orig_name
+
+    return addl_data
 
 ##################
 # MusicEnt class #
@@ -287,6 +340,7 @@ class MusicLib(object):
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
         comp_data = data['composer']
+        normalize_composer(comp_data)
         # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
         # on it (and there is no play without work, haha)
         if not comp_data['name']:

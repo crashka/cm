@@ -230,6 +230,7 @@ class RefData(object):
             return  # nothing to do
         cats = [cat] if not collecttype(cat) else cat
         if strtype(key):
+            #m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             m = re.match(r'([a-z])-([a-z])$', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
                 keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]

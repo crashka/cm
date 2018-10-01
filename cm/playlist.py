@@ -494,7 +494,7 @@ class ParserMPR(Parser):
         start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
         data['start_date'] = start_date  # %Y-%m-%d
-        data['start_time'] = start_time  # %H:%M %p (12-hour format)
+        data['start_time'] = start_time  # %I:%M %p (12-hour format)
 
         buy_button = play_head.find('a', class_="buy-button", href=True)
         if (buy_button):
@@ -579,7 +579,7 @@ class ParserMPR(Parser):
         # TODO: convert play_body into dict for play_info!!!
         play_data['play_info'] =  {}
         play_data['play_date'] =  str2date(data['start_date'])
-        play_data['play_start'] = str2time(data['start_time'], '%H:%M %p')
+        play_data['play_start'] = str2time(data['start_time'], '%I:%M %p')
         play_data['play_end'] =   None # Time
         play_data['play_dur'] =   None # Interval
         play_data['notes'] =      None # ARRAY(Text)),
@@ -719,11 +719,12 @@ class ParserC24(Parser):
         start_date = date2str(pp_date)
         start_time = play_start.string.strip()  # "12:01AM"
         data['start_date'] = start_date  # %Y-%m-%d
-        data['start_time'] = start_time  # %H:%M%p (12-hour format)
+        data['start_time'] = start_time  # %I:%M%p (12-hour format)
 
         # Step 2a - try and find label information (<i>...</i> - <a href=...>)
         rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
         rec_listing = rec_center.previous_sibling
+        #m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
         m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
         if m:
             data['label'] = m.group(1)
@@ -766,6 +767,7 @@ class ParserC24(Parser):
             if field.string in processed:
                 #log.debug("Skipping field \"%s\", already parsed" % (field.string))
                 continue
+            #m = re.fullmatch(r'(.+), ([\w\./ ]+)', field.string)
             m = re.match(r'(.+), ([\w\./ ]+)$', field.string)
             if m:
                 if m.group(2).lower() in COND_STRS:
@@ -854,7 +856,7 @@ class ParserC24(Parser):
         # TODO: convert play_body into dict for play_info!!!
         play_data['play_info'] =  {}
         play_data['play_date'] =  str2date(data['start_date'])
-        play_data['play_start'] = str2time(data['start_time'], '%H:%M%p')
+        play_data['play_start'] = str2time(data['start_time'], '%I:%M%p')
         play_data['play_end'] =   None # Time
         play_data['play_dur'] =   None # Interval
         play_data['notes'] =      None # ARRAY(Text)),

@@ -398,11 +398,12 @@ Working Notes
 To Do - Immediate/Active
 ------------------------
 
-* "basic normalization" for person
+* basic normalization for conductor and performer
+* investigate anomalies with play_seq matches
 * rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>'
 * debug/fix outstanding anomalies for person
-* robustify play_seq
+* robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * add UTC start_time/end_time for program_play and play
 * play_seq_match analysis (utilizing UTC?)
 
@@ -412,6 +413,8 @@ To Do - Bugs/Tweaks
 
 * play_start AM/PM not parsed right for C24 and MPR
 * figure out duplicate start time (different works) for plays (WWFM)
+* make sure unicode handling in names is correct (even before canonicalization)
+* more normalization for person
 * add ``--force`` flag to overwrite existing playlists
 * force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
@@ -420,6 +423,8 @@ To Do - Bugs/Tweaks
 To Do - Features
 ----------------
 
+* consolidated tracking for all entity names (preparation for NER)--"entity cloud"
+* authoritative musiclib/ref data (e.g. from archivmusic)
 * track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
 * make logging (and printing for CLI commands) consistent

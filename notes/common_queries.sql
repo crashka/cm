@@ -49,6 +49,15 @@ select w.name, count(*)
  group by 1
  order by 2 desc, 1;
 
+select w.name, count(*), array_agg(pl.id), array_agg(distinct s.name)
+  from work w
+       join person p on p.id = w.composer_id and p.name = '<none>'
+       join play pl on pl.work_id = w.id
+       join station s on s.id = pl.station_id
+ group by 1
+ order by 2 desc, 1;
+
+
 -- find syndicated plays (TODO: dedupe same play at different hash levels!!!)
 select ps.seq_hash, ps.hash_level, count(*) - 1 as num_subs, max(s.synd_level) as master,
        array_remove(array_agg(s.synd_level order by s.synd_level desc), max(s.synd_level)) as subs
@@ -95,7 +104,14 @@ select ps.hash_level, s.name as station, comp.name as composer, w.name as work,
 -- composers with non-standard names
 select distinct p.name from person p
        join play pl on pl.composer_id = p.id
- where p.name !~ '^\w+ \w+$'
+ where p.name !~ '^[\w-]+( [\w-]+)+$'
+ order by 1;
+
+select p.name, array_agg(pl.id)
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name !~ '^[\w-]+( [\w-]+)+$'
+ group by 1
  order by 1;
 
 select p.name, array_agg(pl.id)
