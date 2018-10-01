@@ -140,15 +140,13 @@ class MusicEnt(object):
         unknown = set(crit) - self.cols
         if unknown:
             raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
+
         sel = self.tab.select()
         for col, val in crit.items():
-            # REVISIT: don't why this doesn't work, but we don't really need it; the better
-            # overall fix is specifying only the consequential/defining keys when requerying
-            # a newly inserted row!!!
-            if isinstance(val, dt.timedelta):
-                continue
+            # NOTE: there was previously a problem (exception) with a timedelta (Interval) field in
+            # the query crit, not sure why--we don't currently need that any more, but the error may
+            # come up again in the future, so will need invested again then
             sel = sel.where(self.tab.c[col] == val)
-
         with db.conn.begin() as trans:
             res = db.conn.execute(sel)
         return res
@@ -160,7 +158,6 @@ class MusicEnt(object):
         """
         if not data:
             raise RuntimeError("Insert data must be specified")
-        tab = db.get_table('station')
         unknown = set(data) - self.cols
         if unknown:
             raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
@@ -179,10 +176,10 @@ class MusicEnt(object):
         params = res.last_inserted_params()
 
         if ent_override:
-            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[ent_override]})
+            sel_res = self.select(key_data(params, ent_override))
         else:
-            sel_res = self.select({k: params[k] for k in params.viewkeys() & user_keys[self.name]})
-        #sel_res = self.select(params)
+            sel_res = self.select(key_data(params, self.name))
+
         return sel_res.fetchone() if sel_res.rowcount == 1 else None
 
     def inserted_primary_key(self, res, ent_override = None):
@@ -211,14 +208,17 @@ class MusicLib(object):
         :return: key-value dict comprehension for inserted program_play fields
         """
         station = playlist.station
-
+        # TODO: get rid of this hardwired structure (implicitly use fields from config file)!!!
+        sta_data = {'name'      : station.name,
+                    'timezone'  : station.timezone,
+                    'synd_level': station.synd_level}
         sta = get_entity('station')
-        sel_res = sta.select({'name': station.name})
+        sel_res = sta.select(key_data(sta_data, 'station'))
         if sel_res.rowcount == 1:
             sta_row = sel_res.fetchone()
         else:
             log.debug("Inserting station \"%s\" into musiclib" % (station.name))
-            ins_res = sta.insert({'name': station.name, 'timezone': station.time_zone})
+            ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
             sta_row = sta.inserted_row(ins_res)
@@ -226,14 +226,14 @@ class MusicLib(object):
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
         prog_data = data['program']
-        prog_name = prog_data['name']
         prog = get_entity('program')
-        sel_res = prog.select({'name': prog_name})
+        sel_res = prog.select(key_data(prog_data, 'program'))
         if sel_res.rowcount == 1:
             prog_row = sel_res.fetchone()
         else:
+            prog_name = prog_data['name']  # for convenience
             log.debug("Inserting program \"%s\" into musiclib" % (prog_name))
-            ins_res = prog.insert(data['program'])
+            ins_res = prog.insert(prog_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert program \"%s\" into musiclib" % (prog_name))
             prog_row = prog.inserted_row(ins_res)
@@ -250,7 +250,7 @@ class MusicLib(object):
             pp_row = prog_play.inserted_row(ins_res)
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate program play record")
+            log.debug("Skipping insert of duplicate program_play record")
             sel_res = prog_play.select(key_data(pp_data, 'program_play'))
             if sel_res.rowcount == 1:
                 pp_row = sel_res.fetchone()
@@ -265,14 +265,21 @@ class MusicLib(object):
         :return: key-value dict comprehension for inserted play fields
         """
         station = playlist.station
-
+        # TODO: see above, insert_program_play()!!!  In addition, note that we should
+        # really not have to requery here--the right thing to do is cache the station
+        # record (in fact, we really only need the id here)!!!
+        sta_data = {'name'      : station.name,
+                    'timezone'  : station.timezone,
+                    'synd_level': station.synd_level}
         sta = get_entity('station')
-        sel_res = sta.select({'name': station.name})
+        sel_res = sta.select(key_data(sta_data, 'station'))
         if sel_res.rowcount == 1:
             sta_row = sel_res.fetchone()
         else:
+            # NOTE: should really never get here (select should not fail), since this
+            # same code was executed when inserting the program_play
             log.debug("Inserting station \"%s\" into musiclib" % (station.name))
-            ins_res = sta.insert({'name': station.name, 'timezone': station.time_zone})
+            ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
             sta_row = sta.inserted_row(ins_res)
@@ -446,7 +453,7 @@ class MusicLib(object):
             play_new = True
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate play record")
+            log.debug("Skipping insert of duplicate play record:\n%s" % (play_data))
             sel_res = play.select(key_data(play_data, 'play'))
             if sel_res.rowcount == 1:
                 play_row = sel_res.fetchone()
@@ -458,14 +465,20 @@ class MusicLib(object):
             for perf_row in perf_rows:
                 play_perf_data = {'play_id': play_row.id, 'performer_id': perf_row.id}
                 play_perf = get_entity('play_performer')
-                ins_res = play_perf.insert(play_perf_data)
-                play_perf_rows.append(play_perf.inserted_row(ins_res))
+                try:
+                    ins_res = play_perf.insert(play_perf_data)
+                    play_perf_rows.append(play_perf.inserted_row(ins_res))
+                except IntegrityError:
+                    log.debug("Skipping insert of duplicate play_performer record:\n%s" % (play_perf_data))
 
             for ens_row in ens_rows:
                 play_ens_data = {'play_id': play_row.id, 'ensemble_id': ens_row.id}
                 play_ens = get_entity('play_ensemble')
-                ins_res = play_ens.insert(play_ens_data)
-                play_ens_rows.append(play_ens.inserted_row(ins_res))
+                try:
+                    ins_res = play_ens.insert(play_ens_data)
+                    play_ens_rows.append(play_ens.inserted_row(ins_res))
+                except IntegrityError:
+                    log.debug("Skipping insert of duplicate play_ensemble record:\n%s" % (play_ens_data))
 
         return {k: v for k, v in play_row.items()}
 

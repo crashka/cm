@@ -49,15 +49,115 @@ select w.name, count(*)
  group by 1
  order by 2 desc, 1;
 
--- find syndicated plays
-select ps.seq_hash, ps.hash_level, count(*), max(s.synd_level), min(s.synd_level)
+-- find syndicated plays (TODO: dedupe same play at different hash levels!!!)
+select ps.seq_hash, ps.hash_level, count(*) - 1 as num_subs, max(s.synd_level) as master,
+       array_remove(array_agg(s.synd_level order by s.synd_level desc), max(s.synd_level)) as subs
   from play_seq ps
        join play pl on pl.id = ps.play_id
        join station s on s.id = pl.station_id
+ where ps.hash_level > 1
  group by 1, 2 having count(*) > 1
- order by 3 desc;
+ order by 2 desc, 3 desc;
+
+-- find syndication followers (TODO: dedupe same play at different hash levels!!!)
+select s.synd_level, s.name, ps.hash_level, s2.synd_level, s2.name, count(pl2)
+  from play pl
+       join station s on s.id = pl.station_id
+       join person cp on cp.id = pl.composer_id
+       join work w on w.id = pl.work_id
+       join play_seq ps on ps.play_id = pl.id
+       join play_seq ps2 on ps2.seq_hash = ps.seq_hash and
+                            ps2.hash_level = ps.hash_level and
+                            ps2.id != ps.id
+       join play pl2 on pl2.id = ps2.play_id
+       join station s2 on s2.id = pl2.station_id
+ where s.name = 'C24'
+   and ps.hash_level > 1
+ group by 1, 2, 3, 4, 5
+ order by 3 desc, 6 desc;
 
 -- TODOs:
 --   * by time as well as count
 --   * distinct from other stations
 --   * syndicated vs. local programming/shows
+
+-- investigate seq_hash = 0
+select ps.hash_level, s.name as station, comp.name as composer, w.name as work,
+       pl.play_date, pl.play_start
+  from play_seq ps
+       join play pl     on pl.id   = ps.play_id
+       join person comp on comp.id = pl.composer_id
+       join work w      on w.id    = pl.work_id
+       join station s   on s.id    = pl.station_id
+ where seq_hash = 0
+ order by 1 desc, 3, 4, s.synd_level desc;
+
+-- composers with non-standard names
+select distinct p.name from person p
+       join play pl on pl.composer_id = p.id
+ where p.name !~ '^\w+ \w+$'
+ order by 1;
+
+select p.name, array_agg(pl.id)
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name !~ '^\w+ \w+$'
+ group by 1
+ order by 1;
+
+select p.name, array_agg(pl.id)
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name !~ '^(\w+ ){1,2}\w+$'
+ group by 1
+ order by 1;
+
+-- quoted
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '^"[^"]+"$'
+ order by 1;
+
+-- single comma
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '^[^,]+,[^,]+"$'
+ order by 1;
+
+-- Jr.
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '\mJr\.?\M'
+ order by 1;
+
+-- Sr.
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '\mSr\.?\M'
+
+-- II/III
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '\mI{2,3}\M'
+
+-- all together
+select distinct p.name
+  from person p
+       join play pl on pl.composer_id = p.id
+ where p.name ~ '\m(Jr\.?|Sr\.?|I{2,3})\M';
+
+-- investigate plays
+select pl.id as play_id, s.name as station, s.synd_level, pr.name as program, pl.play_date,
+       pl.play_start, cp.name as composer, w.name as work
+  from play pl
+       join station s on s.id = pl.station_id
+       join program_play pp on pp.id = pl.prog_play_id
+       join program pr on pr.id = pp.program_id
+       join person cp on cp.id = pl.composer_id
+       join work w on w.id = pl.work_id
+ where pl.id in (4127, 4642) order by 8, 3 desc;

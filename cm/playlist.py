@@ -172,13 +172,13 @@ class ParserWWFM(Parser):
             prog_copy = prog.copy()
             del prog_copy['playlist']
 
-            # Step 1 - Parse out program play info
+            # Step 1 - Parse out program_play info
             norm = self.map_program_play(prog)
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
-                raise RuntimeError("Could not insert program play")
+                raise RuntimeError("Could not insert program_play")
             else:
-                log.debug("Created program play ID %d" % (pp_rec['id']))
+                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info (if present)
@@ -195,8 +195,10 @@ class ParserWWFM(Parser):
                 play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
-                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
-                #log.debug('Hash seq: ' + str(play_seq))
+                if play_seq:
+                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
+                else:
+                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
 
         return pp_rec
 
@@ -411,20 +413,20 @@ class ParserMPR(Parser):
         pl_date = dt.datetime.strptime(m.group(1), '%B %d, %Y').date()
 
         pl_root = soup.find('dl', id="playlist")
-        for prog_head in pl_root('dt', recursive=False):
-            # Step 1 - Parse out program play info
+        for prog_head in reversed(pl_root('dt', recursive=False)):
+            # Step 1 - Parse out program_play info
             norm = self.map_program_play(pl_date, prog_head)
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
-                raise RuntimeError("Could not insert program play")
+                raise RuntimeError("Could not insert program_play")
             else:
-                log.debug("Created program play ID %d" % (pp_rec['id']))
+                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_start = pp_rec['prog_play_start']
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info
             prog_body = prog_head.find_next_sibling('dd')
-            for play_head in prog_body.ul('li', recursive=False):
+            for play_head in reversed(prog_body.ul('li', recursive=False)):
                 norm = self.map_play(pp_start, play_head)
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
@@ -436,8 +438,10 @@ class ParserMPR(Parser):
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
-                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
-                #log.debug('Hash seq: ' + str(play_seq))
+                if play_seq:
+                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
+                else:
+                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
 
         return pp_rec
 
@@ -620,16 +624,16 @@ class ParserC24(Parser):
 
         prog_divs = [rule.parent for rule in pl_body.select('div > hr')]
         for prog_div in prog_divs:
-            # Step 1 - Parse out program play info
+            # Step 1 - Parse out program_play info
             prog_head = prog_div.find_next('p')
             if not prog_head:
                 break
             norm = self.map_program_play(pl_date, prog_head)
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
-                raise RuntimeError("Could not insert program play")
+                raise RuntimeError("Could not insert program_play")
             else:
-                log.debug("Created program play ID %d" % (pp_rec['id']))
+                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_date = pp_rec['prog_play_date']
             pp_rec['plays'] = []
 
@@ -649,8 +653,10 @@ class ParserC24(Parser):
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
-                ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
-                #log.debug('Hash seq: ' + str(play_seq))
+                if play_seq:
+                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
+                else:
+                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
 
         return pp_rec
 

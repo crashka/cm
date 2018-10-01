@@ -371,7 +371,7 @@ Working Notes
          * recording date (esp. for live)
          * program
       * on fuzzy match, queue to learning module (qualified by score)
-        
+
 **crontab entry**
 ::
 
@@ -398,18 +398,19 @@ Working Notes
 To Do - Immediate/Active
 ------------------------
 
-* investigate seq_hash = 0
 * "basic normalization" for person
-* debug/fix anomalies for person
+* rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>'
-* play_seq
+* debug/fix outstanding anomalies for person
+* robustify play_seq
 * add UTC start_time/end_time for program_play and play
-* play_seq_match (utilizing UTC?)
+* play_seq_match analysis (utilizing UTC?)
 
 -------------------
 To Do - Bugs/Tweaks
 -------------------
 
+* play_start AM/PM not parsed right for C24 and MPR
 * figure out duplicate start time (different works) for plays (WWFM)
 * add ``--force`` flag to overwrite existing playlists
 * force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
@@ -431,3 +432,38 @@ To Do - Features
 * archive function for playlists (and station info)
 * Fork/port to python3 (rename to cmir)
 * locate ``stations`` directory in ``config.yml`` (can be outside of cmir)
+
+-----------
+Investigate
+-----------
+
+**hash_seq matches < 20 (hash_level = 1)**
+::
+
+   synd_level | name | hash_level | synd_level | name | count
+  ------------+------+------------+------------+------+-------
+          100 | C24  |          1 |         50 | IPR  |   558
+          100 | C24  |          1 |         90 | MPR  |   533
+          100 | C24  |          1 |         70 | WWFM |   493
+          100 | C24  |          1 |         60 | WMHT |   365
+          100 | C24  |          1 |         80 | VPR  |   365
+          100 | C24  |          1 |         40 | WIAA |   244
+          100 | C24  |          1 |         30 | WCRB |    17
+          100 | C24  |          1 |        100 | C24  |    10
+          100 | C24  |          1 |         20 | WNED |     8
+          100 | C24  |          1 |         10 | WRTI |     4
+  (10 rows)
+
+**change in order (from previous) for hash_level = 2**
+::
+
+   synd_level | name | hash_level | synd_level | name | count
+  ------------+------+------------+------------+------+-------
+          100 | C24  |          2 |         50 | IPR  |   516
+          100 | C24  |          2 |         70 | WWFM |   462
+          100 | C24  |          2 |         90 | MPR  |   447
+          100 | C24  |          2 |         60 | WMHT |   330
+          100 | C24  |          2 |         80 | VPR  |   327
+          100 | C24  |          2 |         40 | WIAA |   221
+  (6 rows)
+

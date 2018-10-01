@@ -27,8 +27,12 @@ class HashSeq(object):
         self.depth = depth
         self.values = []
 
-    def add(self, s):
+    def add(self, s, force = False):
+        """Skip duplicate hash (return None), unless force specified
+        """
         curhash = strhash(s)
+        if self.values and curhash == self.values[-1] and not force:
+            return None
         self.values.append(0)
         for i in range(len(self.values)):
             self.values[i] ^= curhash

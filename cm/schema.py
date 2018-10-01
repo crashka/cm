@@ -147,7 +147,7 @@ def load_schema(meta):
             Column('notes',             ARRAY(Text)),
 
             # canonicality/analytics metadata
-            Column('synd_level',        Integer,     server_default=text('10')),  # 0-100 (default: 10)
+            Column('synd_level',        Integer),    # inherit from station
             Column('is_canonical',      Boolean),    # true if syndication master (synd_level = 100)
             Column('cnl_program_id',    Integer,     ForeignKey('program.id')),  # points to self, if canonical
             Column('website',           Text),

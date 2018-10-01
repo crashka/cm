@@ -52,7 +52,8 @@ ConfigKey      = LOV(['URL_FMT',
                       'PLAYLIST_EXT',
                       'PLAYLIST_MIN',
                       'HTTP_HEADERS',
-                      'PARSER_CLS'], 'lower')
+                      'PARSER_CLS',
+                      'SYND_LEVEL'], 'lower')
 REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
                       ConfigKey.DATE_FMT,
                       ConfigKey.PLAYLIST_EXT,
@@ -153,6 +154,7 @@ class Station(object):
         self.date_meth         = self.config.get(ConfigKey.DATE_METH)
         self.playlist_min      = self.config.get(ConfigKey.PLAYLIST_MIN)
         self.http_headers      = self.config.get(ConfigKey.HTTP_HEADERS, {})
+        self.synd_level        = self.config.get(ConfigKey.SYND_LEVEL)
 
         self.state = None
         self.playlists = None
@@ -335,7 +337,7 @@ class Station(object):
                 if start_date == FetchTarg.CATCHUP:
                     self.validate_playlists(dryrun=True)  # no need to store state yet
                     start_date = str2date(self.state.get(StateAttr.LATEST)) + dt.timedelta(1)
-                    tz = pytz.timezone(self.time_zone)
+                    tz = pytz.timezone(self.timezone)
                     today = dt.datetime.now(tz).date()
                     num = (today - start_date).days
                     if num < 0:
