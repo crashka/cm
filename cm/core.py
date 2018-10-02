@@ -12,7 +12,7 @@ import logging.handlers
 
 import requests
 
-from utils import Config
+from utils import Config, install_trace_logger
 
 ################
 # config stuff #
@@ -49,6 +49,8 @@ dbg_hand.setFormatter(LOG_FMTR)
 log = logging.getLogger(LOGGER_NAME)
 log.setLevel(logging.INFO)
 log.addHandler(dflt_hand)
+
+#install_trace_logger()
 
 ############
 # requests #

@@ -18,11 +18,19 @@ select substr(p.name, 1, 60) as conductor, count(*) as plays
  group by 1
  order by 2 desc, 1;
 
+-- plays by ensemble
+select substr(e.name, 1, 70) as ensemble, count(*) as plays
+  from ensemble e
+       join play_ensemble ple on ple.ensemble_id = e.id
+       join play pl on pl.id = ple.play_id
+ group by 1
+ order by 2 desc, 1;
+
 -- plays by performer
-select substr(p.name, 1, 60) as performer, f.role, count(*) as plays
-  from performer f
-       join person p on p.id = f.person_id
-       join play_performer plf on plf.performer_id = f.id
+select substr(p.name, 1, 60) as performer, pf.role, count(*) as plays
+  from performer pf
+       join person p on p.id = pf.person_id
+       join play_performer plf on plf.performer_id = pf.id
        join play pl on pl.id = plf.play_id
  group by 1, 2
  order by 3 desc, 1, 2;
@@ -177,3 +185,14 @@ select pl.id as play_id, s.name as station, s.synd_level, pr.name as program, pl
        join person cp on cp.id = pl.composer_id
        join work w on w.id = pl.work_id
  where pl.id in (4127, 4642) order by 8, 3 desc;
+
+-- duplicate start_time for plays
+select s.name, play_date, play_start, array_agg(work_id) as work_id,
+       array_agg(c.name || ' - ' || w.name) composer_work
+  from play pl
+       join station s on s.id = pl.station_id
+       join work w on w.id = pl.work_id
+       join person c on c.id = w.composer_id
+ group by 1, 2, 3
+having count(*) > 1
+ order by 1, 2, 3;

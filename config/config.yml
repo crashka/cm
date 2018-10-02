@@ -264,3 +264,6 @@ default:
   database:
     dev:
       connect_str:  'postgresql+psycopg2://crash@/cmdev'
+
+    lib:
+      connect_str:  'postgresql+psycopg2://crash@/cmlib'

@@ -139,6 +139,87 @@ def get_parser(cls_name):
     cls = globals().get(cls_name)
     return cls() if cls else None
 
+def parse_performer_str(perf_str, flags = None):
+    """
+    DESIGN NOTES:
+      * context-sensitive application of individual parsing rules, either implicitly
+        (e.g. based on station), or explicitly through flags
+      * generic parsing using non-alphanum delimiters, entity lookups (refdata), and
+        logical entity relationships (either as replacement, or complement)
+      * for now, we return performer data only; LATER: need the ability to indicate
+        other entities extracted from perf_str!!!
+
+    :param perf_str:
+    :param flags: (not yet implemented)
+    :return: list of perf_data structures (see LATER above)
+    """
+    # FIX: the whitespace handling in here is sloppy, need to clean it up!!!
+    orig_perf_str = perf_str
+    def mkperf(name, role):
+        if not name:
+            log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
+                     (name, role, orig_perf_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
+                     (name, role, perf_str))
+        return {'person': {'name': name}, 'role': role}
+
+    def parse_perf_item(perf_item, fld_delim = ','):
+        sub_data = []
+        if perf_item.count(fld_delim) % 2 == 1:
+            fields = perf_item.split(fld_delim)
+            while fields:
+                (pers, role) = (fields.pop(0), fields.pop(0))
+                # special case for "<ens>/<cond last, first>"
+                if pers.count('/') == 1:
+                    log.debug("PPS_RULE 1 - slash separating ens from cond_last \"%s\"" % (pers))
+                    (ens_name, cond_last) = pers.split('/')
+                    cond_name = "%s %s" % (role, cond_last)
+                    sub_data.append(mkperf(ens_name.strip(), 'ensemble'))
+                    sub_data.append(mkperf(cond_name.strip(), 'conductor'))
+                else:
+                    sub_data.append(mkperf(pers.strip(), role.strip()))
+        else:
+            # TODO: if even number of field delimiters, need to look closer at item
+            # contents/format to figure out what to do!!!
+            sub_data.append(mkperf(perf_item.strip(), None))
+        return sub_data
+
+    data = []
+    # TODO: should really move the quote processing as far upstream as possible (for
+    # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
+    m = re.match(r'"([^"]*)"$', perf_str)
+    if m:
+        log.debug("PPS_RULE 2 - strip enclosing quotes \"%s\"" % (perf_str))
+        perf_str = m.group(1)  # note: could be empty string, handle downstream!
+    m = re.match(r'\((.*[^)])\)?$', perf_str)
+    if m:
+        log.debug("PPS_RULE 3 - strip enclosing parens \"%s\"" % (perf_str))
+        perf_str = m.group(1)  # note: could be empty string, handle downstream!
+    # special case for ugly record (WNED 2018-09-17)
+    m = re.match(r'(.+?)\r', perf_str)
+    if m:
+        log.debug("PPS_RULE 4 - ugly broken record for WNED \"%s\"" % (perf_str))
+        perf_str = m.group(1)
+        m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
+        if m:
+            perf_str = '; '.join(m.groups())
+
+    if re.match(r'\/.+ \- ', perf_str):
+        log.debug("PPS_RULE 5 - leading slash for performer fields \"%s\"" % (perf_str))
+        for perf_item in perf_str.split('/'):
+            if perf_item:
+                data += parse_perf_item(perf_item, ' - ')
+    elif ';' in perf_str:
+        log.debug("PPS_RULE 6 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
+        for perf_item in perf_str.split(';'):
+            if perf_item:
+                data += parse_perf_item(perf_item)
+    elif perf_str:
+        data += parse_perf_item(perf_str)
+
+    return data
+
 # TODO: move to subdirectory(ies) when this gets too unwieldy!!!
 
 #+------------+
@@ -163,22 +244,11 @@ class ParserWWFM(Parser):
         pl_progs = pl_info['onToday']
 
         for prog in pl_progs:
-            # TEMP: get rid of dev/debugging stuff (careful, prog_name used below)!!!
-            prog_info = prog.get('program')
-            assert isinstance(prog_info, dict)
-            prog_desc = prog_info.get('program_desc')
-            prog_name = prog_info.get('name') + (' - ' + prog_desc if prog_desc else '')
-            log.debug("PROGRAM [%s]: %s" % (prog['fullstart'], prog_name))
-            prog_copy = prog.copy()
-            del prog_copy['playlist']
-
             # Step 1 - Parse out program_play info
             norm = self.map_program_play(prog)
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
-            else:
-                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info (if present)
@@ -188,8 +258,6 @@ class ParserWWFM(Parser):
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
-                else:
-                    log.debug("Created play ID %d" % (play_rec['id']))
                 pp_rec['plays'].append(play_rec)
 
                 play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
@@ -271,26 +339,8 @@ class ParserWWFM(Parser):
         # comma- or semi-colon-delimited)
         performers_data = []
         for perf_str in (data.get('artistName'), data.get('soloists')):
-            mkperf = lambda name, role: {'person': {'name': name}, 'role': role}
-            if not perf_str:
-                continue
-            if ';' in perf_str:
-                perfs = perf_str.split(';')
-                for perf in perfs:
-                    fields = perf.rsplit(',', 1)
-                    if len(fields) == 1:
-                        performers_data.append(mkperf(fields[0], None))
-                    else:
-                        performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
-            elif perf_str.count(',') % 2 == 1:
-                fields = perf_str.split(',')
-                while fields:
-                    pers, role = (fields.pop(0), fields.pop(0))
-                    performers_data.append(mkperf(pers.strip(), role.strip()))
-            else:
-                # TODO: if even number of commas, need to look closer at string contents/format
-                # to figure out what to do!!!
-                performers_data.append(mkperf(perf_str, None))
+            if perf_str:
+                performers_data += parse_performer_str(perf_str)
 
         # treat ensembles similar to performers, except no need to parse within semi-colon-delimited
         # fields, and slightly different logic for comma-delimited fields
@@ -419,8 +469,6 @@ class ParserMPR(Parser):
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
-            else:
-                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_start = pp_rec['prog_play_start']
             pp_rec['plays'] = []
 
@@ -431,8 +479,6 @@ class ParserMPR(Parser):
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
-                else:
-                    log.debug("Created play ID %d" % (play_rec['id']))
                 pp_rec['plays'].append(play_rec)
 
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
@@ -530,24 +576,7 @@ class ParserMPR(Parser):
         performers_data = []
         perf_str = data.get('song-soloist soloist-1')
         if perf_str:
-            mkperf = lambda name, role: {'person': {'name': name}, 'role': role}
-            if ';' in perf_str:
-                perfs = perf_str.split(';')
-                for perf in perfs:
-                    fields = perf.rsplit(',', 1)
-                    if len(fields) == 1:
-                        performers_data.append(mkperf(fields[0], None))
-                    else:
-                        performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
-            elif perf_str.count(',') % 2 == 1:
-                fields = perf_str.split(',')
-                while fields:
-                    pers, role = (fields.pop(0), fields.pop(0))
-                    performers_data.append(mkperf(pers.strip(), role.strip()))
-            else:
-                # TODO: if even number of commas, need to look closer at string contents/format
-                # to figure out what to do!!!
-                performers_data.append(mkperf(perf_str, None))
+            performers_data += parse_performer_str(perf_str)
 
         # FIX: see above!!!
         ensembles_data  =  []
@@ -632,8 +661,6 @@ class ParserC24(Parser):
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
-            else:
-                log.debug("Created program_play ID %d" % (pp_rec['id']))
             pp_date = pp_rec['prog_play_date']
             pp_rec['plays'] = []
 
@@ -646,8 +673,6 @@ class ParserC24(Parser):
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
-                else:
-                    log.debug("Created play ID %d" % (play_rec['id']))
                 pp_rec['plays'].append(play_rec)
 
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
@@ -807,24 +832,7 @@ class ParserC24(Parser):
         performers_data = []
         perf_str = data.get('performer')
         if perf_str:
-            mkperf = lambda name, role: {'person': {'name': name}, 'role': role}
-            if ';' in perf_str:
-                perfs = perf_str.split(';')
-                for perf in perfs:
-                    fields = perf.rsplit(',', 1)
-                    if len(fields) == 1:
-                        performers_data.append(mkperf(fields[0], None))
-                    else:
-                        performers_data.append(mkperf(fields[0].strip(), fields[1].strip()))
-            elif perf_str.count(',') % 2 == 1:
-                fields = perf_str.split(',')
-                while fields:
-                    pers, role = (fields.pop(0), fields.pop(0))
-                    performers_data.append(mkperf(pers.strip(), role.strip()))
-            else:
-                # TODO: if even number of commas, need to look closer at string contents/format
-                # to figure out what to do!!!
-                performers_data.append(mkperf(perf_str, None))
+            performers_data += parse_performer_str(perf_str)
 
         # FIX: see above!!!
         ensembles_data  =  []

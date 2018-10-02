@@ -343,6 +343,253 @@ Working Notes
     </dd>
   </dl>
 
+**Parsing WQXR**
+
+Notes:
+
+* "events" = programs (in forward order)
+   * only one "playlist" per "event"???  (need to validate)
+* "played" items = plays (within playlist), in **reverse** order
+
+json document (with html elements for program/play info)
+::
+
+  {
+    "events": [
+      {
+        "current": "",
+        "end_timestamp": "2018-09-17T05:30:00",
+        "endtime": "05:30 AM",
+        "evenOdd": "odd",
+        "event_title": "New York At Night",
+        "event_url": "http://www.wqxr.org/shows/overnight-music",
+        "id": "event_1200AM",
+        "isEpisode": false,
+        "isObject": true,
+        "object_id": 316,
+        "playlists": [
+          {
+            "comment_count": 0,
+            "has_comments": false,
+            "id": "playlist_70079",
+            "played": [
+              {
+                "id": "entry_1595540",
+                "info": <playlist item>,
+                "time": "05:24 AM"
+              },
+                .
+                .
+                .
+            ],
+            "url": "http://www.wqxr.org/music/playlists/show/overnight-music/2018/sep/17/"
+          }
+        ],
+        "scheduletease": <schedule tease>,
+        "scheduleteasehead": <schedule tease head>,
+        "show_id": 316,
+        "show_title": "New York At Night",
+        "show_url": "http://www.wqxr.org/shows/overnight-music",
+        "start_timestamp": "2018-09-17T00:00:00",
+        "starttime": "12:00",
+        "time": "12:00 AM",
+        "top_commentcount": 0,
+        "top_playlisturl": "http://www.wqxr.org/music/playlists/show/overnight-music/2018/sep/17/"
+      },
+    ]
+  }
+
+schedule tease head
+::
+
+  <div class=\"program\">
+    <a href=\"http://www.wqxr.org/shows/overnight-music\">New York At Night</a>
+  </div>
+  <div class=\"expand\">
+    <div class=\"arrow\"></div>
+  </div>
+  <div class=\"options\">
+    <div></div>
+  </div>
+
+schedule tease
+::
+
+  <div class=\"program clearfix\">
+    <div class=\"image\">
+      <a href=\"http://www.wqxr.org/shows/overnight-music\"> <img src=\"https://media.wnyc.org/i/60/60/l/80/1/NewYorkAtNight_WQXR_ShowPageSquares.png\" />
+      </a> </div>
+    <div class=\"text\">
+      <div class=\"tease\"><div class=\"no-object\">
+        <p>Tune in for a nightly mix that spans the centuries.</p>
+      </div></div>
+      <ul class=\"hosts\">
+        <li>Host: </li>
+        <li><a href=\"/people/nimet-habachy/\">Nimet Habachy</a></li>
+      </ul>
+      <div class=\"scheduled-item-link\">
+        Go to program: <a href=\"http://www.wqxr.org/shows/overnight-music\">New York At Night</a>
+      </div>
+      <div class=\"expand\"></div>
+    </div>
+  </div>
+
+playlist item ("played")
+::
+
+  <div class="piece-info">
+    <ul>
+      <li>
+        <a class="playlist-item__composer" href="/music/musicians/frederick-delius/">
+          Frederick Delius
+        </a>
+      </li>
+      <li class="playlist-item__title">On Hearing the First Cuckoo in Spring</li>
+      <li class="playlist-item__musicians">
+        <a href="/music/ensembles/the-halle-orchestra/">The Halle Orchestra</a>
+      </li>
+      <li class="playlist-item__musicians">
+        <a href="/music/musicians/mark-elder/">Mark Elder</a>, conductor
+      </li>
+      <li>
+        6 min 2 s
+      </li>
+    </ul>
+  </div>
+
+  <div class="album-info">
+    <ul class="playlist-actions">
+      <li class="playlist-buy">
+        <a href="http://www.arkivmusic.com/classical/Playlist?source=WQXR&amp;cat=7512&amp;id=127171&amp;label=CD+Hill" target="_blank">Buy Track</a>
+      </li>
+    </ul>
+  </div>
+
+**performer names to parse**
+::
+
+  ens parseable
+  -------------
+  English Concert
+  Boston Pops
+  Bournemouth Symphony
+  Chamber Orchestra of Europe
+  Cleveland O.
+  Orpheus Chamber Orchestra
+  I Musici
+  I Solisti Italiani
+  Albert Schweitzer Quintet
+  Athena Ensemble
+  BBC Philharmonic
+  Beaux Arts Trio
+  Buffalo Philharmonic
+  Boston Pops O.
+  Chorus and Symphony of Montreal
+  Cincinnati Pops Orchestra
+  Cleveland Orchestra
+  Czech Philharmonic
+  Dresden State Orchestra
+  English Chamber Orchestra
+  English C.O.
+  English Sym. Orch.
+  Guildhall String Ens.
+  Israel Philharmonic
+  Israel P.O./Mehta
+  Juilliard Quartet
+  La Fontegara
+  La Serenissima
+  Jean-Francois  Paillard Chamber Orchestra
+  London Mozart Players
+  London Philharmonic Orchestra
+  Mahler Chamber Orchestra
+  MDR Leipzig Radio Symphony Orches
+  Montreal S.O.
+  Montreal Symphony Orchestra
+  Musicians of the Old Post Road
+  New York Philharmonic
+  Orchestra of St. Luke's
+  Orchestra of the Swiss Romande
+  Philadelphia Orchestra
+  Royal P.O.
+  San Francisco Symphony Orchestra
+  St. Paul Chamber Orchestra
+  St. Paul C.O.
+
+  ens/cond parsable
+  -----------------
+  Academy of St. Martin-in-the-Fields/Marriner
+  Boston Symphony Orchestra/Haitink
+  Cincinnati Pops O./Kunzel
+  O. of the 18th Century/Brunelle
+  Orch. of the Nat'l. Acad. of St. Cecilia/Chung
+  RCA S.O./Steinberg
+  St. Paul C.O./Zukerman
+  The Philharmonia
+  The Silk Road Ensemble
+  Ulster Orchestra
+  Wiener Johann Strauss Orchestra
+
+  performer/role parsable
+  -----------------------
+  Shaham, Gil, vl.
+  Arrau, Claudio, pf.
+  De Larrocha, Alicia, pf.
+  Goode, Richard, pf.
+  Hammes, Thomas, trpt
+  Helmrich, Dennis, pf.
+  Kocsis, Zoltan, pf.
+  Marsalis, Branford, sax.
+  Mayorga, Lincoln, pf.
+  O'Conor, John, pf.
+  Perlman, Itzhak, vl.
+  Sanders, Samuel, pf.
+  Schocker, Gary, fl.
+  Tharaud, Alexandre, pf.
+
+  normal/recognizable names
+  -------------------------
+  Andre Previn
+  Itzhak Perlman
+  Christopher Parkening
+  Leif Ove Andsnes
+  Pahud, Emmanuel,
+  Renee Fleming
+  Renée Fleming
+  Richard Dowling
+  Simone Dinnerstein
+  Tanglewood Festival
+  Yo-Yo Ma
+
+  library names
+  -------------
+  Academy of St. Martin-in-the-Fields
+  ASMF
+  A.S.M.F.
+
+  others (hard to parse)
+  ----------------------
+  Duo Tal & Groethuysen
+  Angele Dubeau & La Pieta
+  Boston Cello Quartet: Dejardin
+  Br
+  Chandler
+  Chaplin
+  Empire Brass Quintet & Friends
+  ensemble
+  Esbensen
+  Fez
+  Green
+  Green, cello, Nancy
+  Hennessy
+  Jarvi
+  Jojatu
+  Joshua Bell: Home with friends
+  Lecarme
+  Moyer
+  Parkening
+  Perahi
+  Whelen
+
 **Music lib**
 
 * functions
@@ -398,10 +645,11 @@ Working Notes
 To Do - Immediate/Active
 ------------------------
 
-* basic normalization for conductor and performer
+* basic normalization for conductor, performer, and ensemble
 * investigate anomalies with play_seq matches
 * rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>'
+* add stations: WQXR, WFMT, KUSC, WDAV, KING, WETA, KDFC, KQAC
 * debug/fix outstanding anomalies for person
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * add UTC start_time/end_time for program_play and play
@@ -427,6 +675,7 @@ To Do - Features
 * authoritative musiclib/ref data (e.g. from archivmusic)
 * track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
+* fork/port to python3 (rename to cmir)--should do as soon as tests are in place!!!
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
 * fetch missing playlists
@@ -435,7 +684,6 @@ To Do - Features
 * job queue for playlist fetches (cycle through stations)
 * get older playlists (determine epoch/beginning of time) for all stations
 * archive function for playlists (and station info)
-* Fork/port to python3 (rename to cmir)
 * locate ``stations`` directory in ``config.yml`` (can be outside of cmir)
 
 -----------

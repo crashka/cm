@@ -285,13 +285,14 @@ class MusicLib(object):
             prog_row = sel_res.fetchone()
         else:
             prog_name = prog_data['name']  # for convenience
-            log.debug("Inserting program \"%s\" into musiclib" % (prog_name))
+            prog_label = "\"%s\"" % (prog_name)
+            log.debug("Inserting program %s into musiclib" % (prog_label))
             ins_res = prog.insert(prog_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert program \"%s\" into musiclib" % (prog_name))
+                raise RuntimeError("Could not insert program %s into musiclib" % (prog_label))
             prog_row = prog.inserted_row(ins_res)
             if not prog_row:
-                raise RuntimeError("Program \"%s\" not in musiclib" % (prog_name))
+                raise RuntimeError("Program %s not in musiclib" % (prog_label))
 
         pp_row = None
         pp_data = data['program_play']
@@ -301,12 +302,17 @@ class MusicLib(object):
         try:
             ins_res = prog_play.insert(pp_data)
             pp_row = prog_play.inserted_row(ins_res)
+            log.debug("Created program_play ID %d (%s, \"%s\", %s %s)" %
+                      (pp_row.id, sta_row.name, prog_row.name,
+                       pp_row.prog_play_date, pp_row.prog_play_start))
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate program_play record")
             sel_res = prog_play.select(key_data(pp_data, 'program_play'))
             if sel_res.rowcount == 1:
                 pp_row = sel_res.fetchone()
+                log.debug("Skipping insert of duplicate program_play record (ID %d)" % (pp_row.id))
+            else:
+                pass  # REVISIT: is this an internal error???
         return {k: v for k, v in pp_row.items()} if pp_row else None
 
     @staticmethod
@@ -340,6 +346,9 @@ class MusicLib(object):
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
         comp_data = data['composer']
+        # REVISIT: may actually want to do this in parser map_play, since there will probably always
+        # be cross-talk between entities during parsing and the data is expected to be cleaner by the
+        # the time we make it here...but need to think about this!!!
         normalize_composer(comp_data)
         # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
         # on it (and there is no play without work, haha)
@@ -457,15 +466,14 @@ class MusicLib(object):
             else:
                 perf_name = perf_data['person']['name']  # for convenience
                 perf_role = perf_data['role']
-                if perf_role:
-                    perf_name += " (%s)" % (perf_role)
-                log.debug("Inserting performer \"%s\" into musiclib" % (perf_name))
+                perf_label = "\"%s\" [%s]" % (perf_name, perf_role)
+                log.debug("Inserting performer %s into musiclib" % (perf_label))
                 ins_res = perf.insert(entity_data(perf_data, 'performer'))
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer \"%s\" into musiclib" % (perf_name))
+                    raise RuntimeError("Could not insert performer %s into musiclib" % (perf_label))
                 perf_row = perf.inserted_row(ins_res)
                 if not perf_row:
-                    raise RuntimeError("Performer \"%s\" not in musiclib" % (perf_name))
+                    raise RuntimeError("Performer %s not in musiclib" % (perf_label))
             perf_rows.append(perf_row)
 
         ens_rows = []
@@ -505,12 +513,17 @@ class MusicLib(object):
             ins_res = play.insert(play_data)
             play_row = play.inserted_row(ins_res)
             play_new = True
+            log.debug("Created play ID %d (%s, \"%s\", %s %s)" %
+                      (play_row.id, comp_row.name, work_row.name,
+                       play_row.play_date, play_row.play_start))
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
             log.debug("Skipping insert of duplicate play record:\n%s" % (play_data))
             sel_res = play.select(key_data(play_data, 'play'))
             if sel_res.rowcount == 1:
                 play_row = sel_res.fetchone()
+            else:
+                pass  # REVISIT: is this an internal error???
 
         # write intersect records that are authoritative (denormed as arrays of keys, above)
         play_perf_rows = []
