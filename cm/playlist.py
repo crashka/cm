@@ -86,6 +86,7 @@ class Playlist(object):
         # TODO: preload trailing hash sequence from previous playlist (or add
         # task to fill the gap as to_do_list item)!!!
         self.hash_seq    = HashSeq()
+        self.parse_ctx   = {}
         self.parsed_info = None
 
     def playlist_info(self, keys = INFO_KEYS, exclude = None):
@@ -162,18 +163,18 @@ def parse_performer_str(perf_str, flags = None):
         elif not re.match(r'\w', name):
             log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
                      (name, role, perf_str))
-        return {'person': {'name': name}, 'role': role}
+        return {'person': {'name': name, 'raw_name': orig_perf_str}, 'role': role}
 
     def parse_perf_item(perf_item, fld_delim = ','):
         sub_data = []
         if perf_item.count(fld_delim) % 2 == 1:
             fields = perf_item.split(fld_delim)
             while fields:
-                (pers, role) = (fields.pop(0), fields.pop(0))
+                pers, role = (fields.pop(0), fields.pop(0))
                 # special case for "<ens>/<cond last, first>"
                 if pers.count('/') == 1:
                     log.debug("PPS_RULE 1 - slash separating ens from cond_last \"%s\"" % (pers))
-                    (ens_name, cond_last) = pers.split('/')
+                    ens_name, cond_last = pers.split('/')
                     cond_name = "%s %s" % (role, cond_last)
                     sub_data.append(mkperf(ens_name.strip(), 'ensemble'))
                     sub_data.append(mkperf(cond_name.strip(), 'conductor'))
@@ -249,16 +250,22 @@ class ParserWWFM(Parser):
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
+            playlist.parse_ctx['station_id']   = pp_rec['station_id']
+            playlist.parse_ctx['prog_play_id'] = pp_rec['id']
+            playlist.parse_ctx['play_id']      = None
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info (if present)
             plays = prog.get('playlist') or []
             for play in plays:
-                norm = self.map_play(play)
+                norm = self.map_play(pp_rec, play)
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
+                playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
+
+                es_recs = MusicLib.insert_entity_strings(playlist, norm)
 
                 play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
                 # TODO: create separate hash sequence for top of each hour!!!
@@ -271,7 +278,7 @@ class ParserWWFM(Parser):
         return pp_rec
 
     def map_program_play(self, data):
-        """This is the implementation for WWFM
+        """This is the implementation for WWFM (and others)
 
         raw data in: 'onToday' item from WWFM playlist file
         normalized data out: {
@@ -313,8 +320,8 @@ class ParserWWFM(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, data):
-        """This is the implementation for WWFM
+    def map_play(self, pp_rec, data):
+        """This is the implementation for WWFM (and others)
 
         raw data in: 'playlist' item from WWFM playlist file
         normalized data out: {
@@ -328,18 +335,26 @@ class ParserWWFM(Parser):
         }
         """
         # do the easy stuff first (don't worry about empty records for now)
-        composer_data  =  {'name'      : data.get('composerName')}
-        work_data      =  {'name'      : data.get('trackName')}
-        conductor_data =  {'name'      : data.get('conductor')}
-        recording_data =  {'label'     : data.get('copyright'),
+        composer_data   = {'name'      : data.get('composerName')}
+        work_data       = {'name'      : data.get('trackName')}
+        conductor_data  = {'name'      : data.get('conductor')}
+        recording_data  = {'label'     : data.get('copyright'),
                            'catalog_no': data.get('catalogNumber'),
                            'name'      : data.get('collectionName')}
+        entity_str_data = {'composer'  : [composer_data['name']],
+                           'work'      : [work_data['name']],
+                           'conductor' : [conductor_data['name']],
+                           'recording' : [recording_data['name']],
+                           'label'     : [recording_data['label']],
+                           'performers': [],
+                           'ensembles' : []}
 
         # for performers, combine 'artistName' and 'soloists' (note that both/either can be
         # comma- or semi-colon-delimited)
         performers_data = []
         for perf_str in (data.get('artistName'), data.get('soloists')):
             if perf_str:
+                entity_str_data['performers'].append(perf_str)
                 performers_data += parse_performer_str(perf_str)
 
         # treat ensembles similar to performers, except no need to parse within semi-colon-delimited
@@ -347,6 +362,7 @@ class ParserWWFM(Parser):
         ensembles_data  =  []
         ensembles_str = data.get('ensembles')
         if ensembles_str:
+            entity_str_data['ensembles'].append(ensembles_str)
             if ';' in ensembles_str:
                 ensembles = ensembles_str.split(';')
                 ensembles_data += [{'name': ens.strip()} for ens in ensembles]
@@ -434,7 +450,8 @@ class ParserWWFM(Parser):
             'performers': performers_data,
             'ensembles':  ensembles_data,
             'recording':  recording_data,
-            'play':       play_data
+            'play':       play_data,
+            'entity_str': entity_str_data
         }
 
 #+-----------+
@@ -469,17 +486,22 @@ class ParserMPR(Parser):
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
-            pp_start = pp_rec['prog_play_start']
+            playlist.parse_ctx['station_id']   = pp_rec['station_id']
+            playlist.parse_ctx['prog_play_id'] = pp_rec['id']
+            playlist.parse_ctx['play_id']      = None
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info
             prog_body = prog_head.find_next_sibling('dd')
             for play_head in reversed(prog_body.ul('li', recursive=False)):
-                norm = self.map_play(pp_start, play_head)
+                norm = self.map_play(pp_rec, play_head)
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
+                playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
+
+                es_recs = MusicLib.insert_entity_strings(playlist, norm)
 
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
@@ -521,7 +543,7 @@ class ParserMPR(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_start, play_head):
+    def map_play(self, pp_rec, play_head):
         """This is the implementation for MPR
 
         raw data in: bs4 'li' tag
@@ -536,6 +558,7 @@ class ParserMPR(Parser):
         }
         """
         data = {}
+        pp_start = pp_rec['prog_play_start']
         play_start = play_head.find('a', class_="song-time").time
         start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
@@ -571,17 +594,26 @@ class ParserMPR(Parser):
         recording_data =  {'label'     : data.get('label'),
                            'catalog_no': data.get('catalog_no')}
 
+        entity_str_data = {'composer'  : [composer_data['name']],
+                           'work'      : [work_data['name']],
+                           'conductor' : [conductor_data['name']],
+                           'label'     : [recording_data['label']],
+                           'performers': [],
+                           'ensembles' : []}
+
         # FIX/NO MORE COPY-PASTE: need to abstract out the logic for performers and ensembles
         # across parser subclasses!!!
         performers_data = []
         perf_str = data.get('song-soloist soloist-1')
         if perf_str:
+            entity_str_data['performers'].append(perf_str)
             performers_data += parse_performer_str(perf_str)
 
         # FIX: see above!!!
         ensembles_data  =  []
         ensembles_str = data.get('song-orch_ensemble')
         if ensembles_str:
+            entity_str_data['ensembles'].append(ensembles_str)
             if ';' in ensembles_str:
                 ensembles = ensembles_str.split(';')
                 ensembles_data += [{'name': ens.strip()} for ens in ensembles]
@@ -623,7 +655,8 @@ class ParserMPR(Parser):
             'performers': performers_data,
             'ensembles':  ensembles_data,
             'recording':  recording_data,
-            'play':       play_data
+            'play':       play_data,
+            'entity_str': entity_str_data
         }
 
 class ParserC24(Parser):
@@ -661,7 +694,9 @@ class ParserC24(Parser):
             pp_rec = MusicLib.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
-            pp_date = pp_rec['prog_play_date']
+            playlist.parse_ctx['station_id']   = pp_rec['station_id']
+            playlist.parse_ctx['prog_play_id'] = pp_rec['id']
+            playlist.parse_ctx['play_id']      = None
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info
@@ -669,11 +704,14 @@ class ParserC24(Parser):
             for play_head in play_heads:
                 if play_head.name == 'div':
                     break
-                norm = self.map_play(pp_date, play_head)
+                norm = self.map_play(pp_rec, play_head)
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
+                playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
+
+                es_recs = MusicLib.insert_entity_strings(playlist, norm)
 
                 play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
@@ -718,7 +756,7 @@ class ParserC24(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_date, play_head):
+    def map_play(self, pp_rec, play_head):
         """This is the implementation for C24
 
         raw data in: bs4 'table' tag
@@ -741,6 +779,7 @@ class ParserC24(Parser):
         # REVISIT: kind of stupid, but we do this for consistency with MPR
         # (to make abstraction easier at some point); all of this really
         # needs to be cleaned up!!!
+        pp_date = pp_rec['prog_play_date']
         start_date = date2str(pp_date)
         start_time = play_start.string.strip()  # "12:01AM"
         data['start_date'] = start_date  # %Y-%m-%d
@@ -827,17 +866,26 @@ class ParserC24(Parser):
         recording_data =  {'label'     : data.get('label'),
                            'catalog_no': data.get('catalog_no')}
 
+        entity_str_data = {'composer'  : [composer_data['name']],
+                           'work'      : [work_data['name']],
+                           'conductor' : [conductor_data['name']],
+                           'label'     : [recording_data['label']],
+                           'performers': [],
+                           'ensembles' : []}
+
         # FIX/NO MORE COPY-PASTE: need to abstract out the logic for performers and ensembles
         # across parser subclasses!!!
         performers_data = []
         perf_str = data.get('performer')
         if perf_str:
+            entity_str_data['performers'].append(perf_str)
             performers_data += parse_performer_str(perf_str)
 
         # FIX: see above!!!
         ensembles_data  =  []
         ensembles_str = data.get('ensemble')
         if ensembles_str:
+            entity_str_data['ensembles'].append(ensembles_str)
             if ';' in ensembles_str:
                 ensembles = ensembles_str.split(';')
                 ensembles_data += [{'name': ens.strip()} for ens in ensembles]
@@ -879,7 +927,8 @@ class ParserC24(Parser):
             'performers': performers_data,
             'ensembles':  ensembles_data,
             'recording':  recording_data,
-            'play':       play_data
+            'play':       play_data,
+            'entity_str': entity_str_data
         }
 
 #####################

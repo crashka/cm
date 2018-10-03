@@ -29,6 +29,7 @@ Entity = LOV([
     # data science
     'PLAY_SEQ',
     'PLAY_SEQ_MATCH',
+    'ENTITY_STRING',
     # administrative
     'TO_DO_LIST'], 'lower')
 
@@ -42,7 +43,8 @@ def load_schema(meta):
         Entity.PERSON: Table('person', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),  # basic normalization
-            Column('raw_name',          JSONB,       nullable=True),   # raw fields (if available)
+            # REVISIT: should raw_name be a JSONB???
+            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
 
             # parsed (and normalized???)
             Column('prefix',            Text),
@@ -268,6 +270,19 @@ def load_schema(meta):
             Column('pub_station_id',    Integer,     ForeignKey('station.id')),
             Column('sub_station_id',    Integer,     ForeignKey('station.id')),
             Column('pub_program_name',  Text)
+        ),
+        Entity.ENTITY_STRING: Table('entity_string', meta,
+            Column('id',                Integer,     primary_key=True),
+            Column('entity_str',        Text,        nullable=False),
+            # source field (category): program, composer, conductor, ensemble, performer, work, etc.
+            Column('source_fld',        Text,        nullable=False),
+            Column('parsed data',       JSONB),
+            Column('station_id',        Integer,     ForeignKey('station.id')),  # denorm
+            Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
+            Column('play_id',           Integer,     ForeignKey('play.id')),
+
+            # constraints/indexes
+            UniqueConstraint('entity_str', 'source_fld', 'station_id')
         ),
         Entity.TO_DO_LIST: Table('to_do_list', meta,
             Column('id',                Integer,     primary_key=True),

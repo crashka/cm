@@ -14,8 +14,8 @@ Directory structure
     refdata/
       archivmusic/
         composers/
-          a.html
-          b.html
+          composers:a.html
+          composers:b.html
              .
              .
              .
@@ -212,260 +212,127 @@ Working Notes
       * tag fields
       * dblookups on fields
 
-**parsing WWFM**
+**Music lib**
+
+* functions
+   * dedup program/plays
+   * dedup program fragments (sequences)
+   * create metadata for one-off programs/plays
+   * create masters for syndicated programs
+   * create masters for weekly programs
+   * create masters for syndicated plays
+   * archivmusic lookups
+* notes
+   * template for parsing
+      * DSL based on:
+         * formatting
+         * position
+         * keywords/regexp
+      * exception handling
+         * place unparseable entries in quarantine
+      * fuzzy matching (with confidence score) by field type
+         * person
+         * role (e.g. instrument, conductor, leader, etc.)
+         * performer (person + role)
+         * composer
+         * piece (work)
+         * recording (label + catno)
+         * recording date (esp. for live)
+         * program
+      * on fuzzy match, queue to learning module (qualified by score)
+
+**crontab entry**
 ::
 
-  pl_params = playlist['params']
+  15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
 
-  pl_progs = playlist['onToday']
-  for prog in pl_progs:
-    prog_info = prog.get('program')
-    for play in prog.get('playlist'):
-      assert(type(play) == dict)
+**hash sequence matching**
 
-  pl_param fields:
-  {
-      'date': '2018-09-14',
-      'format': 'json'
-  }
+* Have a canonical list of stations ranked from most generic (closest to syndicated
+  programming) to most specialized, used to designate producer from subscriber for
+  sequence matches
 
-  prog fields:
-  {
-      '_id': '5b75c20045fee126f2ef53ae',
-      '_syndication': {   'date': '09-05-2018 12:53:55',
-                           'method': 'Song Stream'},
-      'conflict_edited': 1534444032227,
-      'conflicts': ['5b75c20045fee126f2ef53ae'],
-      'date': '2018-09-14',
-      'day': 'Fri',
-      'end_time': '00:00',
-      'end_utc': 'Sat Sep 15 2018 00:00:00 GMT-0400 (EDT)',
-      'event_id': '5b75c20045fee126f2ef53a8',
-      'fullend': '2018-09-15 00:00',
-      'fullstart': '2018-09-14 23:00',
-      'has_playlist': True,
-      'playlist': [{...}, ...]
-      'program': {...}
-      'program_id': '5b75c20045fee126f2ef53a9',
-      'start_time': '23:00',
-      'start_utc': 'Fri Sep 14 2018 23:00:00 GMT-0400 (EDT)',
-      'widget_config': {}
-  }
+**basic normalization for person**
 
-  prog_info fields:
-  {
-      'facebook': '',
-      'hosts': [],
-      'isParent': False,
-      'name': 'Classical Music with Scott Blankenship',
-      'national_program_id': '',
-      'parentID': '524c7ea2e1c85d374d5a2f25',
-      'program_desc': '',
-      'program_format': 'Classical',
-      'program_id': '5b7af12e89d9bf2b60bf5fed',
-      'program_link': '',
-      'station_id': '',
-      'twitter': '',
-      'ucs': '53a98e36e1c80647e855fc88'
-  }
+* take context into account
+* additional overrides for inclusion/exclusion of specific fixups
+* fixups
+   * field bracketed with quotes (may indicate complex field)
+   * preserve "Jr.", "Sr.", etc. (factor out from regular comma processing)
+   * fix "Last, First" (handle "Last, First Middle")
+   * multiple names (e.g. "/" or "&" or "and" or ",")
+   * "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
 
-  play fields:
-  {
-      '_date': '09132018',
-      '_duration': 70000,
-      '_end': '',
-      '_end_datetime': '2018-09-14T02:01:10.000Z',
-      '_end_time': '09-13-2018 23:01:10',
-      '_err': [],
-      '_id': '5b9009f61941cf501dc7596a',
-      '_source_song_id': '5b90095e1941cf501dc7324d',
-      '_start': '21:45:21',
-      '_start_datetime': '2018-09-14T01:45:21.000Z',
-      '_start_time': '09-13-2018 23:00:00',
-      'artistName': '',
-      'buy': {   },
-      'catalogNumber': '555392',
-      'collectionName': '',
-      'composerName': 'Anton Rubinstein',
-      'conductor': 'Stephen Gunzenhauser',
-      'copyright': 'Naxos',
-      'ensembles': 'Slovak Philharmonic Orchestra',
-      'episode_notes': '',
-      'imageURL': '',
-      'instruments': 'O',
-      'program': '',
-      'releaseDate': '',
-      'soloists': '',
-      'trackName': 'Symphony No. 2 "Ocean": 7th movement',
-      'trackNumber': '1-7',
-      'upc': ''
-  }
+----------------
+Playlist Parsing
+----------------
 
-**Parsing MPR**
+**composer names to normalize (basic)**
 ::
 
-  <dl data-playlist-service-base="/playlist/classical-mpr" id="playlist">
-    <dt>
-      <h2>
-        11:00 PM – 12:00 AM
-      </h2>
-    </dt>
-    <dd>
-      <ul>
-        <li id="song349393">
-          <a class="button small buy-button" href="http://www.arkivmusic.com/..." title="Purchase...">
-            Buy
-          </a>
-          <a class="song-time" data-pjax="true" href="https://www.classicalmpr.org/playlist/...">
-            <time datetime="2018-09-26">
-              11:44
-            </time>
-          </a>
-          <div class="song-info">
-            <h3 class="song-title">
-              Supplica
-            </h3>
-            <h4 class="song-composer">
-              Christopher Rouse
-            </h4>
-            <h4 class="song-conductor">
-              Carlos Kalmar
-            </h4>
-            <h4 class="song-orch_ensemble">
-              Oregon Symphony
-            </h4>
-            <h4 class="song-soloist soloist-1">
-              Francisco Fullana, violin
-            </h4>
-          </div>
-        </li>
-      </ul>
-    </dd>
-  </dl>
+                 name                |                raw_name                 
+  -----------------------------------+-----------------------------------------
+   Anonymous 16th century, Scottish  | "\"Anonymous 16th century, Scottish\""
+   Auber, Daniel-Franï¿½ois          | "\"Auber, Daniel-Franï¿½ois\""
+   Bartï¿½k, Bï¿½la                  | "\"Bartï¿½k, Bï¿½la\""
+   Bï¿½riot, Charles Auguste de      | "\"Bï¿½riot, Charles Auguste de\""
+   Borne, Franï¿½ois                 | "\"Borne, Franï¿½ois\""
+   Chopin, Frï¿½dï¿½ric              | "\"Chopin, Frï¿½dï¿½ric\""
+   Dï¿½libes, Lï¿½o                  | "\"Dï¿½libes, Lï¿½o\""
+   Dohnï¿½nyi, Ernst von             | "\"Dohnï¿½nyi, Ernst von\""
+   Dvorï¿½k, Antonï¿½n               | "\"Dvorï¿½k, Antonï¿½n\""
+   Franï¿½aix, Jean                  | "\"Franï¿½aix, Jean\""
+   Friedrich II, Frederick the Great | "\"Friedrich II, Frederick the Great\""
+   Hï¿½ffner, Anton                  | "\"Hï¿½ffner, Anton\""
+   Hubay, Jenï¿½                     | "\"Hubay, Jenï¿½\""
+   Kodï¿½ly, Zoltï¿½n                | "\"Kodï¿½ly, Zoltï¿½n\""
+   Lehï¿½r, Franz                    | "\"Lehï¿½r, Franz\""
+   Le Roux, Gaspard                  | "\"Le Roux, Gaspard\""
+   Sterndale Bennett, William        | "\"Sterndale Bennett, William\""
+   Strauss II, Johann                | "\"Strauss II, Johann\""
+   Strauss, Johann, Sr               | "\"Strauss, Johann, Sr\""
+   Suppï¿½, Franz von                | "\"Suppï¿½, Franz von\""
 
-**Parsing WQXR**
-
-Notes:
-
-* "events" = programs (in forward order)
-   * only one "playlist" per "event"???  (need to validate)
-* "played" items = plays (within playlist), in **reverse** order
-
-json document (with html elements for program/play info)
+**conductor names to normalize (basic)**
 ::
 
-  {
-    "events": [
-      {
-        "current": "",
-        "end_timestamp": "2018-09-17T05:30:00",
-        "endtime": "05:30 AM",
-        "evenOdd": "odd",
-        "event_title": "New York At Night",
-        "event_url": "http://www.wqxr.org/shows/overnight-music",
-        "id": "event_1200AM",
-        "isEpisode": false,
-        "isObject": true,
-        "object_id": 316,
-        "playlists": [
-          {
-            "comment_count": 0,
-            "has_comments": false,
-            "id": "playlist_70079",
-            "played": [
-              {
-                "id": "entry_1595540",
-                "info": <playlist item>,
-                "time": "05:24 AM"
-              },
-                .
-                .
-                .
-            ],
-            "url": "http://www.wqxr.org/music/playlists/show/overnight-music/2018/sep/17/"
-          }
-        ],
-        "scheduletease": <schedule tease>,
-        "scheduleteasehead": <schedule tease head>,
-        "show_id": 316,
-        "show_title": "New York At Night",
-        "show_url": "http://www.wqxr.org/shows/overnight-music",
-        "start_timestamp": "2018-09-17T00:00:00",
-        "starttime": "12:00",
-        "time": "12:00 AM",
-        "top_commentcount": 0,
-        "top_playlisturl": "http://www.wqxr.org/music/playlists/show/overnight-music/2018/sep/17/"
-      },
-    ]
-  }
+                conductor                | plays 
+  ---------------------------------------+-------
+   Tullio Serafin, conductor             |     3
+   Robert Shaw, conductor                |     2
+   Bernard Haitink, cond.                |     1
+   Bryden Thomson, conductor             |     1
+   Eckart Hübner, bassoon and conductor  |     1
+   "James DePriest, conductor"           |     1
+   Neeme Järvi, cond.                    |     1
+   Pierre Boulez, conductor              |     1
+   Robert Shaw, cond.                    |     1
+   Trevor Pinnock, cond.                 |     1
+   Victoria Bond, conductor              |     1
+   Evgueni Bushkov, violin and leader    |     1
+   Robert Salter, leader (concertmaster) |     1
 
-schedule tease head
+**ensemble names to normalize (basic)**
 ::
 
-  <div class=\"program\">
-    <a href=\"http://www.wqxr.org/shows/overnight-music\">New York At Night</a>
-  </div>
-  <div class=\"expand\">
-    <div class=\"arrow\"></div>
-  </div>
-  <div class=\"options\">
-    <div></div>
-  </div>
+               ensemble             | plays 
+  ----------------------------------+-------
+   Andre Previn, piano              |     1
+   Andrew Manze, violin             |     1
+   Angela Meade, soprano            |     1
+   Barbara Westphal, viola          |     1
+   Christian Ruvolo, piano          |     1
+   Elizabeth DiFelice, piano        |     1
+   Ian Buckle, piano                |     1
+   Itzhak Perlman, violin           |     1
+   Jamie Barton, mezzo-soprano      |     1
+   Jonathan Aasgaard, cello         |     1
+   Katherine Fink, flute            |     1
+   Phillip Moll, harpsichord        |     1
+   Richard Egarr, harpsichord       |     1
+   Sarah Cunningham, viola da gamba |     1
 
-schedule tease
-::
-
-  <div class=\"program clearfix\">
-    <div class=\"image\">
-      <a href=\"http://www.wqxr.org/shows/overnight-music\"> <img src=\"https://media.wnyc.org/i/60/60/l/80/1/NewYorkAtNight_WQXR_ShowPageSquares.png\" />
-      </a> </div>
-    <div class=\"text\">
-      <div class=\"tease\"><div class=\"no-object\">
-        <p>Tune in for a nightly mix that spans the centuries.</p>
-      </div></div>
-      <ul class=\"hosts\">
-        <li>Host: </li>
-        <li><a href=\"/people/nimet-habachy/\">Nimet Habachy</a></li>
-      </ul>
-      <div class=\"scheduled-item-link\">
-        Go to program: <a href=\"http://www.wqxr.org/shows/overnight-music\">New York At Night</a>
-      </div>
-      <div class=\"expand\"></div>
-    </div>
-  </div>
-
-playlist item ("played")
-::
-
-  <div class="piece-info">
-    <ul>
-      <li>
-        <a class="playlist-item__composer" href="/music/musicians/frederick-delius/">
-          Frederick Delius
-        </a>
-      </li>
-      <li class="playlist-item__title">On Hearing the First Cuckoo in Spring</li>
-      <li class="playlist-item__musicians">
-        <a href="/music/ensembles/the-halle-orchestra/">The Halle Orchestra</a>
-      </li>
-      <li class="playlist-item__musicians">
-        <a href="/music/musicians/mark-elder/">Mark Elder</a>, conductor
-      </li>
-      <li>
-        6 min 2 s
-      </li>
-    </ul>
-  </div>
-
-  <div class="album-info">
-    <ul class="playlist-actions">
-      <li class="playlist-buy">
-        <a href="http://www.arkivmusic.com/classical/Playlist?source=WQXR&amp;cat=7512&amp;id=127171&amp;label=CD+Hill" target="_blank">Buy Track</a>
-      </li>
-    </ul>
-  </div>
-
-**performer names to parse**
+**performer names to parse (intermediate-level?)**
 ::
 
   ens parseable
@@ -590,65 +457,49 @@ playlist item ("played")
   Perahi
   Whelen
 
-**Music lib**
+**abstract entity string parsing**
 
-* functions
-   * dedup program/plays
-   * dedup program fragments (sequences)
-   * create metadata for one-off programs/plays
-   * create masters for syndicated programs
-   * create masters for weekly programs
-   * create masters for syndicated plays
-   * archivmusic lookups
-* notes
-   * template for parsing
-      * DSL based on:
-         * formatting
-         * position
-         * keywords/regexp
-      * exception handling
-         * place unparseable entries in quarantine
-      * fuzzy matching (with confidence score) by field type
-         * person
-         * role (e.g. instrument, conductor, leader, etc.)
-         * performer (person + role)
-         * composer
-         * piece (work)
-         * recording (label + catno)
-         * recording date (esp. for live)
-         * program
-      * on fuzzy match, queue to learning module (qualified by score)
+* enclosing matched delimiters (quotes, parens, braces, etc.), entire string ("entity string")
+* enclosing matched delimiters, substring ("entity item")
+* incomplete matching delimiters (not terminated), for entire string (and items???)
+* leading delimiters, for entire string and items
+* item-separating delimiters
+   * identify and track position
+   * parse out individual fields
+   * classification (NER) of fields
+   * assemble entity items based on:
+      * delimiter hierarchy/significance
+      * logical field groupings
 
-**crontab entry**
-::
+**entity string table**
 
-  15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
+* entity_string
+* source (category: program, composer, conductor, ensemble, performer, work)
+* parsed data (jsonb)
+* station_id (denorm)
+* program_play_id
+* play_id
 
-**hash sequence matching**
+**entity table**
 
-* Have a canonical list of stations ranked from most generic (closest to syndicated
-  programming) to most specialized, used to designate producer from subscriber for
-  sequence matches
+* entity_name
+* entity_type (first name, last name, program, host, composer, ensemble, role, <hybrid>[?], etc.)
 
-**basic normalization for person**
+**entity groups (sequences)**
 
-* take context into account
-* additional overrides for inclusion/exclusion of specific fixups
-* fixups
-   * field bracketed with quotes (may indicate complex field)
-   * preserve "Jr.", "Sr.", etc. (factor out from regular comma processing)
-   * fix "Last, First" (handle "Last, First Middle")
-   * multiple names (e.g. "/" or "&" or "and" or ",")
-   * "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
+* entity_type, entity_type, ... = uber-entity_type (delimiters abstracted out)
 
 ------------------------
 To Do - Immediate/Active
 ------------------------
 
 * basic normalization for conductor, performer, and ensemble
+* rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches
 * rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>'
+* rectify denorm of composer/conductor/ensemble in performer/play_performer
+* identify syndicated plays, factor out of queries (using master_play_id)
 * add stations: WQXR, WFMT, KUSC, WDAV, KING, WETA, KDFC, KQAC
 * debug/fix outstanding anomalies for person
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
@@ -719,4 +570,3 @@ Investigate
           100 | C24  |          2 |         80 | VPR  |   327
           100 | C24  |          2 |         40 | WIAA |   221
   (6 rows)
-

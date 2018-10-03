@@ -64,7 +64,8 @@ user_keys = {
     'play'          : ['station_id', 'play_date', 'play_start', 'work_id'],
     'play_performer': ['play_id', 'performer_id'],
     'play_ensemble' : ['play_id', 'ensemble_id'],
-    'play_seq'      : ['hash_level', 'hash_type', 'play_id']
+    'play_seq'      : ['hash_level', 'hash_type', 'play_id'],
+    'entity_string' : ['entity_str', 'source_fld', 'station_id']
 }
 
 child_recs = {
@@ -575,6 +576,36 @@ class MusicLib(object):
                 ret.append({k: v for k, v in ps_row.items()})
             except IntegrityError:
                 log.debug("Could not insert play_seq %s into musiclib" % (data))
+
+        return ret
+
+    @staticmethod
+    def insert_entity_strings(playlist, data):
+        """
+        :return: list of key-value dict comprehensions for inserted entity_string fields
+        """
+        ctx = playlist.parse_ctx
+        ret = []
+        es = get_entity('entity_string')
+        for entity_src, src_data in data['entity_str'].items():
+            for entity_str in src_data:
+                if not (entity_str and re.search('\w', entity_str)):
+                    continue
+                ent_str_data = {
+                    'entity_str'  : entity_str,
+                    'source_fld'  : entity_src,
+                    'station_id'  : ctx['station_id'],
+                    'prog_play_id': ctx['prog_play_id'],
+                    'play_id'     : ctx['play_id']
+                }
+
+                try:
+                    ins_res = es.insert(ent_str_data)
+                    es_row = es.inserted_row(ins_res)
+                    ret.append({k: v for k, v in es_row.items()})
+                except IntegrityError:
+                    log.debug("Duplicate entity_string \"%s\" [%s] for station ID %d" %
+                              (entity_str, entity_src, ctx['station_id']))
 
         return ret
 
