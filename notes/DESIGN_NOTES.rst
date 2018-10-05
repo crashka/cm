@@ -493,7 +493,8 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
-* basic normalization for conductor, performer, and ensemble
+* basic normalization for conductor and ensemble (composer and performer done...for now!)
+* abstract entity_string parsing
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches
 * rectify program based on play_seq matches
@@ -510,10 +511,9 @@ To Do - Immediate/Active
 To Do - Bugs/Tweaks
 -------------------
 
-* play_start AM/PM not parsed right for C24 and MPR
 * figure out duplicate start time (different works) for plays (WWFM)
 * make sure unicode handling in names is correct (even before canonicalization)
-* more normalization for person
+* more normalization for person (if needed, after abstract entity parsing)
 * add ``--force`` flag to overwrite existing playlists
 * force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``

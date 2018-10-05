@@ -196,3 +196,15 @@ select s.name, play_date, play_start, array_agg(work_id) as work_id,
  group by 1, 2, 3
 having count(*) > 1
  order by 1, 2, 3;
+
+--investigate performers with null role
+select substr(p.name, 1, 60) as performer, pf.role, count(*) as plays,
+       array_agg(pl.id), array_agg(distinct s.name)
+  from performer pf
+       join person p on p.id = pf.person_id
+       join play_performer plf on plf.performer_id = pf.id
+       join play pl on pl.id = plf.play_id
+       join station s on s.id = pl.station_id
+ where pf.role is null
+ group by 1, 2
+ order by 3 desc, 1, 2;

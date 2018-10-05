@@ -18,7 +18,7 @@ import click
 
 import core
 import station
-from musiclib import MusicLib, COND_STRS
+from musiclib import MusicLib, COND_STRS, ml_dict
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
@@ -140,9 +140,34 @@ def get_parser(cls_name):
     cls = globals().get(cls_name)
     return cls() if cls else None
 
+# TODO: move this generic parsing logic to musiclib!!!
+def mkperf(name, role, orig_str):
+    name = name.strip()
+    if role:
+        role = role.strip()
+    if not name:
+        log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
+                 (name, role, orig_str))
+    elif not re.match(r'\w', name):
+        log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
+                 (name, role, orig_str))
+    return {'person': {'name'    : name,
+                       'raw_name': orig_str if name != orig_str else None},
+            'role'  : role}
+
+def mkens(name, orig_str):
+    name = name.strip()
+    if not name:
+        log.warn("Empty ensemble name \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    elif not re.match(r'\w', name):
+        log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    return {'name': name}
+
 def parse_performer_str(perf_str, flags = None):
     """
-    DESIGN NOTES:
+    DESIGN NOTES (for future):
       * context-sensitive application of individual parsing rules, either implicitly
         (e.g. based on station), or explicitly through flags
       * generic parsing using non-alphanum delimiters, entity lookups (refdata), and
@@ -154,16 +179,7 @@ def parse_performer_str(perf_str, flags = None):
     :param flags: (not yet implemented)
     :return: list of perf_data structures (see LATER above)
     """
-    # FIX: the whitespace handling in here is sloppy, need to clean it up!!!
     orig_perf_str = perf_str
-    def mkperf(name, role):
-        if not name:
-            log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
-                     (name, role, orig_perf_str))
-        elif not re.match(r'\w', name):
-            log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
-                     (name, role, perf_str))
-        return {'person': {'name': name, 'raw_name': orig_perf_str}, 'role': role}
 
     def parse_perf_item(perf_item, fld_delim = ','):
         sub_data = []
@@ -176,17 +192,19 @@ def parse_performer_str(perf_str, flags = None):
                     log.debug("PPS_RULE 1 - slash separating ens from cond_last \"%s\"" % (pers))
                     ens_name, cond_last = pers.split('/')
                     cond_name = "%s %s" % (role, cond_last)
-                    sub_data.append(mkperf(ens_name.strip(), 'ensemble'))
-                    sub_data.append(mkperf(cond_name.strip(), 'conductor'))
+                    sub_data.append(mkperf(ens_name, 'ensemble', orig_perf_str))
+                    sub_data.append(mkperf(cond_name, 'conductor', orig_perf_str))
                 else:
-                    sub_data.append(mkperf(pers.strip(), role.strip()))
+                    sub_data.append(mkperf(pers, role, orig_perf_str))
         else:
             # TODO: if even number of field delimiters, need to look closer at item
             # contents/format to figure out what to do!!!
-            sub_data.append(mkperf(perf_item.strip(), None))
-        return sub_data
+            sub_data.append(mkperf(perf_item, None, orig_perf_str))
+        return {'performers': sub_data}
 
-    data = []
+    ens_data  = []
+    perf_data = []
+    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
     # TODO: should really move the quote processing as far upstream as possible (for
     # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
     m = re.match(r'"([^"]*)"$', perf_str)
@@ -210,16 +228,79 @@ def parse_performer_str(perf_str, flags = None):
         log.debug("PPS_RULE 5 - leading slash for performer fields \"%s\"" % (perf_str))
         for perf_item in perf_str.split('/'):
             if perf_item:
-                data += parse_perf_item(perf_item, ' - ')
+                ret_data.merge(parse_perf_item(perf_item, ' - '))
     elif ';' in perf_str:
         log.debug("PPS_RULE 6 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
         for perf_item in perf_str.split(';'):
             if perf_item:
-                data += parse_perf_item(perf_item)
+                ret_data.merge(parse_perf_item(perf_item))
     elif perf_str:
-        data += parse_perf_item(perf_str)
+        ret_data.merge(parse_perf_item(perf_str))
 
-    return data
+    return ret_data
+
+def parse_ensemble_str(ens_str, flags = None):
+    """
+    :param ens_str:
+    :param flags: (not yet implemented)
+    :return: dict of ens_data/perf_data structures, indexed by type
+    """
+    orig_ens_str = ens_str
+
+    def parse_ens_item(ens_item, fld_delim = ','):
+        sub_ens_data = []
+        sub_perf_data = []
+        if ens_item.count(fld_delim) % 2 == 1:
+            fields = ens_item.split(fld_delim)
+            while fields:
+                name, role = (fields.pop(0), fields.pop(0))
+                # TEMP: if role starts with a capital letter, assume the whole string
+                # is an ensemble (though in reality, it may be two--we'll deal with
+                # that later, when we have NER), otherwise treat as performer/role!!!
+                if re.match(r'[A-Z]', role[0]):
+                    sub_ens_data.append(mkens(name, orig_ens_str))
+                else:
+                    sub_perf_data.append(mkperf(name, role, orig_ens_str))
+        else:
+            # TODO: if even number of field delimiters, need to look closer at item
+            # contents/format to figure out what to do (i.e. NER)!!!
+            sub_ens_data.append(mkens(ens_item, orig_ens_str))
+        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
+
+    def parse_ens_fields(fields):
+        sub_ens_data = []
+        sub_perf_data = []
+        while fields:
+            if len(fields) == 1:
+                sub_ens_data.append(mkens(fields.pop(0), orig_ens_str))
+                break  # same as continue
+            # more reliable to do this moving backward from the end (sez me)
+            if ' ' not in fields[-1]:
+                # REVISIT: we presume a single-word field to be a city/location (for now);
+                # as above, we should really look at field contents to properly parse!!!
+                ens = ','.join([fields.pop(-2), fields.pop(-1)])
+                sub_ens_data.append(mkens(ens, orig_ens_str))
+            else:
+                # yes, do this twice!
+                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
+                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
+        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
+
+    ens_data  = []
+    perf_data = []
+    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
+    if ';' in ens_str:
+        for ens_item in ens_str.split(';'):
+            if ens_item:
+                ret_data.merge(parse_ens_item(ens_item))
+    elif ',' in ens_str:
+        ens_fields = ens_str.split(',')
+        ret_data.merge(parse_ens_fields(ens_fields))
+    else:
+        # ens_data is implcitly part of ret_data
+        ens_data.append(mkens(ens_str, orig_ens_str))
+
+    return ret_data
 
 # TODO: move to subdirectory(ies) when this gets too unwieldy!!!
 
@@ -320,7 +401,7 @@ class ParserWWFM(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_rec, data):
+    def map_play(self, pp_rec, raw_data):
         """This is the implementation for WWFM (and others)
 
         raw data in: 'playlist' item from WWFM playlist file
@@ -334,13 +415,43 @@ class ParserWWFM(Parser):
             'play'      : {}
         }
         """
-        # do the easy stuff first (don't worry about empty records for now)
-        composer_data   = {'name'      : data.get('composerName')}
-        work_data       = {'name'      : data.get('trackName')}
-        conductor_data  = {'name'      : data.get('conductor')}
-        recording_data  = {'label'     : data.get('copyright'),
-                           'catalog_no': data.get('catalogNumber'),
-                           'name'      : data.get('collectionName')}
+        sdate, stime = raw_data['_start_time'].split()
+        if '_end_time' in raw_data:
+            edate, etime = raw_data['_end_time'].split()
+        else:
+            edate, etime = (None, None)
+
+        # NOTE: would like to do integrity check, but need to rectify formatting difference
+        # for date, hour offset for time, non-empty value for _end!!!
+        #if sdate != raw_data['_date']:
+        #    log.debug("Date mismatch %s != %s" % (sdate, raw_data['date']))
+        #if stime != raw_data['_start']:
+        #    log.debug("Start time mismatch %s != %s" % (stime, raw_data['start_time']))
+        #if etime != raw_data['_end']:
+        #    log.debug("End time mismatch %s != %s" % (etime, raw_data['end_time']))
+
+        dur_msecs = raw_data.get('_duration')
+
+        play_info = {}
+        play_info['play_info']  = raw_data
+        play_info['play_date']  = str2date(sdate, '%m-%d-%Y')
+        play_info['play_start'] = str2time(stime)
+        play_info['play_end']   = str2time(etime) if etime else None
+        play_info['play_dur']   = dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
+        play_info['notes']      = None # ARRAY(Text)),
+        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
+        play_info['end_time']   = None # TIMESTAMP(timezone=True)),
+        play_info['duration']   = None # Interval)
+
+        # do the easy stuff first (don't worry about empty records...for now!)
+        composer_data   = {'name'      : raw_data.get('composerName')}
+        work_data       = {'name'      : raw_data.get('trackName')}
+        conductor_data  = {'name'      : raw_data.get('conductor')}
+        performers_data = []
+        ensembles_data  = []
+        recording_data  = {'label'     : raw_data.get('copyright'),
+                           'catalog_no': raw_data.get('catalogNumber'),
+                           'name'      : raw_data.get('collectionName')}
         entity_str_data = {'composer'  : [composer_data['name']],
                            'work'      : [work_data['name']],
                            'conductor' : [conductor_data['name']],
@@ -349,110 +460,31 @@ class ParserWWFM(Parser):
                            'performers': [],
                            'ensembles' : []}
 
-        # for performers, combine 'artistName' and 'soloists' (note that both/either can be
-        # comma- or semi-colon-delimited)
-        performers_data = []
-        for perf_str in (data.get('artistName'), data.get('soloists')):
+        # normalized return structure (build from above elements)
+        play_data = ml_dict({'play':       play_info,
+                             'composer':   composer_data,
+                             'work':       work_data,
+                             'conductor':  conductor_data,
+                             'performers': performers_data,
+                             'ensembles':  ensembles_data,
+                             'recording':  recording_data,
+                             'entity_str': entity_str_data})
+
+        # FIX: artistName is used by different stations (and probably programs within
+        # the same staion) to mean either ensembles or soloists; can probably mitigate
+        # (somewhat) by mapping stations to different parsers, but ultimately need to
+        # be able to parse all performer/ensemble information out of any field!!!
+        for perf_str in (raw_data.get('artistName'), raw_data.get('soloists')):
             if perf_str:
                 entity_str_data['performers'].append(perf_str)
-                performers_data += parse_performer_str(perf_str)
+                play_data.merge(parse_performer_str(perf_str))
 
-        # treat ensembles similar to performers, except no need to parse within semi-colon-delimited
-        # fields, and slightly different logic for comma-delimited fields
-        ensembles_data  =  []
-        ensembles_str = data.get('ensembles')
+        ensembles_str = raw_data.get('ensembles')
         if ensembles_str:
             entity_str_data['ensembles'].append(ensembles_str)
-            if ';' in ensembles_str:
-                ensembles = ensembles_str.split(';')
-                ensembles_data += [{'name': ens.strip()} for ens in ensembles]
-            elif ',' in ensembles_str:
-                fields = ensembles_str.split(',')
-                while fields:
-                    if len(fields) == 1:
-                        ensembles_data.append({'name': fields.pop(0).strip()})
-                        break  # same as continue
-                    # more reliable to do this moving backward from the end (sez me)
-                    if ' ' not in fields[-1]:
-                        # REVISIT: we presume a single-word field to be a city/location (for now);
-                        # as above, we should really look at field contents to properly parse!!!
-                        ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                        ensembles_data.append({'name': ens.strip()})
-                    else:
-                        # yes, do this twice!
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-            else:
-                ensembles_data.append({'name': ensembles_str})
+            play_data.merge(parse_ensemble_str(ensembles_str))
 
-        data.get('_id')              # 5b997ff162a4197540403ef5
-
-        data.get('_date')            # 09202018
-        data.get('_start')           # 02:10:20
-        data.get('_start_time')      # 09-20-2018 03:10:20
-        data.get('_start_datetime')  # 2018-09-20T06:10:20.000Z
-        data.get('_end')             #
-        data.get('_end_time')        # 09-20-2018 03:39:42
-        data.get('_end_datetime')    # 2018-09-20T06:39:42.000Z
-        data.get('_duration')        # 1762000 [msecs]
-
-        data.get('composerName')     # Mauro Giuliani
-        data.get('trackName')        # Guitar Concerto No. 3
-        data.get('ensembles')        # Academy of St Martin in the Fields
-        data.get('soloists')         #
-        data.get('instruments')      # OXx
-        data.get('artistName')       # Pepe Romero, guitar
-        data.get('conductor')        # Neville Marriner
-
-        data.get('copyright')        # Philips
-        data.get('catalogNumber')    # 420780
-        data.get('trackNumber')      # 4-6
-        data.get('collectionName')   #
-        data.get('releaseDate')      #
-        data.get('upc')              #
-        data.get('imageURL')         #
-        data.get('program')          #
-        data.get('episode_notes')    #
-        data.get('_err')             # []
-
-        sdate, stime = data['_start_time'].split()
-        if '_end_time' in data:
-            edate, etime = data['_end_time'].split()
-        else:
-            edate, etime = (None, None)
-
-        # NOTE: would like to do integrity check, but need to rectify formatting difference
-        # for date, hour offset for time, non-empty value for _end!!!
-        #if sdate != data['_date']:
-        #    log.debug("Date mismatch %s != %s" % (sdate, data['date']))
-        #if stime != data['_start']:
-        #    log.debug("Start time mismatch %s != %s" % (stime, data['start_time']))
-        #if etime != data['_end']:
-        #    log.debug("End time mismatch %s != %s" % (etime, data['end_time']))
-
-        dur_msecs = data.get('_duration')
-
-        play_data = {}
-        play_data['play_info'] =  data
-        play_data['play_date'] =  str2date(sdate, '%m-%d-%Y')
-        play_data['play_start'] = str2time(stime)
-        play_data['play_end'] =   str2time(etime) if etime else None
-        play_data['play_dur'] =   dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
-        play_data['notes'] =      None # ARRAY(Text)),
-        play_data['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_data['end_time'] =   None # TIMESTAMP(timezone=True)),
-        play_data['duration'] =   None # Interval)
-
-        return {
-            'composer':   composer_data,
-            'work':       work_data,
-            'conductor':  conductor_data,
-            'performers': performers_data,
-            'ensembles':  ensembles_data,
-            'recording':  recording_data,
-            'play':       play_data,
-            'entity_str': entity_str_data
-        }
+        return play_data
 
 #+-----------+
 #| ParserMPR |
@@ -557,13 +589,13 @@ class ParserMPR(Parser):
             'play'      : {}
         }
         """
-        data = {}
+        raw_data = {}
         pp_start = pp_rec['prog_play_start']
         play_start = play_head.find('a', class_="song-time").time
         start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
-        data['start_date'] = start_date  # %Y-%m-%d
-        data['start_time'] = start_time  # %I:%M %p (12-hour format)
+        raw_data['start_date'] = start_date  # %Y-%m-%d
+        raw_data['start_time'] = start_time  # %I:%M %p (12-hour format)
 
         buy_button = play_head.find('a', class_="buy-button", href=True)
         if (buy_button):
@@ -571,16 +603,11 @@ class ParserMPR(Parser):
             url_fields = parse_qs(res.query, keep_blank_values=True)
             label = url_fields['label'][0]
             catalog_no = url_fields['catalog'][0]
-            data['label'] = label
-            data['catalog_no'] = catalog_no
+            raw_data['label'] = label
+            raw_data['catalog_no'] = catalog_no
 
         play_body = play_head.find('div', class_="song-info")
         for play_field in play_body(['h3', 'h4'], recusive=False):
-            field_name = play_field['class']
-            if isinstance(field_name, list):
-                field_name = ' '.join(field_name)
-            field_value = play_field.string.strip()
-            data[field_name] = field_value or None
             """
             song-title: Prelude
             song-composer: Walter Piston
@@ -588,12 +615,31 @@ class ParserMPR(Parser):
             song-orch_ensemble: Grant Park Orchestra
             song-soloist soloist-1: David Schrader, organ
             """
-        composer_data  =  {'name'      : data.get('song-composer')}
-        work_data      =  {'name'      : data.get('song-title')}
-        conductor_data =  {'name'      : data.get('song-conductor')}
-        recording_data =  {'label'     : data.get('label'),
-                           'catalog_no': data.get('catalog_no')}
+            field_name = play_field['class']
+            if isinstance(field_name, list):
+                field_name = ' '.join(field_name)
+            field_value = play_field.string.strip()
+            raw_data[field_name] = field_value or None
 
+        play_info = {}
+        # TODO: better conversion of play_head/play_body into dict for play_info!!!
+        play_info['play_info'] =  raw_data
+        play_info['play_date'] =  str2date(raw_data['start_date'])
+        play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M %p')
+        play_info['play_end'] =   None # Time
+        play_info['play_dur'] =   None # Interval
+        play_info['notes'] =      None # ARRAY(Text)),
+        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
+        play_info['end_time'] =   None # TIMESTAMP(timezone=True)),
+        play_info['duration'] =   None # Interval)
+
+        composer_data  =  {'name'      : raw_data.get('song-composer')}
+        work_data      =  {'name'      : raw_data.get('song-title')}
+        conductor_data =  {'name'      : raw_data.get('song-conductor')}
+        performers_data = []
+        ensembles_data  = []
+        recording_data =  {'label'     : raw_data.get('label'),
+                           'catalog_no': raw_data.get('catalog_no')}
         entity_str_data = {'composer'  : [composer_data['name']],
                            'work'      : [work_data['name']],
                            'conductor' : [conductor_data['name']],
@@ -601,63 +647,27 @@ class ParserMPR(Parser):
                            'performers': [],
                            'ensembles' : []}
 
-        # FIX/NO MORE COPY-PASTE: need to abstract out the logic for performers and ensembles
-        # across parser subclasses!!!
-        performers_data = []
-        perf_str = data.get('song-soloist soloist-1')
+        # normalized return structure (build from above elements)
+        play_data = ml_dict({'play':       play_info,
+                             'composer':   composer_data,
+                             'work':       work_data,
+                             'conductor':  conductor_data,
+                             'performers': performers_data,
+                             'ensembles':  ensembles_data,
+                             'recording':  recording_data,
+                             'entity_str': entity_str_data})
+
+        perf_str = raw_data.get('song-soloist soloist-1')
         if perf_str:
             entity_str_data['performers'].append(perf_str)
-            performers_data += parse_performer_str(perf_str)
+            play_data.merge(parse_performer_str(perf_str))
 
-        # FIX: see above!!!
-        ensembles_data  =  []
-        ensembles_str = data.get('song-orch_ensemble')
+        ensembles_str = raw_data.get('song-orch_ensemble')
         if ensembles_str:
             entity_str_data['ensembles'].append(ensembles_str)
-            if ';' in ensembles_str:
-                ensembles = ensembles_str.split(';')
-                ensembles_data += [{'name': ens.strip()} for ens in ensembles]
-            elif ',' in ensembles_str:
-                fields = ensembles_str.split(',')
-                while fields:
-                    if len(fields) == 1:
-                        ensembles_data.append({'name': fields.pop(0).strip()})
-                        break  # same as continue
-                    # more reliable to do this moving backward from the end (sez me)
-                    if ' ' not in fields[-1]:
-                        # REVISIT: we presume a single-word field to be a city/location (for now);
-                        # as above, we should really look at field contents to properly parse!!!
-                        ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                        ensembles_data.append({'name': ens.strip()})
-                    else:
-                        # yes, do this twice!
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-            else:
-                ensembles_data.append({'name': ensembles_str})
+            play_data.merge(parse_ensemble_str(ensembles_str))
 
-        play_data = {}
-        # TODO: convert play_body into dict for play_info!!!
-        play_data['play_info'] =  {}
-        play_data['play_date'] =  str2date(data['start_date'])
-        play_data['play_start'] = str2time(data['start_time'], '%I:%M %p')
-        play_data['play_end'] =   None # Time
-        play_data['play_dur'] =   None # Interval
-        play_data['notes'] =      None # ARRAY(Text)),
-        play_data['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_data['end_time'] =   None # TIMESTAMP(timezone=True)),
-        play_data['duration'] =   None # Interval)
-
-        return {
-            'composer':   composer_data,
-            'work':       work_data,
-            'conductor':  conductor_data,
-            'performers': performers_data,
-            'ensembles':  ensembles_data,
-            'recording':  recording_data,
-            'play':       play_data,
-            'entity_str': entity_str_data
-        }
+        return play_data
 
 class ParserC24(Parser):
     def parse(self, playlist, dryrun = False, force = False):
@@ -770,7 +780,7 @@ class ParserC24(Parser):
             'play'      : {}
         }
         """
-        data = {}
+        raw_data = {}
         processed = set()
         elems = play_head.tr('td', recursive=False)
         play_start = elems[0]
@@ -782,8 +792,8 @@ class ParserC24(Parser):
         pp_date = pp_rec['prog_play_date']
         start_date = date2str(pp_date)
         start_time = play_start.string.strip()  # "12:01AM"
-        data['start_date'] = start_date  # %Y-%m-%d
-        data['start_time'] = start_time  # %I:%M%p (12-hour format)
+        raw_data['start_date'] = start_date  # %Y-%m-%d
+        raw_data['start_time'] = start_time  # %I:%M%p (12-hour format)
 
         # Step 2a - try and find label information (<i>...</i> - <a href=...>)
         rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
@@ -791,8 +801,8 @@ class ParserC24(Parser):
         #m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
         m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
         if m:
-            data['label'] = m.group(1)
-            data['catalog_no'] = m.group(2)
+            raw_data['label'] = m.group(1)
+            raw_data['catalog_no'] = m.group(2)
             processed.add(rec_listing.string)
         rec_buy_url = rec_center.next_sibling
         # Step 2b - get as much info as we can from the "BUY" url
@@ -805,22 +815,22 @@ class ParserC24(Parser):
             work       = url_fields['work'][0]
             url_title  = "%s - %s" % (composer, work)
             url_rec    = "%s %s" % (label, catalog_no)
-            data['composer'] = composer
-            data['work'] = work
+            raw_data['composer'] = composer
+            raw_data['work'] = work
             processed.add(url_title)
-            if data.get('label') and data.get('catalog_no'):
-                if label != data['label'] or catalog_no != data['catalog_no']:
+            if raw_data.get('label') and raw_data.get('catalog_no'):
+                if label != raw_data['label'] or catalog_no != raw_data['catalog_no']:
                     log.debug("Recording in URL (%s) mismatch with listing (%s)" %
                               (url_rec, rec_listing.string))
                 elif url_rec != rec_listing.string:
                     raise RuntimeError("Rec string mismatch \"%s\" != \"%s\"",
                                        (url_rec, rec_listing.string))
             else:
-                if data.get('label') or data.get('catalog_no'):
+                if raw_data.get('label') or raw_data.get('catalog_no'):
                     log.debug("Overwriting listing (%s) with recording from URL (%s)" %
                               (rec_listing.string, url_rec))
-                data['label'] = label
-                data['catalog_no'] = catalog_no
+                raw_data['label'] = label
+                raw_data['catalog_no'] = catalog_no
                 processed.add(url_rec)
         else:
             raise RuntimeError("Expected <a>, got <%s> instead" % (rec_buy_url.name))
@@ -835,37 +845,50 @@ class ParserC24(Parser):
             m = re.match(r'(.+), ([\w\./ ]+)$', field.string)
             if m:
                 if m.group(2).lower() in COND_STRS:
-                    data['conductor'] = m.group(1)
+                    raw_data['conductor'] = m.group(1)
                 else:
-                    data['performer'] = field.string
+                    raw_data['performer'] = field.string
             else:
                 subfields = field.string.split(' - ')
                 if len(subfields) == 2 and subfields[0][-1] != ' ' and subfields[1][0] != ' ':
                     composer = subfields[0]
                     work = subfields[1]
-                    if data.get('composer'):
+                    if raw_data.get('composer'):
                         log.debug("Overwriting composer \"%s\" with \"%s\"" %
-                                  (data['composer'], composer))
-                        data['composer'] = composer
-                    if data.get('work'):
+                                  (raw_data['composer'], composer))
+                        raw_data['composer'] = composer
+                    if raw_data.get('work'):
                         log.debug("Overwriting work \"%s\" with \"%s\"" %
-                                  (data['work'], work))
-                        data['work'] = work
+                                  (raw_data['work'], work))
+                        raw_data['work'] = work
                 else:
                     # REVISIT: for now, just assume we have an ensemble name, though we can't
                     # really know what to do on conflict unless/until we parse the contents and
                     # categorize properly (though, could also add both and debug later)!!!
-                    if data.get('ensemble'):
+                    if raw_data.get('ensemble'):
                         raise RuntimeError("Can't overwrite ensemble \"%s\" with \"%s\"" %
-                                           (data['ensemble'], field.string))
-                    data['ensemble'] = field.string
+                                           (raw_data['ensemble'], field.string))
+                    raw_data['ensemble'] = field.string
 
-        composer_data  =  {'name'      : data.get('composer')}
-        work_data      =  {'name'      : data.get('work')}
-        conductor_data =  {'name'      : data.get('conductor')}
-        recording_data =  {'label'     : data.get('label'),
-                           'catalog_no': data.get('catalog_no')}
+        play_info = {}
+        # TODO: better conversion of play_head/play_body into dict for play_info!!!
+        play_info['play_info'] =  raw_data
+        play_info['play_date'] =  str2date(raw_data['start_date'])
+        play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M%p')
+        play_info['play_end'] =   None # Time
+        play_info['play_dur'] =   None # Interval
+        play_info['notes'] =      None # ARRAY(Text)),
+        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
+        play_info['end_time'] =   None # TIMESTAMP(timezone=True)),
+        play_info['duration'] =   None # Interval)
 
+        composer_data   = {'name'      : raw_data.get('composer')}
+        work_data       = {'name'      : raw_data.get('work')}
+        conductor_data  = {'name'      : raw_data.get('conductor')}
+        performers_data = []
+        ensembles_data  = []
+        recording_data  = {'label'     : raw_data.get('label'),
+                           'catalog_no': raw_data.get('catalog_no')}
         entity_str_data = {'composer'  : [composer_data['name']],
                            'work'      : [work_data['name']],
                            'conductor' : [conductor_data['name']],
@@ -873,63 +896,27 @@ class ParserC24(Parser):
                            'performers': [],
                            'ensembles' : []}
 
-        # FIX/NO MORE COPY-PASTE: need to abstract out the logic for performers and ensembles
-        # across parser subclasses!!!
-        performers_data = []
-        perf_str = data.get('performer')
+        # normalized return structure (build from above elements)
+        play_data = ml_dict({'play':       play_info,
+                             'composer':   composer_data,
+                             'work':       work_data,
+                             'conductor':  conductor_data,
+                             'performers': performers_data,
+                             'ensembles':  ensembles_data,
+                             'recording':  recording_data,
+                             'entity_str': entity_str_data})
+
+        perf_str = raw_data.get('performer')
         if perf_str:
             entity_str_data['performers'].append(perf_str)
-            performers_data += parse_performer_str(perf_str)
+            play_data.merge(parse_performer_str(perf_str))
 
-        # FIX: see above!!!
-        ensembles_data  =  []
-        ensembles_str = data.get('ensemble')
+        ensembles_str = raw_data.get('ensemble')
         if ensembles_str:
             entity_str_data['ensembles'].append(ensembles_str)
-            if ';' in ensembles_str:
-                ensembles = ensembles_str.split(';')
-                ensembles_data += [{'name': ens.strip()} for ens in ensembles]
-            elif ',' in ensembles_str:
-                fields = ensembles_str.split(',')
-                while fields:
-                    if len(fields) == 1:
-                        ensembles_data.append({'name': fields.pop(0).strip()})
-                        break  # same as continue
-                    # more reliable to do this moving backward from the end (sez me)
-                    if ' ' not in fields[-1]:
-                        # REVISIT: we presume a single-word field to be a city/location (for now);
-                        # as above, we should really look at field contents to properly parse!!!
-                        ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                        ensembles_data.append({'name': ens.strip()})
-                    else:
-                        # yes, do this twice!
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-                        ensembles_data.append({'name': fields.pop(-1).strip()})
-            else:
-                ensembles_data.append({'name': ensembles_str})
+            play_data.merge(parse_ensemble_str(ensembles_str))
 
-        play_data = {}
-        # TODO: convert play_body into dict for play_info!!!
-        play_data['play_info'] =  {}
-        play_data['play_date'] =  str2date(data['start_date'])
-        play_data['play_start'] = str2time(data['start_time'], '%I:%M%p')
-        play_data['play_end'] =   None # Time
-        play_data['play_dur'] =   None # Interval
-        play_data['notes'] =      None # ARRAY(Text)),
-        play_data['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_data['end_time'] =   None # TIMESTAMP(timezone=True)),
-        play_data['duration'] =   None # Interval)
-
-        return {
-            'composer':   composer_data,
-            'work':       work_data,
-            'conductor':  conductor_data,
-            'performers': performers_data,
-            'ensembles':  ensembles_data,
-            'recording':  recording_data,
-            'play':       play_data,
-            'entity_str': entity_str_data
-        }
+        return play_data
 
 #####################
 # command line tool #

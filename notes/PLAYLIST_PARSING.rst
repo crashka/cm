@@ -13,6 +13,36 @@ WWFM
     for play in prog.get('playlist'):
       assert(type(play) == dict)
 
+      raw_data.get('_id')              # 5b997ff162a4197540403ef5
+
+      raw_data.get('_date')            # 09202018
+      raw_data.get('_start')           # 02:10:20
+      raw_data.get('_start_time')      # 09-20-2018 03:10:20
+      raw_data.get('_start_datetime')  # 2018-09-20T06:10:20.000Z
+      raw_data.get('_end')             #
+      raw_data.get('_end_time')        # 09-20-2018 03:39:42
+      raw_data.get('_end_datetime')    # 2018-09-20T06:39:42.000Z
+      raw_data.get('_duration')        # 1762000 [msecs]
+
+      raw_data.get('composerName')     # Mauro Giuliani
+      raw_data.get('trackName')        # Guitar Concerto No. 3
+      raw_data.get('ensembles')        # Academy of St Martin in the Fields
+      raw_data.get('soloists')         #
+      raw_data.get('instruments')      # OXx
+      raw_data.get('artistName')       # Pepe Romero, guitar
+      raw_data.get('conductor')        # Neville Marriner
+
+      raw_data.get('copyright')        # Philips
+      raw_data.get('catalogNumber')    # 420780
+      raw_data.get('trackNumber')      # 4-6
+      raw_data.get('collectionName')   #
+      raw_data.get('releaseDate')      #
+      raw_data.get('upc')              #
+      raw_data.get('imageURL')         #
+      raw_data.get('program')          #
+      raw_data.get('episode_notes')    #
+      raw_data.get('_err')             # []
+
 **json structures:**
 ::
 

@@ -17,7 +17,7 @@ from sqlalchemy.exc import *
 
 import core
 from database import DatabaseCtx
-from utils import LOV, prettyprint
+from utils import LOV, prettyprint, collecttype
 
 #####################
 # core/config stuff #
@@ -110,6 +110,44 @@ def entity_data(data, entity):
     :return: dict comprehension for entity data elements
     """
     return {k: v for k, v in data.items() if k not in child_recs[entity]}
+
+class ml_dict(dict):
+    """Manage data structure of this form:
+    {
+        'play'      : {},
+        'composer'  : {},
+        'work'      : {},
+        'conductor' : {},
+        'performers': [{}, ...],
+        'ensembles' : [{}, ...],
+        'recording' : {},
+        'entity_str': {}
+    }
+
+    In particular, knows relationship between conductor, performers, and ensembles
+    when merging
+    """
+    def merge(self, to_merge):
+        """Modifies current structure in place (no return value)
+
+        :param to_merge: dict to merge from
+        :return: void
+        """
+        for k, v in to_merge.items():
+            if k not in self:
+                self[k] = v
+            elif collecttype(self[k]):
+                if v:
+                    self[k].extend(v)
+                elif self[k]:  # i.e. non-empty list
+                    log.debug("Skipping overwrite of ml_dict key \"%s\" (%s) with empty value" %
+                              (k, str(self[k])))
+            else:
+                # LATER: do denormalizations into performers if needed, to ensure that
+                # we don't lose data (for now, assumes that caller is already doing the
+                # denorm--need to think about the proper model for this, either way)!!!
+                log.debug("Not able to overwrite ml_dict key \"%s\" (%s) with (%s)" %
+                          (k, str(self[k]), str(v)))
 
 #################
 # Parsing logic #
