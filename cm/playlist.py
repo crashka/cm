@@ -9,7 +9,7 @@ from __future__ import absolute_import, division, print_function
 import os.path
 import logging
 import json
-import re
+import regex as re
 import datetime as dt
 from urlparse import urlsplit, parse_qs
 
@@ -18,7 +18,7 @@ import click
 
 import core
 import station
-from musiclib import MusicLib, COND_STRS, ml_dict
+from musiclib import MusicLib, COND_STRS, ml_dict, parse_performer_str, parse_ensemble_str
 from datasci import HashSeq
 from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
 
@@ -139,168 +139,6 @@ class Parser(object):
 def get_parser(cls_name):
     cls = globals().get(cls_name)
     return cls() if cls else None
-
-# TODO: move this generic parsing logic to musiclib!!!
-def mkperf(name, role, orig_str):
-    name = name.strip()
-    if role:
-        role = role.strip()
-    if not name:
-        log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
-                 (name, role, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
-                 (name, role, orig_str))
-    return {'person': {'name'    : name,
-                       'raw_name': orig_str if name != orig_str else None},
-            'role'  : role}
-
-def mkens(name, orig_str):
-    name = name.strip()
-    if not name:
-        log.warn("Empty ensemble name \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    return {'name': name}
-
-def parse_performer_str(perf_str, flags = None):
-    """
-    DESIGN NOTES (for future):
-      * context-sensitive application of individual parsing rules, either implicitly
-        (e.g. based on station), or explicitly through flags
-      * generic parsing using non-alphanum delimiters, entity lookups (refdata), and
-        logical entity relationships (either as replacement, or complement)
-      * for now, we return performer data only; LATER: need the ability to indicate
-        other entities extracted from perf_str!!!
-
-    :param perf_str:
-    :param flags: (not yet implemented)
-    :return: list of perf_data structures (see LATER above)
-    """
-    orig_perf_str = perf_str
-
-    def parse_perf_item(perf_item, fld_delim = ','):
-        sub_data = []
-        if perf_item.count(fld_delim) % 2 == 1:
-            fields = perf_item.split(fld_delim)
-            while fields:
-                pers, role = (fields.pop(0), fields.pop(0))
-                # special case for "<ens>/<cond last, first>"
-                if pers.count('/') == 1:
-                    log.debug("PPS_RULE 1 - slash separating ens from cond_last \"%s\"" % (pers))
-                    ens_name, cond_last = pers.split('/')
-                    cond_name = "%s %s" % (role, cond_last)
-                    sub_data.append(mkperf(ens_name, 'ensemble', orig_perf_str))
-                    sub_data.append(mkperf(cond_name, 'conductor', orig_perf_str))
-                else:
-                    sub_data.append(mkperf(pers, role, orig_perf_str))
-        else:
-            # TODO: if even number of field delimiters, need to look closer at item
-            # contents/format to figure out what to do!!!
-            sub_data.append(mkperf(perf_item, None, orig_perf_str))
-        return {'performers': sub_data}
-
-    ens_data  = []
-    perf_data = []
-    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
-    # TODO: should really move the quote processing as far upstream as possible (for
-    # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
-    m = re.match(r'"([^"]*)"$', perf_str)
-    if m:
-        log.debug("PPS_RULE 2 - strip enclosing quotes \"%s\"" % (perf_str))
-        perf_str = m.group(1)  # note: could be empty string, handle downstream!
-    m = re.match(r'\((.*[^)])\)?$', perf_str)
-    if m:
-        log.debug("PPS_RULE 3 - strip enclosing parens \"%s\"" % (perf_str))
-        perf_str = m.group(1)  # note: could be empty string, handle downstream!
-    # special case for ugly record (WNED 2018-09-17)
-    m = re.match(r'(.+?)\r', perf_str)
-    if m:
-        log.debug("PPS_RULE 4 - ugly broken record for WNED \"%s\"" % (perf_str))
-        perf_str = m.group(1)
-        m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
-        if m:
-            perf_str = '; '.join(m.groups())
-
-    if re.match(r'\/.+ \- ', perf_str):
-        log.debug("PPS_RULE 5 - leading slash for performer fields \"%s\"" % (perf_str))
-        for perf_item in perf_str.split('/'):
-            if perf_item:
-                ret_data.merge(parse_perf_item(perf_item, ' - '))
-    elif ';' in perf_str:
-        log.debug("PPS_RULE 6 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
-        for perf_item in perf_str.split(';'):
-            if perf_item:
-                ret_data.merge(parse_perf_item(perf_item))
-    elif perf_str:
-        ret_data.merge(parse_perf_item(perf_str))
-
-    return ret_data
-
-def parse_ensemble_str(ens_str, flags = None):
-    """
-    :param ens_str:
-    :param flags: (not yet implemented)
-    :return: dict of ens_data/perf_data structures, indexed by type
-    """
-    orig_ens_str = ens_str
-
-    def parse_ens_item(ens_item, fld_delim = ','):
-        sub_ens_data = []
-        sub_perf_data = []
-        if ens_item.count(fld_delim) % 2 == 1:
-            fields = ens_item.split(fld_delim)
-            while fields:
-                name, role = (fields.pop(0), fields.pop(0))
-                # TEMP: if role starts with a capital letter, assume the whole string
-                # is an ensemble (though in reality, it may be two--we'll deal with
-                # that later, when we have NER), otherwise treat as performer/role!!!
-                if re.match(r'[A-Z]', role[0]):
-                    sub_ens_data.append(mkens(name, orig_ens_str))
-                else:
-                    sub_perf_data.append(mkperf(name, role, orig_ens_str))
-        else:
-            # TODO: if even number of field delimiters, need to look closer at item
-            # contents/format to figure out what to do (i.e. NER)!!!
-            sub_ens_data.append(mkens(ens_item, orig_ens_str))
-        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
-
-    def parse_ens_fields(fields):
-        sub_ens_data = []
-        sub_perf_data = []
-        while fields:
-            if len(fields) == 1:
-                sub_ens_data.append(mkens(fields.pop(0), orig_ens_str))
-                break  # same as continue
-            # more reliable to do this moving backward from the end (sez me)
-            if ' ' not in fields[-1]:
-                # REVISIT: we presume a single-word field to be a city/location (for now);
-                # as above, we should really look at field contents to properly parse!!!
-                ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                sub_ens_data.append(mkens(ens, orig_ens_str))
-            else:
-                # yes, do this twice!
-                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
-                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
-        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
-
-    ens_data  = []
-    perf_data = []
-    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
-    if ';' in ens_str:
-        for ens_item in ens_str.split(';'):
-            if ens_item:
-                ret_data.merge(parse_ens_item(ens_item))
-    elif ',' in ens_str:
-        ens_fields = ens_str.split(',')
-        ret_data.merge(parse_ens_fields(ens_fields))
-    else:
-        # ens_data is implcitly part of ret_data
-        ens_data.append(mkens(ens_str, orig_ens_str))
-
-    return ret_data
 
 # TODO: move to subdirectory(ies) when this gets too unwieldy!!!
 

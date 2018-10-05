@@ -115,9 +115,10 @@ select distinct p.name from person p
  where p.name !~ '^[\w-]+( [\w-]+)+$'
  order by 1;
 
-select p.name, array_agg(pl.id)
+select p.name, count(*) as plays, array_agg(distinct s.name), array_agg(pl.id)
   from person p
        join play pl on pl.composer_id = p.id
+       join station s on s.id = pl.station_id
  where p.name !~ '^[\w-]+( [\w-]+)+$'
  group by 1
  order by 1;

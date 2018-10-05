@@ -4,7 +4,7 @@
 
 from __future__ import absolute_import, division, print_function
 
-import re
+import regex as re
 import json
 import datetime as dt
 

@@ -7,7 +7,7 @@
 from __future__ import absolute_import, division, print_function
 
 import os.path
-import re
+import regex as re
 import json
 import glob
 import datetime as dt
@@ -139,7 +139,8 @@ class Station(object):
                 raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
 
         # extract tokens in url_fmt upfront
-        self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
+        #self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
+        self.tokens = re.findall(r'(\<[\p{Lu}_]+\>)', self.url_fmt)
         if not self.tokens:
             raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
 
