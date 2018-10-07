@@ -18,6 +18,14 @@ select substr(p.name, 1, 60) as conductor, count(*) as plays
  group by 1
  order by 2 desc, 1;
 
+select p.name, count(*) as plays, array_agg(distinct s.name), array_agg(pl.id)
+  from person p
+       join play pl on pl.conductor_id = p.id
+       join station s on s.id = pl.station_id
+ where p.name !~ '^[\w-]+( [\w-]+)+$'
+ group by 1
+ order by 1;
+
 -- plays by ensemble
 select substr(e.name, 1, 70) as ensemble, count(*) as plays
   from ensemble e
@@ -65,6 +73,13 @@ select w.name, count(*), array_agg(pl.id), array_agg(distinct s.name)
  group by 1
  order by 2 desc, 1;
 
+select p.name, w.name, count(*), array_agg(pl.id), array_agg(distinct s.name)
+  from work w
+       join person p on p.id = w.composer_id and p.name = '<none>'
+       join play pl on pl.work_id = w.id
+       join station s on s.id = pl.station_id
+ group by 1, 2
+ order by 3 desc, 1, 2;
 
 -- find syndicated plays (TODO: dedupe same play at different hash levels!!!)
 select ps.seq_hash, ps.hash_level, count(*) - 1 as num_subs, max(s.synd_level) as master,

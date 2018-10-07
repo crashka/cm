@@ -142,6 +142,8 @@ class ml_dict(dict):
                 elif self[k]:  # i.e. non-empty list
                     log.debug("Skipping overwrite of ml_dict key \"%s\" (%s) with empty value" %
                               (k, str(self[k])))
+            elif not self[k]:
+                self[k] = v
             else:
                 # LATER: do denormalizations into performers if needed, to ensure that
                 # we don't lose data (for now, assumes that caller is already doing the
@@ -159,57 +161,39 @@ COND_STRS = set(['conductor',
 
 SUFFIX_TOKEN = '<<SUFFIX>>'
 
-# TEMP: for now, just do this as a stand-alone function; need to figure out how to abstract
-# this for other person fixups in a context-sensitive manner (need to include the performer-
-# role parsing, currently enmeshed in the various parser map_play methods)!!!
-def normalize_composer(data):
-    """Modifies data in-place
+def mkcomp(name, orig_str):
+    name = name.strip()
+    if not name:
+        log.warn("Empty composer name \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    elif not re.match(r'\w', name):
+        log.warn("Bad leading character in composer \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    return {'name'    : name,
+            'raw_name': orig_str if name != orig_str else None}
 
-    :param data: composer data dict
-    :return: additional data parsed out of composer (or None)
-    """
-    if not data['name']:
-        return
+def mkwork(name, orig_str):
+    name = name.strip()
+    if not name:
+        log.warn("Empty work name \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    elif not re.match(r'\w', name):
+        log.warn("Bad leading character in work \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    return {'name'    : name,
+            'raw_name': orig_str if name != orig_str else None}
 
-    # step 0 - setup
-    orig_name = data['name']
-    suffix = None
-    addl_data = None
+def mkcond(name, orig_str):
+    name = name.strip()
+    if not name:
+        log.warn("Empty conductor name \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    elif not re.match(r'\w', name):
+        log.warn("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
+                 (name, orig_str))
+    return {'name'    : name,
+            'raw_name': orig_str if name != orig_str else None}
 
-    # step 1 - field bracketed with quotes (may indicate complex field)
-    m = re.match(r'"([^"]*)"$', data['name'])
-    if m:
-        data['name'] = m.group(1)  # note: could be empty string, handle downstream!
-
-    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
-    # from regular comma processing)
-    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', data['name'])
-    if m:
-        suffix = m.group(1)
-        data['name'] = data['name'].replace(suffix, SUFFIX_TOKEN, 1)
-
-    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
-    # coelescing spaces (might as well)
-    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', data['name'])
-    if m:
-        data['name'] = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
-
-    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
-    # Vaughan Williams)
-
-    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
-
-    # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
-
-    # step N - finally...
-    if suffix:
-        data['name'] = data['name'].replace(SUFFIX_TOKEN, suffix, 1)
-    if data['name'] != orig_name:
-        data['raw_name'] = orig_name
-
-    return addl_data
-
-# TODO: move this generic parsing logic to musiclib!!!
 def mkperf(name, role, orig_str):
     name = name.strip()
     if role:
@@ -232,7 +216,153 @@ def mkens(name, orig_str):
     elif not re.match(r'\w', name):
         log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
                  (name, orig_str))
-    return {'name': name}
+    return {'name'    : name,
+            'raw_name': orig_str if name != orig_str else None}
+
+def parse_composer_str(comp_str, flags = None):
+    """Modifies data in-place
+
+    :param comp_str: raw string from playlist
+    :param flags: [int/bitfield] later
+    :return: ml_dict of parsed data
+    """
+    if not comp_str:
+        return {}
+
+    orig_comp_str = comp_str
+
+    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
+    m = re.match(r'"([^"]*)"$', comp_str)
+    if m:
+        log.debug("PCS_RULE 1 - strip enclosing quotes \"%s\"" % (comp_str))
+        comp_str = m.group(1)  # note: could be empty string, handle downstream!
+    m = re.match(r'\((.*[^)])\)?$', comp_str)
+    if m:
+        log.debug("PCS_RULE 2 - strip enclosing parens \"%s\"" % (comp_str))
+        comp_str = m.group(1)  # note: could be empty string, handle downstream!
+
+    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
+    # from regular comma processing)
+    suffix = None
+    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', comp_str)
+    if m:
+        suffix = m.group(1)
+        log.debug("PCS_RULE 3 - preserve suffix \"%s\" for \"%s\"" % (suffix, comp_str))
+        comp_str = comp_str.replace(suffix, SUFFIX_TOKEN, 1)
+
+    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
+    # coelescing spaces (might as well)
+    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', comp_str)
+    if m:
+        log.debug("PCS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (comp_str))
+        comp_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
+
+    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
+    # Vaughan Williams)
+
+    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
+
+    # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
+
+    # step N - finally...
+    if suffix:
+        comp_str = comp_str.replace(SUFFIX_TOKEN, suffix, 1)
+
+    comp_data = mkcomp(comp_str, orig_comp_str)
+    return ml_dict({'composer': comp_data})
+
+def parse_work_str(work_str, flags = None):
+    """Modifies data in-place
+
+    :param work_str: raw string from playlist
+    :param flags: [int/bitfield] later
+    :return: ml_dict of parsed data
+    """
+    if not work_str:
+        return {}
+
+    orig_work_str = work_str
+
+    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
+    m = re.match(r'"(.*)"$', work_str)
+    if m:
+        log.debug("PWS_RULE 1a - strip enclosing double quotes \"%s\"" % (work_str))
+        work_str = m.group(1)  # note: could be empty string, handle downstream!
+
+    # step 2 - fix up doubled-up double quotes
+    m = re.match(r'(.*?)""([^"]*)""(.*)$', work_str)
+    while m:
+        log.debug("PWS_RULE 2 - fix up doubled-up double quotes '%s'" % (work_str))
+        work_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
+        m = re.match(r'(.*?)""([^"]*)""(.*)$', work_str)
+
+    # step 3 - convert single-quoted titles to double-quoted
+    m = re.match(r'(.*?)\'([^\']*)\'(.*)$', work_str)
+    while m:
+        log.debug("PWS_RULE 3 - convert single-quoted titles to double quotes '%s'" % (work_str))
+        work_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
+        m = re.match(r'(.*?)\'([^\']*)\'(.*)$', work_str)
+
+    work_data = mkwork(work_str, orig_work_str)
+    return ml_dict({'work': work_data})
+
+def parse_conductor_str(cond_str, flags = None):
+    """Modifies data in-place
+
+    :param cond_str: raw string from playlist
+    :param flags: [int/bitfield] later
+    :return: ml_dict of parsed data
+    """
+    if not cond_str:
+        return {}
+
+    orig_cond_str = cond_str
+
+    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
+    m = re.match(r'"([^"]*)"$', cond_str)
+    if m:
+        log.debug("PDS_RULE 1 - strip enclosing quotes \"%s\"" % (cond_str))
+        cond_str = m.group(1)  # note: could be empty string, handle downstream!
+    m = re.match(r'\((.*[^)])\)?$', cond_str)
+    if m:
+        log.debug("PDS_RULE 2 - strip enclosing parens \"%s\"" % (cond_str))
+        cond_str = m.group(1)  # note: could be empty string, handle downstream!
+
+    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
+    # from regular comma processing)
+    suffix = None
+    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', cond_str)
+    if m:
+        suffix = m.group(1)
+        log.debug("PDS_RULE 3 - preserve suffix \"%s\" for \"%s\"" % (suffix, cond_str))
+        cond_str = cond_str.replace(suffix, SUFFIX_TOKEN, 1)
+
+    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
+    # coelescing spaces (might as well)
+    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', cond_str)
+    if m:
+        log.debug("PDS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (cond_str))
+        cond_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
+
+    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
+    # Vaughan Williams)
+
+    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
+
+    # step 6 - remove conductor role suffix ("cond.", "conductor", etc.)
+    m = re.match(r'(.+), ([\w\./ ]+)$', cond_str)
+    if m:
+        if m.group(2).lower() in COND_STRS:
+            log.debug("PDS_RULE 5 - removing role suffix \"%s\" for \"%s\"" %
+                      (m.group(2), cond_str))
+            cond_str = m.group(1)
+
+    # step N - finally...
+    if suffix:
+        cond_str = cond_str.replace(SUFFIX_TOKEN, suffix, 1)
+
+    cond_data = mkcond(cond_str, orig_cond_str)
+    return ml_dict({'conductor': cond_data})
 
 def parse_performer_str(perf_str, flags = None):
     """
@@ -273,7 +403,7 @@ def parse_performer_str(perf_str, flags = None):
 
     ens_data  = []
     perf_data = []
-    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
+    ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
     # TODO: should really move the quote processing as far upstream as possible (for
     # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
     m = re.match(r'"([^"]*)"$', perf_str)
@@ -358,7 +488,7 @@ def parse_ensemble_str(ens_str, flags = None):
 
     ens_data  = []
     perf_data = []
-    ret_data  = ml_dict({'ensembles' : ens_data, 'performers': perf_data})
+    ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
     if ';' in ens_str:
         for ens_item in ens_str.split(';'):
             if ens_item:
@@ -548,13 +678,9 @@ class MusicLib(object):
                 raise RuntimeError("Station %s not in musiclib" % (station.name))
 
         comp_data = data['composer']
-        # REVISIT: may actually want to do this in parser map_play, since there will probably always
-        # be cross-talk between entities during parsing and the data is expected to be cleaner by the
-        # the time we make it here...but need to think about this!!!
-        normalize_composer(comp_data)
         # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
         # on it (and there is no play without work, haha)
-        if not comp_data['name']:
+        if not comp_data.get('name'):
             comp_data['name'] = NameVal.NONE
         comp = get_entity('person')
         sel_res = comp.select(key_data(comp_data, 'person'))
@@ -591,7 +717,7 @@ class MusicLib(object):
 
         cond_row = None
         cond_data = data['conductor']
-        if cond_data['name']:
+        if cond_data.get('name'):
             cond = get_entity('person')
             sel_res = cond.select(key_data(cond_data, 'person'))
             if sel_res.rowcount == 1:

@@ -75,6 +75,7 @@ def load_schema(meta):
         Entity.ENSEMBLE: Table('ensemble', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
+            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
 
             # parsed and normalized
             Column('ens_type',          Text),
@@ -93,6 +94,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('composer_id',       Integer,     ForeignKey('person.id'), nullable=False),
             Column('name',              Text,        nullable=False),
+            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
 
             # parsed and normalized
             Column('work_type',         Text),
