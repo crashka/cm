@@ -493,7 +493,6 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
-* basic normalization for conductor and ensemble (composer and performer done...for now!)
 * abstract entity_string parsing
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches
@@ -505,7 +504,7 @@ To Do - Immediate/Active
 * debug/fix outstanding anomalies for person
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * add UTC start_time/end_time for program_play and play
-* play_seq_match analysis (utilizing UTC?)
+* play_seq_match analysis/algorithm tuning (utilizing UTC!)
 
 -------------------
 To Do - Bugs/Tweaks

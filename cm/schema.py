@@ -211,7 +211,7 @@ def load_schema(meta):
             # distinct from performers
             #Column('soloist_ids',     ARRAY(Integer)),    # ForeignKey('performer.id')
             Column('recording_id',      Integer,     ForeignKey('recording.id')),
-            Column('mstr_play_id',      Integer,     ForeignKey('program_play.id')),  # not null if syndicated
+            Column('mstr_play_id',      Integer,     ForeignKey('play.id')),  # not null if syndicated
 
             # miscellaneous
             Column('notes',             ARRAY(Text)),
@@ -278,7 +278,7 @@ def load_schema(meta):
             Column('entity_str',        Text,        nullable=False),
             # source field (category): program, composer, conductor, ensemble, performer, work, etc.
             Column('source_fld',        Text,        nullable=False),
-            Column('parsed data',       JSONB),
+            Column('parsed_data',       JSONB),
             Column('station_id',        Integer,     ForeignKey('station.id')),  # denorm
             Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
             Column('play_id',           Integer,     ForeignKey('play.id')),

@@ -187,7 +187,7 @@ class ParserWWFM(Parser):
 
                 es_recs = MusicLib.insert_entity_strings(playlist, norm)
 
-                play_name = "%s - %s" % (play.get('composerName'), play.get('trackName'))
+                play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
                 if play_seq:
