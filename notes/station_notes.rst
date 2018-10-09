@@ -58,3 +58,23 @@ WWFM/station_info.json:    "earliest": "2015-01-01",  - older
 KING/station_info.json:    "earliest": "2015-01-01",  - older (after fixing)
 
 KQAC/station_info.json:    "earliest": "2015-01-01",  - epoch: 2015-05-01.json
+
+-------------------
+Alternative Formats
+-------------------
+
+::
+    WETA-OLD:
+      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
+      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value][date]=<DATE_STR>'
+      date_fmt:     '%m/%d/%Y'
+      timezone:     'America/New_York'
+      playlist_ext: 'html'
+
+    WQXR-OLD:
+      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
+      url_fmt:      'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
+      date_fmt:     '%Y/%b/%d'
+      date_meth:    'lower'
+      timezone:     'America/New_York'
+      playlist_ext: 'html'

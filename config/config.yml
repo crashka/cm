@@ -126,6 +126,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/New_York'
       playlist_ext: 'json'
+      epoch:        '2014-07-01'
       parser_cls:   'ParserWWFM'
       synd_level:   30
 
@@ -143,14 +144,8 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/New_York'
       playlist_ext: 'html'
+      epoch:        '2018-01-01'
       parser_cls:   'Parser'
-
-#    WETA-OLD:
-#      sample_url:   'https://weta.org/fm/playlists?playlist_date[value][date]=09/05/2018'
-#      url_fmt:      'https://weta.org/fm/playlists?playlist_date[value][date]=<DATE_STR>'
-#      date_fmt:     '%m/%d/%Y'
-#      timezone:     'America/New_York'
-#      playlist_ext: 'html'
 
     WFMT:
       sample_url:   'https://www.wfmt.com/schedule/?pldate=08/05/2018'
@@ -158,6 +153,7 @@ default:
       date_fmt:     '%m/%d/%Y'
       timezone:     'America/Chicago'
       playlist_ext: 'html'
+      epoch:        '2018-07-01'
       parser_cls:   'Parser'
 
     WIAA:
@@ -210,14 +206,6 @@ default:
       timezone:     'America/New_York'
       playlist_ext: 'json'
       parser_cls:   'Parser'
-
-#    WQXR-OLD:
-#      sample_url:   'https://www.wqxr.org/playlist-daily/2018/sep/06/?scheduleStation=wqxr'
-#      url_fmt:      'https://www.wqxr.org/playlist-daily/<DATE_STR>/?scheduleStation=wqxr'
-#      date_fmt:     '%Y/%b/%d'
-#      date_meth:    'lower'
-#      timezone:     'America/New_York'
-#      playlist_ext: 'html'
 
     WRTI:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53c7dbe1e1c8b9c77b4b9b6e/day?date=2018-09-06&format=json'

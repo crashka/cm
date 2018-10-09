@@ -808,9 +808,7 @@ class ParserC24(Parser):
 
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) playlists")
-#@click.option('--create',    'cmd', flag_value='create', help="Create new playlist (skip if playlist exists)")
 @click.option('--parse',     'cmd', flag_value='parse', help="Parse out play information from playlist")
-#@click.option('--fetch',     'cmd', flag_value='fetch', help="Fetch playlists for playlist (fail if playlist does not exist)")
 @click.option('--validate',  'cmd', flag_value='validate', help="Validate playlist file contents")
 @click.option('--station',   'sta_name', help="Station (name) for playlist", required=True)
 #@click.option('--skip',      is_flag=True, help="Skip (rather than fail) if playlist does not exist")

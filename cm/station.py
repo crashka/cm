@@ -153,6 +153,7 @@ class Station(object):
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
         self.date_func         = self.config.get(ConfigKey.DATE_FUNC)
         self.date_meth         = self.config.get(ConfigKey.DATE_METH)
+        self.epoch             = self.config.get(ConfigKey.EPOCH)
         self.playlist_min      = self.config.get(ConfigKey.PLAYLIST_MIN)
         self.http_headers      = self.config.get(ConfigKey.HTTP_HEADERS, {})
         self.synd_level        = self.config.get(ConfigKey.SYND_LEVEL)
@@ -317,9 +318,7 @@ class Station(object):
             StateAttr.TOTAL    : len(self.playlists),
             StateAttr.EARLIEST : min(fs_playlists),
             StateAttr.LATEST   : max(fs_playlists),
-            # TEMP: get epoch from config file, if known (later, figure it out while trying
-            # to fetch older playlists, and keep persistent in station_info.state)!!!
-            StateAttr.EPOCH    : self.config.get(ConfigKey.EPOCH),
+            StateAttr.EPOCH    : self.epoch,
             # TEMP: None means we don't know!
             StateAttr.VALID    : None,
             StateAttr.MISSING  : None,
@@ -375,6 +374,14 @@ class Station(object):
                     # STUPID to call getsize() again, but keeps things cleaner above!!!
                     log.info("Forcing overwrite of existing file (size %d) for \"%s\"" %
                              (os.path.getsize(playlist_file), playlist_name))
+            if self.epoch and date < str2date(self.epoch):
+                if not force:
+                    log.info("Skipping fetch for \"%s\", older than epoch \"%s\"" %
+                             (playlist_name, self.epoch))
+                    continue
+                else:
+                    log.info("Forcing fetch of \"%s\", older than epoch \"%s\"" %
+                             (playlist_name, self.epoch))
             playlist_text = self.fetch_playlist(date)
             log.debug("Content for playlist \"%s\": %s..." % (playlist_name, playlist_text[:250]))
             if not dryrun:
