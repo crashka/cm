@@ -16,11 +16,10 @@ from base64 import b64encode
 import logging
 
 import pytz
-import click
 import requests
 
 import core
-import playlist
+from playlist import Parser
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype, collecttype
 
 #####################
@@ -48,6 +47,7 @@ ConfigKey      = LOV(['URL_FMT',
                       'DATE_FMT',
                       'DATE_FUNC',
                       'DATE_METH',
+                      'TIMEZONE',
                       'EPOCH',
                       'PLAYLIST_EXT',
                       'PLAYLIST_MIN',
@@ -56,6 +56,7 @@ ConfigKey      = LOV(['URL_FMT',
                       'SYND_LEVEL'], 'lower')
 REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
                       ConfigKey.DATE_FMT,
+                      ConfigKey.TIMEZONE,
                       ConfigKey.PLAYLIST_EXT,
                       ConfigKey.PARSER_CLS])
 
@@ -148,7 +149,7 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
-        self.parser            = playlist.get_parser(self.parser_cls)
+        self.parser            = Parser.get(self)
         # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
         self.date_func         = self.config.get(ConfigKey.DATE_FUNC)
@@ -421,6 +422,8 @@ class Station(object):
 #####################
 # command line tool #
 #####################
+
+import click
 
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) stations")

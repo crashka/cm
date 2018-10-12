@@ -124,8 +124,10 @@ class ml_dict(dict):
         'entity_str': {}
     }
 
-    In particular, knows relationship between conductor, performers, and ensembles
-    when merging
+    Future:
+      - In particular, knows relationship between conductor, performers, and ensembles
+        when merging
+      - subclass from UserDict (python3)
     """
     def merge(self, to_merge):
         """Modifies current structure in place (no return value)
@@ -158,6 +160,9 @@ class ml_dict(dict):
 COND_STRS = set(['conductor',
                  'cond.',
                  'cond'])
+
+# HACK: list of "magic" ensemble names to skip!!!
+SKIP_ENS = set(['soloists'])
 
 SUFFIX_TOKEN = '<<SUFFIX>>'
 

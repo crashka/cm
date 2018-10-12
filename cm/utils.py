@@ -139,6 +139,23 @@ def time2str(time, fmt = STD_TIME_FMT):
     """
     return time.strftime(fmt)
 
+def datetimetz(date, time, tz):
+    """
+    :param date: either string or dt.date
+    :param time: either string or dt.time
+    :param tz: tzinfo
+    :return: dt.datetime (with tzinfo)
+    """
+    if strtype(date):
+        date = str2date(date)
+    if strtype(time):
+        time = str2time(time)
+    # for python3, can just return this:
+    #return dt.datetime.combine(date, time, tz)
+    # for python2, need to add tzinfo to time structure
+    time = time.replace(tzinfo=tz)
+    return dt.datetime.combine(date, time)
+
 def strtype(val):
     """
     :param val:

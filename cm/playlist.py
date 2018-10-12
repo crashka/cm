@@ -13,15 +13,15 @@ import regex as re
 import datetime as dt
 from urlparse import urlsplit, parse_qs
 
+import pytz
 from bs4 import BeautifulSoup
-import click
 
 import core
-import station
-from musiclib import (MusicLib, COND_STRS, ml_dict, parse_composer_str, parse_work_str,
+from musiclib import (MusicLib, COND_STRS, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
                       parse_conductor_str, parse_performer_str, parse_ensemble_str)
 from datasci import HashSeq
-from utils import LOV, prettyprint, str2date, date2str, str2time, time2str, strtype, collecttype
+from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
+                   strtype, collecttype)
 
 #####################
 # core/config stuff #
@@ -121,12 +121,22 @@ class Parser(object):
     """Basically a helper class for Playlist, proper subclass is associated through
     station config
 
-    Note: probably could (should???) implement all methods as static
+    FIX: cleanup object relationships between Station, Playlist, and Parser!!!
     """
-    def __init__(self):
-        """Parser object is stateless, so constructor doesn't do anything
+    @staticmethod
+    def get(sta):
         """
-        pass
+        :param sta: parser is bound to Station instance
+        :return: instantiated Parser subclass
+        """
+        cls = globals().get(sta.parser_cls)
+        return cls(sta) if cls else None
+
+    def __init__(self, sta):
+        """Parser object is stateless, other than Station backreference, so constructor
+        doesn't really do anything
+        """
+        self.station = sta
 
     def parse(self, playlist, dryrun = False, force = False):
         """Abstract method for parse operation
@@ -136,10 +146,6 @@ class Parser(object):
 ##########################
 # Parser adapter classes #
 ##########################
-
-def get_parser(cls_name):
-    cls = globals().get(cls_name)
-    return cls() if cls else None
 
 # TODO: move to subdirectory(ies) when this gets too unwieldy!!!
 
@@ -226,17 +232,18 @@ class ParserWWFM(Parser):
             log.debug("Start time mismatch %s != %s" % (stime, data['start_time']))
         if etime != data['end_time']:
             log.debug("End time mismatch %s != %s" % (etime, data['end_time']))
+        tz = pytz.timezone(self.station.timezone)
 
         pp_data = {}
-        pp_data['prog_play_info'] =  data
-        pp_data['prog_play_date'] =  str2date(sdate)
+        pp_data['prog_play_info']  = data
+        pp_data['prog_play_date']  = str2date(sdate)
         pp_data['prog_play_start'] = str2time(stime)
-        pp_data['prog_play_end'] =   str2time(etime)
-        pp_data['prog_play_dur'] =   None # Interval, if listed
-        pp_data['notes'] =           None # ARRAY(Text)),
-        pp_data['start_time'] =      None # TIMESTAMP(timezone=True)),
-        pp_data['end_time'] =        None # TIMESTAMP(timezone=True)),
-        pp_data['duration'] =        None # Interval)
+        pp_data['prog_play_end']   = str2time(etime)
+        pp_data['prog_play_dur']   = None # Interval, if listed
+        pp_data['notes']           = None # ARRAY(Text)
+        pp_data['start_time']      = datetimetz(sdate, stime, tz)
+        pp_data['end_time']        = datetimetz(edate, etime, tz)
+        pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
 
         return {'program': prog_data, 'program_play': pp_data}
 
@@ -270,6 +277,7 @@ class ParserWWFM(Parser):
         #    log.debug("End time mismatch %s != %s" % (etime, raw_data['end_time']))
 
         dur_msecs = raw_data.get('_duration')
+        tz = pytz.timezone(self.station.timezone)
 
         play_info = {}
         play_info['play_info']  = raw_data
@@ -277,10 +285,15 @@ class ParserWWFM(Parser):
         play_info['play_start'] = str2time(stime)
         play_info['play_end']   = str2time(etime) if etime else None
         play_info['play_dur']   = dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
-        play_info['notes']      = None # ARRAY(Text)),
-        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_info['end_time']   = None # TIMESTAMP(timezone=True)),
-        play_info['duration']   = None # Interval)
+        play_info['notes']      = None # ARRAY(Text)
+        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
+        if etime:
+            end_date = play_info['play_date'] if etime > stime else play_info['play_date'] + dt.timedelta(1)
+            play_info['end_time'] = datetimetz(end_date, play_info['play_end'], tz)
+            play_info['duration'] = play_info['end_time'] - play_info['start_time']
+        else:
+            play_info['end_time'] = None # TIMESTAMP(timezone=True)
+            play_info['duration'] = None # Interval
 
         # do the easy stuff first (don't worry about empty records...for now!)
         composer_data   = {}
@@ -411,21 +424,24 @@ class ParserMPR(Parser):
         prog_name = prog_head.h2.string.strip().encode('utf-8')
         m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
         start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
-        end_time = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
+        end_time   = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
+        start_date = pl_date
+        end_date   = pl_date if end_time > start_time else pl_date + dt.timedelta(1)
+        tz         = pytz.timezone(self.station.timezone)
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
         pp_data = {}
         # TODO: convert prog_head into dict for prog_play_info!!!
-        pp_data['prog_play_info'] =  {}
-        pp_data['prog_play_date'] =  pl_date
+        pp_data['prog_play_info']  = {}
+        pp_data['prog_play_date']  = start_date
         pp_data['prog_play_start'] = start_time
-        pp_data['prog_play_end'] =   end_time
-        pp_data['prog_play_dur'] =   None # Interval, if listed
-        pp_data['notes'] =           None # ARRAY(Text)),
-        pp_data['start_time'] =      None # TIMESTAMP(timezone=True)),
-        pp_data['end_time'] =        None # TIMESTAMP(timezone=True)),
-        pp_data['duration'] =        None # Interval)
+        pp_data['prog_play_end']   = end_time
+        pp_data['prog_play_dur']   = None # Interval, if listed
+        pp_data['notes']           = None # ARRAY(Text)
+        pp_data['start_time']      = datetimetz(start_date, start_time, tz)
+        pp_data['end_time']        = datetimetz(end_date, end_time, tz)
+        pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
 
         return {'program': prog_data, 'program_play': pp_data}
 
@@ -450,6 +466,7 @@ class ParserMPR(Parser):
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
         raw_data['start_date'] = start_date  # %Y-%m-%d
         raw_data['start_time'] = start_time  # %I:%M %p (12-hour format)
+        tz = pytz.timezone(self.station.timezone)
 
         buy_button = play_head.find('a', class_="buy-button", href=True)
         if (buy_button):
@@ -477,15 +494,15 @@ class ParserMPR(Parser):
 
         play_info = {}
         # TODO: better conversion of play_head/play_body into dict for play_info!!!
-        play_info['play_info'] =  raw_data
-        play_info['play_date'] =  str2date(raw_data['start_date'])
+        play_info['play_info']  = raw_data
+        play_info['play_date']  = str2date(raw_data['start_date'])
         play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M %p')
-        play_info['play_end'] =   None # Time
-        play_info['play_dur'] =   None # Interval
-        play_info['notes'] =      None # ARRAY(Text)),
-        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_info['end_time'] =   None # TIMESTAMP(timezone=True)),
-        play_info['duration'] =   None # Interval)
+        play_info['play_end']   = None # Time
+        play_info['play_dur']   = None # Interval
+        play_info['notes']      = None # ARRAY(Text)
+        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
+        play_info['end_time']   = None # TIMESTAMP(timezone=True)
+        play_info['duration']   = None # Interval
 
         composer_data  =  {}
         work_data      =  {}
@@ -558,7 +575,7 @@ class ParserC24(Parser):
 
         title = pl_head.find('span', class_='title')
         datestr = title.find_next_sibling('i').string  # "Monday, September 17, 2018 Central Time"
-        m = re.match(r'(\w+), (\w+ \d+, \d+) (.+)', datestr)
+        m = re.match(r'(\w+), (\w+ {1,2}\d+, \d+) (.+)', datestr)
         if not m:
             raise RuntimeError("Could not parse datestr \"%s\"" % (datestr))
         pl_date = dt.datetime.strptime(m.group(2), '%B %d, %Y').date()
@@ -617,21 +634,24 @@ class ParserC24(Parser):
         if not m:
             raise RuntimeError("Could not parse prog_times \"%s\"" % (prog_times))
         start_time = dt.datetime.strptime(m.group(1), '%I%p').time()
-        end_time = dt.datetime.strptime(m.group(2), '%I%p').time()
+        end_time   = dt.datetime.strptime(m.group(2), '%I%p').time()
+        start_date = pl_date
+        end_date   = pl_date if end_time > start_time else pl_date + dt.timedelta(1)
+        tz         = pytz.timezone(self.station.timezone)
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
         pp_data = {}
         # TODO: convert prog_head into dict for prog_play_info!!!
-        pp_data['prog_play_info'] =  {}
-        pp_data['prog_play_date'] =  pl_date
+        pp_data['prog_play_info']  = {}
+        pp_data['prog_play_date']  = start_date
         pp_data['prog_play_start'] = start_time
-        pp_data['prog_play_end'] =   end_time
-        pp_data['prog_play_dur'] =   None # Interval, if listed
-        pp_data['notes'] =           None # ARRAY(Text)),
-        pp_data['start_time'] =      None # TIMESTAMP(timezone=True)),
-        pp_data['end_time'] =        None # TIMESTAMP(timezone=True)),
-        pp_data['duration'] =        None # Interval)
+        pp_data['prog_play_end']   = end_time
+        pp_data['prog_play_dur']   = None # Interval, if listed
+        pp_data['notes']           = None # ARRAY(Text)
+        pp_data['start_time']      = datetimetz(start_date, start_time, tz)
+        pp_data['end_time']        = datetimetz(end_date, end_time, tz)
+        pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
 
         return {'program': prog_data, 'program_play': pp_data}
 
@@ -663,6 +683,7 @@ class ParserC24(Parser):
         start_time = play_start.string.strip()  # "12:01AM"
         raw_data['start_date'] = start_date  # %Y-%m-%d
         raw_data['start_time'] = start_time  # %I:%M%p (12-hour format)
+        tz = pytz.timezone(self.station.timezone)
 
         # Step 2a - try and find label information (<i>...</i> - <a href=...>)
         rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
@@ -711,7 +732,7 @@ class ParserC24(Parser):
                 #log.debug("Skipping field \"%s\", already parsed" % (field.string))
                 continue
             #m = re.fullmatch(r'(.+), ([\w\./ ]+)', field.string)
-            m = re.match(r'(.+), ([\w\./ ]+)$', field.string)
+            m = re.match(r'(.+), ([\w\.\'/ -]+)$', field.string)
             if m:
                 if m.group(2).lower() in COND_STRS:
                     raw_data['conductor'] = m.group(1)
@@ -727,29 +748,38 @@ class ParserC24(Parser):
                                   (raw_data['composer'], composer))
                         raw_data['composer'] = composer
                     if raw_data.get('work'):
-                        log.debug("Overwriting work \"%s\" with \"%s\"" %
-                                  (raw_data['work'], work))
+                        # HACK: catch unicode problem--FIX with migration to python3!!!
+                        try:
+                            log.debug("Overwriting work \"%s\" with \"%s\"" %
+                                      (raw_data['work'], work))
+                        except UnicodeDecodeError:
+                            log.debug("Overwriting work \"%s\" with \"%s\"" %
+                                      ("<blah blah blah>", "<blah blah blah>"))
                         raw_data['work'] = work
                 else:
                     # REVISIT: for now, just assume we have an ensemble name, though we can't
                     # really know what to do on conflict unless/until we parse the contents and
                     # categorize properly (though, could also add both and debug later)!!!
                     if raw_data.get('ensemble'):
+                        if field.string.lower() in SKIP_ENS:
+                            log.debug("Don't overwrite ensemble \"%s\" with \"%s\" (SKIP_ENS)" %
+                                      (raw_data['ensemble'], field.string))
+                            continue
                         raise RuntimeError("Can't overwrite ensemble \"%s\" with \"%s\"" %
                                            (raw_data['ensemble'], field.string))
                     raw_data['ensemble'] = field.string
 
         play_info = {}
         # TODO: better conversion of play_head/play_body into dict for play_info!!!
-        play_info['play_info'] =  raw_data
-        play_info['play_date'] =  str2date(raw_data['start_date'])
+        play_info['play_info']  = raw_data
+        play_info['play_date']  = str2date(raw_data['start_date'])
         play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M%p')
-        play_info['play_end'] =   None # Time
-        play_info['play_dur'] =   None # Interval
-        play_info['notes'] =      None # ARRAY(Text)),
-        play_info['start_time'] = None # TIMESTAMP(timezone=True)),
-        play_info['end_time'] =   None # TIMESTAMP(timezone=True)),
-        play_info['duration'] =   None # Interval)
+        play_info['play_end']   = None # Time
+        play_info['play_dur']   = None # Interval
+        play_info['notes']      = None # ARRAY(Text)
+        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
+        play_info['end_time']   = None # TIMESTAMP(timezone=True)
+        play_info['duration']   = None # Interval
 
         composer_data   = {}
         work_data       = {}
@@ -805,6 +835,9 @@ class ParserC24(Parser):
 #####################
 # command line tool #
 #####################
+
+import click
+import station
 
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) playlists")

@@ -44,7 +44,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),  # basic normalization
             # REVISIT: should raw_name be a JSONB???
-            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
+            Column('raw_name',          Text,        nullable=True),
 
             # parsed (and normalized???)
             Column('prefix',            Text),
@@ -53,6 +53,11 @@ def load_schema(meta):
             Column('last_name',         Text),
             Column('suffix',            Text),
             Column('full_name',         Text),       # assembled from normalized name components
+
+            # denormalized flags
+            Column('is_composer',       Boolean),
+            Column('is_conductor',      Boolean),
+            Column('is_performer',      Boolean),
 
             # canonicality
             Column('is_canonical',      Boolean),
@@ -67,7 +72,8 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('person_id',         Integer,     ForeignKey('person.id'), nullable=False),
             Column('role',              Text,        nullable=True),  # instrument, voice, role, etc.
-            Column('cnl_person_id',     Integer,     ForeignKey('person.id')),
+            Column('raw_role',          Text,        nullable=True),
+            Column('cnl_performer_id',  Integer,     ForeignKey('performer.id')),
 
             # constraints/indexes
             UniqueConstraint('person_id', 'role')
@@ -75,7 +81,7 @@ def load_schema(meta):
         Entity.ENSEMBLE: Table('ensemble', meta,
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
-            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
+            Column('raw_name',          Text,        nullable=True),
 
             # parsed and normalized
             Column('ens_type',          Text),
@@ -94,7 +100,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('composer_id',       Integer,     ForeignKey('person.id'), nullable=False),
             Column('name',              Text,        nullable=False),
-            Column('raw_name',          Text,        nullable=True),   # raw fields (if available)
+            Column('raw_name',          Text,        nullable=True),
 
             # parsed and normalized
             Column('work_type',         Text),

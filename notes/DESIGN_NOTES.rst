@@ -244,7 +244,7 @@ Working Notes
 **crontab entry**
 ::
 
-  15 0 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
+  15 2 * * * /local/prod/cmprod/scripts/cm_station.sh --fetch --date=catchup --debug=1 all >> /local/prod/cmprod/log/cm_station.log 2>&1
 
 **hash sequence matching**
 
@@ -514,7 +514,7 @@ To Do - Bugs/Tweaks
 * make sure unicode handling in names is correct (even before canonicalization)
 * more normalization for person (if needed, after abstract entity parsing)
 * add ``--force`` flag to overwrite existing playlists
-* force-pull all stations 09/13-09/18 due to previous tight (15 minute) cron window
+* force-pull all stations 09/13-09/18 (and 10/08) due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
 
 ----------------

@@ -14,8 +14,6 @@ from sqlalchemy.schema import CreateColumn
 from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
-import click
-
 import core
 import schema
 
@@ -103,6 +101,8 @@ class DatabaseCtx(object):
 #####################
 # command line tool #
 #####################
+
+import click
 
 @click.command()
 @click.option('--list',     'cmd', flag_value='list', default=True, help="List all (or specified) tables for the database")

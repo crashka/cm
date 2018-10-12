@@ -50,6 +50,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       timezone:     'America/Los_Angeles'
       playlist_ext: 'html'
+      epoch:        '2013-06-30'
       parser_cls:   'Parser'
 
     KING:
@@ -77,6 +78,7 @@ default:
       date_fmt:     '%Y/%m/%d'
       timezone:     'America/Los_Angeles'
       playlist_ext: 'html'
+      epoch:        '2013-01-06'
       parser_cls:   'Parser'
 
     MPR:
@@ -225,6 +227,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/New_York'
       playlist_ext: 'json'
+      epoch:        '2013-11-11'
       playlist_min: 5000
       parser_cls:   'ParserWWFM'
       synd_level:   70

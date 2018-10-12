@@ -19,7 +19,7 @@ import datetime as dt
 from time import sleep
 import logging
 
-import click
+from bs4 import BeautifulSoup
 
 import core
 from utils import LOV, prettyprint, strtype, collecttype
@@ -285,15 +285,63 @@ class RefData(object):
         # just the contents!!!
         return catdata_content
 
+    def parse(self, cat, key, dryrun, force):
+        """
+        """
+        cats = [cat] if not collecttype(cat) else cat
+        if strtype(key):
+            #m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
+            m = re.match(r'([a-z])-([a-z])$', key.lower())
+            if m and ord(m.group(1)) <= ord(m.group(2)):
+                keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]
+            else:
+                keys = [key]
+        else:
+            keys = [key] if not collecttype(key) else key
+
+        log.debug("Parsing refdata for categories \"%s\" and keys \"%s\"" % (cats, keys))
+        for cat in cats:
+            for key in keys:
+                catdata_name = self.catdata_name(cat, key)
+                catdata_file = self.catdata_file(cat, key)
+                with open(catdata_file) as f:
+                    soup = BeautifulSoup(f, "lxml")
+
+                holder = soup.find('div', id="namelist_holder")
+                chunk = holder.find('div', id="letterchunk-1")
+                while chunk:
+                    self.parse_chunk(cat, chunk)
+                    chunk = chunk.find_next_sibling('div')
+
+    def parse_chunk(self, cat, chunk):
+        """
+        """
+        for item in chunk.ul('li', recursive=False):
+            addl_role = None
+            name = item.a.string.strip()
+            href = item.a['href']
+            if name.count(',') == 1:
+                last, first = name.split(',')
+                m = re.match(r'(.+) \[(.*)\]$', first)
+                if m:
+                    first = m.group(1)
+                    addl_role = m.group(2)
+                name = "%s %s" % (first.strip(), last.strip())
+            log.debug("REFLIB: %s \"%s\" [%s]" % (cat, name, href))
+            if addl_role:
+                log.debug("REFLIB: %s \"%s\" [%s]" % (addl_role, name, href))
 
 #####################
 # command line tool #
 #####################
 
+import click
+
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) refdata sources, and their categories")
 @click.option('--create',    'cmd', flag_value='create', help="Create new refdata source (skip if refdata source exists)")
 @click.option('--fetch',     'cmd', flag_value='fetch', help="Fetch data by category for refdata source")
+@click.option('--parse',     'cmd', flag_value='parse', help="Parse refdata and write to reflib")
 @click.option('--cat',       help="Category (or comma-separated list of categories) to fetch")
 @click.option('--key',       help="Category-dependent key/index for category data (e.g. first letter or name)")
 @click.option('--force',     is_flag=True, help="Overwrite existing category data (otherwise skip over), applies only to --fetch")
@@ -324,6 +372,10 @@ def main(cmd, cat, key, force, dryrun, debug, name):
         for refdata_name in refdata_names:
             refdata = RefData(refdata_name)
             refdata.fetch_categories(cat, key, dryrun, force)
+    elif cmd == 'parse':
+        for refdata_name in refdata_names:
+            refdata = RefData(refdata_name)
+            refdata.parse(cat, key, dryrun, force)
 
 if __name__ == '__main__':
     main()
