@@ -493,6 +493,8 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
+* get dbname from command line (station.py) or environment
+   * store dbname in MusicLib (instance!) and DatabaseCtx in MusicEnt
 * abstract entity_string parsing
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches

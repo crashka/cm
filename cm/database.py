@@ -14,24 +14,14 @@ from sqlalchemy.schema import CreateColumn
 from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
-import core
+from core import cfg, env, log, dflt_hand, dbg_hand
 import schema
 
-#####################
-# core/config stuff #
-#####################
+################
+# config stuff #
+################
 
-# shared resources from core
-BASE_DIR     = core.BASE_DIR
-cfg          = core.cfg
-log          = core.log
-sess         = core.sess
-dflt_hand    = core.dflt_hand
-dbg_hand     = core.dbg_hand
-FETCH_INT    = core.FETCH_INT
-FETCH_DELTA  = core.FETCH_DELTA
-
-DATABASE     = cfg.config('database')
+DATABASE = cfg.config('database')
 
 dblog = logging.getLogger('sqlalchemy')
 dblog.setLevel(logging.INFO)

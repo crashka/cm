@@ -15,23 +15,9 @@ from sqlalchemy.ext.compiler import compiles
 from sqlalchemy.types import DateTime
 from sqlalchemy.exc import *
 
-import core
+from core import cfg, env, log, dbg_hand
 from database import DatabaseCtx
 from utils import LOV, prettyprint, collecttype
-
-#####################
-# core/config stuff #
-#####################
-
-# shared resources from core
-BASE_DIR     = core.BASE_DIR
-cfg          = core.cfg
-log          = core.log
-sess         = core.sess
-dflt_hand    = core.dflt_hand
-dbg_hand     = core.dbg_hand
-FETCH_INT    = core.FETCH_INT
-FETCH_DELTA  = core.FETCH_DELTA
 
 ##############################
 # common constants/functions #
@@ -41,7 +27,7 @@ FETCH_DELTA  = core.FETCH_DELTA
 NameVal = LOV({'NONE'   : '<none>',
                'UNKNOWN': '<unknown>'})
 
-db = DatabaseCtx('dev')
+db = DatabaseCtx(env['database'])
 ml_cache = {}
 
 def get_entity(entity):
@@ -162,7 +148,8 @@ COND_STRS = set(['conductor',
                  'cond'])
 
 # HACK: list of "magic" ensemble names to skip!!!
-SKIP_ENS = set(['soloists'])
+SKIP_ENS = set(['ensemble',
+                'soloists'])
 
 SUFFIX_TOKEN = '<<SUFFIX>>'
 

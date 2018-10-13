@@ -18,23 +18,13 @@ import logging
 import pytz
 import requests
 
-import core
+from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT
 from playlist import Parser
 from utils import Config, LOV, prettyprint, str2date, date2str, strtype, collecttype
 
-#####################
-# core/config stuff #
-#####################
-
-# shared resources from core
-BASE_DIR     = core.BASE_DIR
-cfg          = core.cfg
-log          = core.log
-sess         = core.sess
-dflt_hand    = core.dflt_hand
-dbg_hand     = core.dbg_hand
-FETCH_INT    = core.FETCH_INT
-FETCH_DELTA  = core.FETCH_DELTA
+################
+# config stuff #
+################
 
 STATION_BASE = cfg.config('station_base')
 STATIONS     = cfg.config('stations')
@@ -52,6 +42,7 @@ ConfigKey      = LOV(['URL_FMT',
                       'PLAYLIST_EXT',
                       'PLAYLIST_MIN',
                       'HTTP_HEADERS',
+                      'FETCH_INTERVAL',
                       'PARSER_CLS',
                       'SYND_LEVEL'], 'lower')
 REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
@@ -157,6 +148,9 @@ class Station(object):
         self.epoch             = self.config.get(ConfigKey.EPOCH)
         self.playlist_min      = self.config.get(ConfigKey.PLAYLIST_MIN)
         self.http_headers      = self.config.get(ConfigKey.HTTP_HEADERS, {})
+        fetch_interval         = self.config.get(ConfigKey.FETCH_INTERVAL, DFLT_FETCH_INT)
+        self.fetch_delta       = dt.timedelta(0, fetch_interval)
+        self.sess              = requests.Session()
         self.synd_level        = self.config.get(ConfigKey.SYND_LEVEL)
 
         self.state = None
@@ -165,7 +159,7 @@ class Station(object):
         if self.status == Status.NEW:
             self.status = Status.ACTIVE if self.valid() else Status.INVALID
 
-        self.last_fetch = dt.datetime.utcnow() - FETCH_DELTA
+        self.last_fetch = dt.datetime.utcnow() - self.fetch_delta
 
     def __getattr__(self, key):
         try:
@@ -404,13 +398,13 @@ class Station(object):
         """
         # TODO: create context manager for this HTTP throttling mechanism!!!
         elapsed = dt.datetime.utcnow() - self.last_fetch
-        if elapsed < FETCH_DELTA:
-            sleep_delta = FETCH_DELTA - elapsed
+        if elapsed < self.fetch_delta:
+            sleep_delta = self.fetch_delta - elapsed
             sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
 
         playlist_url = self.build_url(date)
         log.debug("Fetching from %s (headers: %s)" % (playlist_url, self.http_headers))
-        r = sess.get(playlist_url, headers=self.http_headers)
+        r = self.sess.get(playlist_url, headers=self.http_headers)
         playlist_content = r.content
 
         self.last_fetch = dt.datetime.utcnow()

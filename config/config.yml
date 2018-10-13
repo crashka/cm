@@ -256,5 +256,21 @@ default:
     dev:
       connect_str:  'postgresql+psycopg2://crash@/cmdev'
 
-    lib:
-      connect_str:  'postgresql+psycopg2://crash@/cmlib'
+    test:
+      connect_str:  'postgresql+psycopg2://cmir:cmir@caladan/cmtest'
+
+    prod:
+      connect_str:  'postgresql+psycopg2://crash@/cmprod'
+
+  environment:
+    'delta:/home/crash/dev/cmdev':
+      envname:   dev
+      database:  dev
+
+    'delta:/local/prod/cmprod':
+      envname:   test
+      database:  test
+
+    'caladan:/local/prod/cmprod':
+      envname:   prod
+      database:  prod

@@ -5,25 +5,30 @@
 
 from __future__ import absolute_import, division, print_function
 
+from os import environ
 import os.path
 import datetime as dt
+from socket import gethostname
 import logging
 import logging.handlers
 
-import requests
-
 from utils import Config, install_trace_logger
 
-################
-# config stuff #
-################
+############################
+# config/environment stuff #
+############################
 
-FILE_DIR     = os.path.dirname(os.path.realpath(__file__))
-BASE_DIR     = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
-CONFIG_DIR   = 'config'
-CONFIG_FILE  = 'config.yml'
-CONFIG_PATH  = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
-cfg          = Config(CONFIG_PATH)
+FILE_DIR      = os.path.dirname(os.path.realpath(__file__))
+BASE_DIR      = os.path.realpath(os.path.join(FILE_DIR, os.pardir))
+CONFIG_DIR    = 'config'
+CONFIG_FILE   = 'config.yml'
+CONFIG_PATH   = os.path.join(BASE_DIR, CONFIG_DIR, CONFIG_FILE)
+cfg           = Config(CONFIG_PATH)
+
+ENV_ID        = "%s:%s" % (gethostname(), BASE_DIR)
+env           = cfg.config('environment').get(ENV_ID) or {}
+env_overrides = {'database': 'CM_DBNAME'}
+env.update({k: environ[v] for k, v in env_overrides.items() if v in environ})
 
 ###########
 # logging #
@@ -53,12 +58,8 @@ log.addHandler(dflt_hand)
 #install_trace_logger()
 
 ############
-# requests #
+# defaults #
 ############
 
 # kindly internet fetch interval (TODO: move to config file!!!)
-FETCH_INT    = 2.0
-FETCH_DELTA  = dt.timedelta(0, FETCH_INT)
-
-# shared requests session
-sess = requests.Session()
+DFLT_FETCH_INT = 2.0

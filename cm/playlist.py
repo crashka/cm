@@ -16,26 +16,12 @@ from urlparse import urlsplit, parse_qs
 import pytz
 from bs4 import BeautifulSoup
 
-import core
+from core import cfg, env, log, dbg_hand
 from musiclib import (MusicLib, COND_STRS, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
                       parse_conductor_str, parse_performer_str, parse_ensemble_str)
 from datasci import HashSeq
 from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
                    strtype, collecttype)
-
-#####################
-# core/config stuff #
-#####################
-
-# shared resources from core
-BASE_DIR     = core.BASE_DIR
-cfg          = core.cfg
-log          = core.log
-sess         = core.sess
-dflt_hand    = core.dflt_hand
-dbg_hand     = core.dbg_hand
-FETCH_INT    = core.FETCH_INT
-FETCH_DELTA  = core.FETCH_DELTA
 
 ##############################
 # common constants/functions #
@@ -472,8 +458,8 @@ class ParserMPR(Parser):
         if (buy_button):
             res = urlsplit(buy_button['href'])
             url_fields = parse_qs(res.query, keep_blank_values=True)
-            label = url_fields['label'][0]
-            catalog_no = url_fields['catalog'][0]
+            label = url_fields['label'][0] if url_fields.get('label') else None
+            catalog_no = url_fields['catalog'][0] if url_fields.get('catalog') else None
             raw_data['label'] = label
             raw_data['catalog_no'] = catalog_no
 
@@ -688,21 +674,23 @@ class ParserC24(Parser):
         # Step 2a - try and find label information (<i>...</i> - <a href=...>)
         rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
         rec_listing = rec_center.previous_sibling
-        #m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
-        m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
-        if m:
-            raw_data['label'] = m.group(1)
-            raw_data['catalog_no'] = m.group(2)
-            processed.add(rec_listing.string)
+        # "<label> <cat>" may be absent, in which case rec_listing is an empty <br/> tag
+        if rec_listing.string:
+            #m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
+            m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
+            if m:
+                raw_data['label'] = m.group(1)
+                raw_data['catalog_no'] = m.group(2)
+                processed.add(rec_listing.string)
         rec_buy_url = rec_center.next_sibling
         # Step 2b - get as much info as we can from the "BUY" url
         if rec_buy_url.name == 'a':
             res = urlsplit(rec_buy_url['href'])
             url_fields = parse_qs(res.query, keep_blank_values=True)
-            label      = url_fields['label'][0]
-            catalog_no = url_fields['catalog'][0]
-            composer   = url_fields['composer'][0]
-            work       = url_fields['work'][0]
+            label      = url_fields['label'][0]    if url_fields.get('label') else None
+            catalog_no = url_fields['catalog'][0]  if url_fields.get('catalog') else None
+            composer   = url_fields['composer'][0] if url_fields.get('composer') else None
+            work       = url_fields['work'][0]     if url_fields.get('work') else None
             url_title  = "%s - %s" % (composer, work)
             url_rec    = "%s %s" % (label, catalog_no)
             raw_data['composer'] = composer
