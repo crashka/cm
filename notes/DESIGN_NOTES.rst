@@ -12,7 +12,7 @@ Directory structure
         playlists/
           2018-09-06.json
     refdata/
-      archivmusic/
+      arkivmusic/
         composers/
           composers:a.html
           composers:b.html
@@ -221,7 +221,7 @@ Working Notes
    * create masters for syndicated programs
    * create masters for weekly programs
    * create masters for syndicated plays
-   * archivmusic lookups
+   * arkivmusic lookups
 * notes
    * template for parsing
       * DSL based on:
@@ -495,17 +495,16 @@ To Do - Immediate/Active
 
 * get dbname from command line (station.py) or environment
    * store dbname in MusicLib (instance!) and DatabaseCtx in MusicEnt
+* rectify denorm of composer/conductor/ensemble in performer/play_performer
 * abstract entity_string parsing
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches
+* robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>'
-* rectify denorm of composer/conductor/ensemble in performer/play_performer
 * identify syndicated plays, factor out of queries (using master_play_id)
 * add stations: WQXR, WFMT, KUSC, WDAV, KING, WETA, KDFC, KQAC
 * debug/fix outstanding anomalies for person
-* robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
-* add UTC start_time/end_time for program_play and play
 * play_seq_match analysis/algorithm tuning (utilizing UTC!)
 
 -------------------
@@ -524,7 +523,7 @@ To Do - Features
 ----------------
 
 * consolidated tracking for all entity names (preparation for NER)--"entity cloud"
-* authoritative musiclib/ref data (e.g. from archivmusic)
+* authoritative musiclib/ref data (e.g. from arkivmusic)
 * track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
 * fork/port to python3 (rename to cmir)--should do as soon as tests are in place!!!
