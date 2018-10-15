@@ -18,7 +18,7 @@ default:
       sample_url:   'http://playlist.cprnetwork.org/api/playlistCL/selectDate:MjAxOC0wOS0xMg=='
       url_fmt:      'http://playlist.cprnetwork.org/api/playlistCL/selectDate:<DATE_STR>'
       date_fmt:     '%Y-%m-%d'
-      date_func:    'b64encode'
+      date_func:    'base64encode'
       timezone:     'America/Denver'
       playlist_ext: 'json'
       parser_cls:   'Parser'
@@ -253,24 +253,58 @@ default:
           role:     4
 
   database:
-    dev:
+    local_dev:
       connect_str:  'postgresql+psycopg2://crash@/cmdev'
+      sql_tracing:  false
 
-    test:
-      connect_str:  'postgresql+psycopg2://cmir:cmir@caladan/cmtest'
+    local_dev3:
+      connect_str:  'postgresql+psycopg2://crash@/cmdev3'
+      sql_tracing:  false
 
-    prod:
+    server_dev:
+      connect_str:  'postgresql+psycopg2://cmir:cmir@caladan/cmdev'
+      sql_tracing:  false
+
+    server_dev3:
+      connect_str:  'postgresql+psycopg2://cmir:cmir@caladan/cmdev3'
+      sql_tracing:  false
+
+    # CAREFUL: this is local to the environment being run, thus reusable across machines
+    local_test:
+      connect_str:  'postgresql+psycopg2://crash@/cmtest'
+      sql_tracing:  false
+
+    # CAREFUL: this is local to the environment being run, thus reusable across machines
+    local_prod:
       connect_str:  'postgresql+psycopg2://crash@/cmprod'
+
+    # CAREFUL: this is local to the environment being run, thus reusable across machines
+    local_prod3:
+      connect_str:  'postgresql+psycopg2://crash@/cmprod3'
 
   environment:
     'delta:/home/crash/dev/cmdev':
-      envname:   dev
-      database:  dev
+      envname:     'delta_dev'
+      database:    'local_dev'
 
-    'delta:/local/prod/cmprod':
-      envname:   test
-      database:  test
+    'delta:/home/crash/dev/cmdev3':
+      envname:     'delta_dev3'
+      database:    'server_dev3'
+      #html_parser: 'html5lib'  -- adds tbody, doesn't handle non-closing <a>
+      #html_parser: 'lxml'      -- freaks out with C24/playlists/2018-09-17.html
+
+    'delta:/local/test/cmtest':
+      envname:     'delta_test'
+      database:    'local_test'
+
+    'caladan:/local/test/cmtest':
+      envname:     'caladan_test'
+      database:    'local_test'
 
     'caladan:/local/prod/cmprod':
-      envname:   prod
-      database:  prod
+      envname:     'caladan_prod'
+      database:    'local_prod'
+
+    'caladan:/local/prod/cmprod3':
+      envname:     'caladan_prod3'
+      database:    'local_prod3'

@@ -4,8 +4,6 @@
 abstractly (though that may never really happen)
 """
 
-from __future__ import absolute_import, division, print_function
-
 from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint, Index, text
 from sqlalchemy import Integer, BigInteger, Text, Boolean, DateTime, Date, Time, Interval
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TIMESTAMP

@@ -4,14 +4,12 @@
 """Playlist module
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os.path
 import logging
 import json
 import regex as re
 import datetime as dt
-from urlparse import urlsplit, parse_qs
+from urllib.parse import urlsplit, parse_qs
 
 import pytz
 from bs4 import BeautifulSoup
@@ -38,6 +36,8 @@ NOPRINT_KEYS = set(['parsed_info'])
 # Lists of Values
 PLStatus = LOV(['NEW',
                 'PARSED'], 'lower')
+
+DFLT_HTML_PARSER = 'html.parser'
 
 ##################
 # Playlist class #
@@ -119,10 +119,12 @@ class Parser(object):
         return cls(sta) if cls else None
 
     def __init__(self, sta):
-        """Parser object is stateless, other than Station backreference, so constructor
-        doesn't really do anything
+        """Parser object is relatively stateless (just station backreference and parser
+        directives), so constructor doesn't really do anything
         """
         self.station = sta
+        self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
+        log.debug("HTML parser: %s" % (self.html_parser))
 
     def parse(self, playlist, dryrun = False, force = False):
         """Abstract method for parse operation
@@ -354,9 +356,9 @@ class ParserMPR(Parser):
         :param force: overwrite program_play/play in databsae
         :return: dict with parsed program_play/play info
         """
-        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        log.debug("Parsing html for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
-            soup = BeautifulSoup(f, "lxml")
+            soup = BeautifulSoup(f, self.html_parser)
 
         title = soup.title.string.strip()
         m = re.match(r'Playlist for (\w+ \d+, \d+)', title)
@@ -407,7 +409,7 @@ class ParserMPR(Parser):
             'program_play': {}
         }
         """
-        prog_name = prog_head.h2.string.strip().encode('utf-8')
+        prog_name = prog_head.h2.string.strip()
         m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
         start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
         end_time   = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
@@ -550,9 +552,9 @@ class ParserC24(Parser):
         :param force: overwrite program_play/play in databsae
         :return: dict with parsed program_play/play info
         """
-        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        log.debug("Parsing html for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
-            soup = BeautifulSoup(f, "lxml")
+            soup = BeautifulSoup(f, self.html_parser)
 
         top = soup.find('a', attrs={'name': 'top'})
         tab = top.find_next('table')
@@ -676,8 +678,7 @@ class ParserC24(Parser):
         rec_listing = rec_center.previous_sibling
         # "<label> <cat>" may be absent, in which case rec_listing is an empty <br/> tag
         if rec_listing.string:
-            #m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
-            m = re.match(r'(.*\S) (\w+)$', rec_listing.string)
+            m = re.fullmatch(r'(.*\S) (\w+)', rec_listing.string)
             if m:
                 raw_data['label'] = m.group(1)
                 raw_data['catalog_no'] = m.group(2)
@@ -719,8 +720,9 @@ class ParserC24(Parser):
             if field.string in processed:
                 #log.debug("Skipping field \"%s\", already parsed" % (field.string))
                 continue
-            #m = re.fullmatch(r'(.+), ([\w\./ ]+)', field.string)
-            m = re.match(r'(.+), ([\w\.\'/ -]+)$', field.string)
+            # REVISIT: this is hacky--the apostrophe matches "oboe d'amore" and the hyphen
+            # matches "mezzo-soprano"; need to replace this with real entity recognition!!!
+            m = re.fullmatch(r'(.+), ([\w\./ \'-]+)', field.string)
             if m:
                 if m.group(2).lower() in COND_STRS:
                     raw_data['conductor'] = m.group(1)
@@ -736,13 +738,8 @@ class ParserC24(Parser):
                                   (raw_data['composer'], composer))
                         raw_data['composer'] = composer
                     if raw_data.get('work'):
-                        # HACK: catch unicode problem--FIX with migration to python3!!!
-                        try:
-                            log.debug("Overwriting work \"%s\" with \"%s\"" %
-                                      (raw_data['work'], work))
-                        except UnicodeDecodeError:
-                            log.debug("Overwriting work \"%s\" with \"%s\"" %
-                                      ("<blah blah blah>", "<blah blah blah>"))
+                        log.debug("Overwriting work \"%s\" with \"%s\"" %
+                                  (raw_data['work'], work))
                         raw_data['work'] = work
                 else:
                     # REVISIT: for now, just assume we have an ensemble name, though we can't

@@ -4,8 +4,6 @@
 """Database module
 """
 
-from __future__ import absolute_import, division, print_function
-
 import logging
 
 from sqlalchemy import create_engine, MetaData
@@ -15,6 +13,7 @@ from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
 from core import cfg, env, log, dflt_hand, dbg_hand
+from utils import truthy
 import schema
 
 ################
@@ -24,7 +23,7 @@ import schema
 DATABASE = cfg.config('database')
 
 dblog = logging.getLogger('sqlalchemy')
-dblog.setLevel(logging.INFO)
+dblog.setLevel(logging.WARN)
 dblog.addHandler(dflt_hand)
 
 ####################
@@ -55,6 +54,8 @@ class DatabaseCtx(object):
         if dbname not in DATABASE:
             raise RuntimeError("Database name \"%s\" not known" % (dbname))
         self.db_info = DATABASE[dbname]
+        if truthy(self.db_info.get('sql_tracing')):
+            dblog.setLevel(logging.INFO)
         self.eng  = create_engine(self.db_info['connect_str'])
         self.conn = self.eng.connect()
         self.meta = MetaData(self.conn, reflect=True)
@@ -104,7 +105,7 @@ import click
 @click.option('--force',    is_flag=True, help="Not currently implemented")
 @click.option('--dryrun',   is_flag=True, help="Do not write changes to database, show SQL instead")
 @click.option('--debug',    default=0, help="Debug level")
-@click.argument('dbname',   default='dev', required=True)
+@click.argument('dbname',   required=False)
 def main(cmd, tables, force, dryrun, debug, dbname):
     """Manage database schema for specified DBNAME (defined in config file)
     """
@@ -115,7 +116,7 @@ def main(cmd, tables, force, dryrun, debug, dbname):
         #dblog.setLevel(logging.DEBUG)
         dblog.addHandler(dbg_hand)
 
-    db = DatabaseCtx(dbname)
+    db = DatabaseCtx(dbname or env.get('database'))
 
     if cmd == 'list':
         pass

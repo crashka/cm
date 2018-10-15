@@ -3,8 +3,6 @@
 """Core module - shared/common resources
 """
 
-from __future__ import absolute_import, division, print_function
-
 from os import environ
 import os.path
 import datetime as dt
@@ -41,7 +39,7 @@ LOG_FILE     = LOGGER_NAME + '.log'
 LOG_PATH     = os.path.join(BASE_DIR, LOG_DIR, LOG_FILE)
 LOG_FMTR     = logging.Formatter('%(asctime)s %(levelname)s [%(filename)s:%(lineno)s]: %(message)s')
 LOG_FILE_MAX = 50000000
-LOG_FILE_NUM = 99
+LOG_FILE_NUM = 50
 
 dflt_hand = logging.handlers.RotatingFileHandler(LOG_PATH, 'a', LOG_FILE_MAX, LOG_FILE_NUM)
 dflt_hand.setLevel(logging.DEBUG)

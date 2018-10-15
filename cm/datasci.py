@@ -3,8 +3,6 @@
 """'Data Science' module
 """
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 import hashlib
 
@@ -17,8 +15,7 @@ def strhash(s):
     :param s: input string
     :return: int
     """
-    if isinstance(s, unicode):
-        s = s.encode('utf-8')
+    s = s.encode('utf-8')
     # convert unsigned hex to signed int (ignorant of NBITS derivation)
     return int(int(hashlib.sha1(s).hexdigest()[-NBYTES:], 16) - ((1 << (NBITS - 1)) - 1))
 

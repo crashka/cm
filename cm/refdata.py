@@ -9,8 +9,6 @@ the former, but it's kind of cumbersome, so we'll deal with the ambiguity, and r
 in context/situ)
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os.path
 import re
 import json
@@ -224,8 +222,7 @@ class RefData(object):
             return  # nothing to do
         cats = [cat] if not collecttype(cat) else cat
         if strtype(key):
-            #m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
-            m = re.match(r'([a-z])-([a-z])$', key.lower())
+            m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
                 keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]
             else:
@@ -284,8 +281,7 @@ class RefData(object):
         """
         cats = [cat] if not collecttype(cat) else cat
         if strtype(key):
-            #m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
-            m = re.match(r'([a-z])-([a-z])$', key.lower())
+            m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
                 keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]
             else:

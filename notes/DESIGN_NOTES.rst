@@ -497,6 +497,7 @@ To Do - Immediate/Active
    * store dbname in MusicLib (instance!) and DatabaseCtx in MusicEnt
 * rectify denorm of composer/conductor/ensemble in performer/play_performer
 * abstract entity_string parsing
+   * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
 * investigate anomalies with play_seq matches
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)

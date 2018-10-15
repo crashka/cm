@@ -3,11 +3,11 @@
 """Music Library module
 """
 
-from __future__ import absolute_import, division, print_function
-
 import sys
 import regex as re
 import datetime as dt
+from collections import UserDict
+import warnings
 
 from sqlalchemy import bindparam
 from sqlalchemy.sql import func
@@ -29,6 +29,8 @@ NameVal = LOV({'NONE'   : '<none>',
 
 db = DatabaseCtx(env['database'])
 ml_cache = {}
+
+PK_WARNING = r'Column \'[\w\.]+\' is marked as a member of the primary key for table'
 
 def get_entity(entity):
     if entity in ml_cache:
@@ -85,7 +87,7 @@ def key_data(data, entity):
     :param entity: [string] name of entity
     :return: dict comprehension for key data elements
     """
-    return {k: data[k] for k in data.viewkeys() & user_keys[entity]}
+    return {k: data[k] for k in data.keys() & user_keys[entity]}
 
 def entity_data(data, entity):
     """Return elements of entity data, excluding embedded child records (and later,
@@ -97,7 +99,7 @@ def entity_data(data, entity):
     """
     return {k: v for k, v in data.items() if k not in child_recs[entity]}
 
-class ml_dict(dict):
+class ml_dict(UserDict):
     """Manage data structure of this form:
     {
         'play'      : {},
@@ -113,7 +115,6 @@ class ml_dict(dict):
     Future:
       - In particular, knows relationship between conductor, performers, and ensembles
         when merging
-      - subclass from UserDict (python3)
     """
     def merge(self, to_merge):
         """Modifies current structure in place (no return value)
@@ -539,9 +540,11 @@ class MusicEnt(object):
         if unknown:
             raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
 
-        ins = self.tab.insert()
-        with db.conn.begin() as trans:
-            res = db.conn.execute(ins, data)
+        with warnings.catch_warnings():
+            warnings.filterwarnings('ignore', message=PK_WARNING)
+            ins = self.tab.insert()
+            with db.conn.begin() as trans:
+                res = db.conn.execute(ins, data)
         return res
 
     def inserted_row(self, res, ent_override = None):
@@ -689,9 +692,12 @@ class MusicLib(object):
                 raise RuntimeError("Composer/person \"%s\" not in musiclib" % (comp_name))
 
         work_data = data['work']
-        if not work_data['name']:
-            log.debug("Work name not specified, skipping...")
-            return None
+        if not work_data.get('name'):
+            # REVISIT: for how, insert '<unknown>' work, just so we have a record of this and can
+            # try and identify the scenario (note, should really be logging to exception table)!!!
+            work_data['name'] = NameVal.UNKNOWN
+            #log.debug("Work name not specified, skipping...")
+            #return None
         work_data['composer_id'] = comp_row.id
         work = get_entity('work')
         sel_res = work.select(key_data(work_data, 'work'))

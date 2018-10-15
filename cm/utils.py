@@ -2,8 +2,6 @@
 """
 """
 
-from __future__ import absolute_import, division, print_function
-
 import regex as re
 import json
 import datetime as dt
@@ -150,18 +148,14 @@ def datetimetz(date, time, tz):
         date = str2date(date)
     if strtype(time):
         time = str2time(time)
-    # for python3, can just return this:
-    #return dt.datetime.combine(date, time, tz)
-    # for python2, need to add tzinfo to time structure
-    time = time.replace(tzinfo=tz)
-    return dt.datetime.combine(date, time)
+    return dt.datetime.combine(date, time, tz)
 
 def strtype(val):
     """
     :param val:
     :return: bool
     """
-    return isinstance(val, basestring)
+    return isinstance(val, str)
 
 def collecttype(val):
     """
@@ -178,7 +172,7 @@ def unixtime(tz = None):
     return int(dt.datetime.now(tz).strftime('%s'))
 
 def truthy(val):
-    if isinstance(val, basestring) and val.lower() in ['0', 'false', 'no']:
+    if isinstance(val, str) and val.lower() in ['0', 'false', 'no', 'off']:
         return False
     else:
         return bool(val)

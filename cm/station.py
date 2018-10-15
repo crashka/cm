@@ -4,15 +4,13 @@
 """Station module
 """
 
-from __future__ import absolute_import, division, print_function
-
 import os.path
 import regex as re
 import json
 import glob
 import datetime as dt
 from time import sleep
-from base64 import b64encode
+import base64
 import logging
 
 import pytz
@@ -84,6 +82,14 @@ PlaylistStatus = LOV(['OK',
 #####################
 # Special functions #
 #####################
+
+def base64encode(datestr):
+    """Wrapper for b64encode that works directly on strings
+
+    :param datestr: string
+    "return" string
+    """
+    return base64.b64encode(datestr.encode()).decode()
 
 def wcpe_special(datestr):
     """Transform date string for WCPE
@@ -405,7 +411,7 @@ class Station(object):
         playlist_url = self.build_url(date)
         log.debug("Fetching from %s (headers: %s)" % (playlist_url, self.http_headers))
         r = self.sess.get(playlist_url, headers=self.http_headers)
-        playlist_content = r.content
+        playlist_content = r.text
 
         self.last_fetch = dt.datetime.utcnow()
         # TODO: this really needs to return metadata around the playlist, not
