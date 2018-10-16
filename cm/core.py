@@ -53,7 +53,7 @@ log = logging.getLogger(LOGGER_NAME)
 log.setLevel(logging.INFO)
 log.addHandler(dflt_hand)
 
-#install_trace_logger()
+install_trace_logger()
 
 ############
 # defaults #

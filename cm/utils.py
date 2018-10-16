@@ -2,6 +2,7 @@
 """
 """
 
+from collections import Mapping, Collection
 import regex as re
 import json
 import datetime as dt
@@ -70,7 +71,7 @@ class LOV(object):
                 self._mydict = {m: getattr(m, strmeth)() for m in values if strtype(m)}
             else:
                 self._mydict = {m: m for m in values if strtype(m)}
-        elif isinstance(values, dict):
+        elif mappingtype(values):
             self._mydict = values
         else:
             self._mydict = {}
@@ -162,7 +163,15 @@ def collecttype(val):
     :param val:
     :return: bool
     """
+    # geez, what's the ABC for this?
     return isinstance(val, (set, list, tuple))
+
+def mappingtype(val):
+    """
+    :param val:
+    :return: bool
+    """
+    return isinstance(val, Mapping)
 
 def unixtime(tz = None):
     """

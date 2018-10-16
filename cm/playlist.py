@@ -15,7 +15,7 @@ import pytz
 from bs4 import BeautifulSoup
 
 from core import cfg, env, log, dbg_hand
-from musiclib import (MusicLib, COND_STRS, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
+from musiclib import (MusicLib, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
                       parse_conductor_str, parse_performer_str, parse_ensemble_str)
 from datasci import HashSeq
 from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
@@ -699,8 +699,8 @@ class ParserC24(Parser):
             processed.add(url_title)
             if raw_data.get('label') and raw_data.get('catalog_no'):
                 if label != raw_data['label'] or catalog_no != raw_data['catalog_no']:
-                    log.debug("Recording in URL (%s) mismatch with listing (%s)" %
-                              (url_rec, rec_listing.string))
+                    log.debug("Recording in URL (%s %s) mismatch with listing (%s %s)" %
+                              (label, catalog_no, raw_data['label'], raw_data['catalog_no']))
                 elif url_rec != rec_listing.string:
                     raise RuntimeError("Rec string mismatch \"%s\" != \"%s\"",
                                        (url_rec, rec_listing.string))
@@ -724,10 +724,9 @@ class ParserC24(Parser):
             # matches "mezzo-soprano"; need to replace this with real entity recognition!!!
             m = re.fullmatch(r'(.+), ([\w\./ \'-]+)', field.string)
             if m:
-                if m.group(2).lower() in COND_STRS:
-                    raw_data['conductor'] = m.group(1)
-                else:
-                    raw_data['performer'] = field.string
+                # note, we will let parse_performer_str() determine whether role is conductor,
+                # ensemble, etc.
+                raw_data['performer'] = field.string
             else:
                 subfields = field.string.split(' - ')
                 if len(subfields) == 2 and subfields[0][-1] != ' ' and subfields[1][0] != ' ':

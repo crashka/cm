@@ -17,7 +17,7 @@ from sqlalchemy.exc import *
 
 from core import cfg, env, log, dbg_hand
 from database import DatabaseCtx
-from utils import LOV, prettyprint, collecttype
+from utils import LOV, prettyprint, strtype, collecttype, mappingtype
 
 ##############################
 # common constants/functions #
@@ -40,20 +40,20 @@ def get_entity(entity):
     return handle
 
 user_keys = {
-    'person'        : ['name'],
-    'performer'     : ['person_id', 'role'],
-    'ensemble'      : ['name'],
-    'work'          : ['composer_id', 'name'],
-    'recording'     : ['label', 'catalog_no'],
-    'recording_alt' : ['name', 'label'],
-    'station'       : ['name'],
-    'program'       : ['name', 'host_name'],
-    'program_play'  : ['station_id', 'prog_play_date', 'prog_play_start', 'program_id'],
-    'play'          : ['station_id', 'play_date', 'play_start', 'work_id'],
-    'play_performer': ['play_id', 'performer_id'],
-    'play_ensemble' : ['play_id', 'ensemble_id'],
-    'play_seq'      : ['hash_level', 'hash_type', 'play_id'],
-    'entity_string' : ['entity_str', 'source_fld', 'station_id']
+    'person'        : set(['name']),
+    'performer'     : set(['person_id', 'role']),
+    'ensemble'      : set(['name']),
+    'work'          : set(['composer_id', 'name']),
+    'recording'     : set(['label', 'catalog_no']),
+    'recording_alt' : set(['name', 'label']),
+    'station'       : set(['name']),
+    'program'       : set(['name', 'host_name']),
+    'program_play'  : set(['station_id', 'prog_play_date', 'prog_play_start', 'program_id']),
+    'play'          : set(['station_id', 'play_date', 'play_start', 'work_id']),
+    'play_performer': set(['play_id', 'performer_id']),
+    'play_ensemble' : set(['play_id', 'ensemble_id']),
+    'play_seq'      : set(['hash_level', 'hash_type', 'play_id']),
+    'entity_string' : set(['entity_str', 'source_fld', 'station_id'])
 }
 
 child_recs = {
@@ -87,7 +87,7 @@ def key_data(data, entity):
     :param entity: [string] name of entity
     :return: dict comprehension for key data elements
     """
-    return {k: data[k] for k in data.keys() & user_keys[entity]}
+    return {k: data[k] for k in set(data.keys()) & user_keys[entity]}
 
 def entity_data(data, entity):
     """Return elements of entity data, excluding embedded child records (and later,
@@ -116,6 +116,18 @@ class ml_dict(UserDict):
       - In particular, knows relationship between conductor, performers, and ensembles
         when merging
     """
+    @staticmethod
+    def deep_replace(d, from_str, to_str):
+        for k, v in d.items():
+            if mappingtype(v):
+                ml_dict.deep_replace(v, from_str, to_str)
+            elif collecttype(v):
+                for m in v:
+                    if mappingtype(m):
+                        ml_dict.deep_replace(m, from_str, to_str)
+            elif strtype(v):
+                d[k] = v.replace(from_str, to_str)
+
     def merge(self, to_merge):
         """Modifies current structure in place (no return value)
 
@@ -129,7 +141,7 @@ class ml_dict(UserDict):
                 if v:
                     self[k].extend(v)
                 elif self[k]:  # i.e. non-empty list
-                    log.debug("Skipping overwrite of ml_dict key \"%s\" (%s) with empty value" %
+                    log.trace("Skipping overwrite of ml_dict key \"%s\" (%s) with empty value" %
                               (k, str(self[k])))
             elif not self[k]:
                 self[k] = v
@@ -154,67 +166,269 @@ SKIP_ENS = set(['ensemble',
 
 SUFFIX_TOKEN = '<<SUFFIX>>'
 
-def mkcomp(name, orig_str):
-    name = name.strip()
-    if not name:
-        log.warn("Empty composer name \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in composer \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    return {'name'    : name,
-            'raw_name': orig_str if name != orig_str else None}
+REPL_CHAR_16 = '\ufffd'
+REPL_CHAR_8  = '\xef\xbf\xbd'
 
-def mkwork(name, orig_str):
-    name = name.strip()
-    if not name:
-        log.warn("Empty work name \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in work \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    return {'name'    : name,
-            'raw_name': orig_str if name != orig_str else None}
+BRACKETS = {'"': '"',
+            "'": "'",
+            '(': ')',
+            '[': ']'}
 
-def mkcond(name, orig_str):
-    name = name.strip()
-    if not name:
-        log.warn("Empty conductor name \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    return {'name'    : name,
-            'raw_name': orig_str if name != orig_str else None}
+DELIMS = {}
 
-def mkperf(name, role, orig_str):
-    name = name.strip()
-    if role:
-        role = role.strip()
-    if not name:
-        log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
-                 (name, role, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
-                 (name, role, orig_str))
-    return {'person': {'name'    : name,
-                       'raw_name': orig_str if name != orig_str else None},
-            'role'  : role}
+ParseFlag = LOV({'COMPOSER' : 0x0001,
+                 'CONDUCTOR': 0x0002,
+                 'PERFORMER': 0x0004,
+                 'ENSEMBLE' : 0x0008,
+                 'WORK'     : 0x0010,
+                 'LABEL'    : 0x0020,
+                 'RECORDING': 0x0040,
+                 # composite
+                 'PERSON'   : 0x0007,
+                 'TITLE'    : 0x0050})
 
-def mkens(name, orig_str):
-    name = name.strip()
-    if not name:
-        log.warn("Empty ensemble name \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    elif not re.match(r'\w', name):
-        log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
-                 (name, orig_str))
-    return {'name'    : name,
-            'raw_name': orig_str if name != orig_str else None}
+#+-----------------------+
+#| Internal Implemention |
+#+-----------------------+
 
-def parse_composer_str(comp_str, flags = None):
-    """Modifies data in-place
+class ParseCtx(object):
+    """
+    """
+    def __init__(self, ent_str, flags = 0):
+        """
+        """
+        self.ent_str    = ent_str
+        self.orig_str   = ent_str
+        self.ctx_flags  = flags
+        self.completion = []
 
+    def parse_entity_str(self, flags = 0):
+        """
+        1. charset (unicode) fixups (e.g. replacement character)
+        2. enclosing matched delimiters (quotes, parens, braces, etc.), entire string ("entity string")
+        3. enclosing matched delimiters, substring ("entity item")
+        4. incomplete matching delimiters (not terminated), for entire string (and items???)
+        5. leading delimiters, for entire string and items
+        6. item-separating delimiters
+           6.a. identify and track position
+           6.b. parse out individual fields
+           6.c. classification (NER) of fields
+           6.d. assemble entity items based on:
+              6.d.i. delimiter hierarchy/significance
+              6.d.ii logical field groupings
+        """
+        # REVISIT: or work directly on self.ent_str???
+        ent_str = self.ent_str
+        flags |= self.ctx_flags
+
+        # Rule 1. charset/unicode and whitespace fixups
+        if ent_str.count(REPL_CHAR_8):
+            log.debug("PES_RULE 1a - fix utf-8 replacement char for \"%s\"" % (ent_str))
+            ent_str = ent_str.replace(REPL_CHAR_8, REPL_CHAR_16)
+        if re.search(r'\s{2}', ent_str):
+            log.debug("PES_RULE 1b - collapsing whitespace for \"%s\"" % (ent_str))
+            ent_str = re.sub(r'\s{2,}', ' ', ent_str)
+
+        # Rule 2. enclosing matched delimiters (quotes, parens, braces, etc.), entire string
+        # ("entity string"); ATTN: we currently only handle single character brackets!!!
+        while ent_str and  ent_str[0] in BRACKETS.keys():
+            open_char  = ent_str[0]
+            cls_char   = BRACKETS[open_char]
+            if open_char == cls_char:
+                count_char = ent_str.count(open_char)
+                count_open = count_char // 2 + count_char % 2
+                count_cls  = count_char // 2
+                is_matched = count_open == count_cls
+                is_encl    = ent_str[-1] == cls_char
+            else:
+                count_open = ent_str.count(open_char)
+                count_cls  = ent_str.count(cls_char)
+                is_matched = count_open == count_cls
+                is_encl    = ent_str[-1] == cls_char
+
+            if is_encl:
+                # always remove outer bracket chars
+                log.debug("PES_RULE 2a - remove enclosing bracket chars for \"%s\"" % (ent_str))
+                ent_str = ent_str[1:-1]
+            elif count_open - count_cls == 1:
+                # strip off leading bracket char
+                log.debug("PES_RULE 2b - strip leading bracket char for \"%s\"" % (ent_str))
+                ent_str = ent_str[1:]
+            else:
+                if not is_matched:
+                    log.debug("PES_WARN - mismatched interior bracket char(s) for \"%s\"" % (ent_str))
+                break
+
+        # Rule 3. enclosing matched delimiters, substring ("entity item")
+        if flags & ParseFlag.TITLE:
+            title_str = self.parse_title_str(ent_str)
+            # LATER: make this conditional based on some sanity checks!!!
+            ent_str = title_str
+
+        # Rule 4. incomplete matching delimiters (not terminated), for entire string (and items???)
+
+        # Rule 5. leading delimiters, for entire string and items
+
+        # Rule 6. preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.)
+        # (factor out from regular comma/delimiter processing)
+        if flags & ParseFlag.PERSON:
+            person_str = self.parse_person_str(ent_str)
+            # LATER: make this conditional based on some sanity checks!!!
+            ent_str = person_str
+
+        # Rule 7. item-separating delimiters
+
+        """
+           7.a. identify and track position
+           7.b. parse out individual fields
+           7.c. classification (NER) of fields
+           7.d. assemble entity items based on:
+              7.d.i. delimiter hierarchy/significance
+              7.d.ii logical field groupings
+        """
+
+        self.ent_str = ent_str
+        return self.ent_str
+
+    def parse_person_str(self, person_str, flags = 0):
+        """
+        """
+        orig_str = person_str
+        flags |= self.ctx_flags
+
+        # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
+        # from regular comma processing)
+        m = re.search(r'(,? (?:Jr|Sr)\.?)(?:\W|$)', person_str, flags=re.I)
+        if m:
+            suffix = m.group(1)
+            log.debug("PPS_RULE 6 - preserve suffix \"%s\" for \"%s\"" % (suffix, person_str))
+            person_str = person_str.replace(suffix, SUFFIX_TOKEN, 1)
+
+            def restore_sfx(ent_data):
+                """
+                :param ent_data:
+                :return: void (or should this return a new data structure???)
+                """
+                ml_dict.deep_replace(ent_data, SUFFIX_TOKEN, suffix.title())
+            self.completion.append(restore_sfx)
+
+        # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
+        # coelescing spaces (might as well)
+        m = re.fullmatch(r'([\w\ufffd<>-]+),((?:\s+[\w\ufffd-]+)+)', person_str)
+        if m:
+            log.debug("PPS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (person_str))
+            person_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
+
+        # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
+        # Vaughan Williams)
+
+        # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
+
+        # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
+
+        # step 7 - remove conductor role suffix ("cond.", "conductor", etc.)
+        m = re.fullmatch(r'(.+), ([\w\./ ]+)', person_str)
+        if m:
+            if m.group(2).lower() in COND_STRS:
+                log.debug("PPS_RULE 5 - removing role suffix \"%s\" for \"%s\"" %
+                          (m.group(2), person_str))
+                person_str = m.group(1)
+
+        return person_str
+
+    def parse_title_str(self, title_str, flags = 0):
+        """
+        """
+        orig_str = title_str
+        flags |= self.ctx_flags
+
+        # step 3 - convert single-quoted titles to double-quoted
+        # note, we are currently biased toward better-formed quotes toward end of title
+        # LATER: try with different biases, and determine best-formed result!!!)
+        m = re.fullmatch(r'(.*)\'([^\']*)\'([^\']*)', title_str)
+        while m:
+            log.debug("PTS_RULE 3 - convert single-quoted titles to double quotes \"%s\"" % (title_str))
+            title_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
+            m = re.fullmatch(r'(.*)\'([^\']*)\'([^\']*)', title_str)
+
+        return title_str
+
+    def finalize(self, ent_data, flags = 0):
+        """
+        :param ent_data: ml_dict to finalize (in-place)
+        :return: void
+        """
+        flags |= self.ctx_flags
+
+        for func in self.completion:
+            func(ent_data)
+
+    def mkcomp(self, name, orig_str = None):
+        orig_str = orig_str or self.orig_str
+        name = name.strip()
+        if not name:
+            log.warn("Empty composer name \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in composer \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_composer': True}
+
+    def mkwork(self, name, orig_str = None):
+        orig_str = orig_str or self.orig_str
+        name = name.strip()
+        if not name:
+            log.warn("Empty work name \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in work \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        return {'name': name, 'raw_name': orig_str if name != orig_str else None}
+
+    def mkcond(self, name, orig_str = None):
+        orig_str = orig_str or self.orig_str
+        name = name.strip()
+        if not name:
+            log.warn("Empty conductor name \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_conductor': True}
+
+    def mkperf(self, name, role, orig_str = None):
+        orig_str = orig_str or self.orig_str
+        name = name.strip()
+        if role:
+            role = role.strip()
+        if not name:
+            log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
+                     (name, role, orig_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
+                     (name, role, orig_str))
+        perf_person = {'name': name, 'raw_name': orig_str if name != orig_str else None}
+        if role not in COND_STRS:
+            perf_person['is_performer'] = True
+        return {'person': perf_person, 'role': role}
+
+    def mkens(self, name, orig_str = None):
+        orig_str = orig_str or self.orig_str
+        name = name.strip()
+        if not name:
+            log.warn("Empty ensemble name \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        elif not re.match(r'\w', name):
+            log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
+                     (name, orig_str))
+        return {'name': name, 'raw_name': orig_str if name != orig_str else None}
+
+#+--------------------+
+#| External Functions |
+#+--------------------+
+
+def parse_composer_str(comp_str, flags = 0):
+    """
     :param comp_str: raw string from playlist
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
@@ -222,51 +436,16 @@ def parse_composer_str(comp_str, flags = None):
     if not comp_str:
         return {}
 
-    orig_comp_str = comp_str
+    ctx = ParseCtx(comp_str, flags | ParseFlag.COMPOSER)
+    ctx.parse_entity_str()
 
-    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
-    m = re.match(r'"([^"]*)"$', comp_str)
-    if m:
-        log.debug("PCS_RULE 1 - strip enclosing quotes \"%s\"" % (comp_str))
-        comp_str = m.group(1)  # note: could be empty string, handle downstream!
-    m = re.match(r'\((.*[^)])\)?$', comp_str)
-    if m:
-        log.debug("PCS_RULE 2 - strip enclosing parens \"%s\"" % (comp_str))
-        comp_str = m.group(1)  # note: could be empty string, handle downstream!
+    comp_data = ctx.mkcomp(ctx.ent_str)
+    ent_data = ml_dict({'composer': comp_data})
+    ctx.finalize(ent_data)
+    return ent_data
 
-    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
-    # from regular comma processing)
-    suffix = None
-    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', comp_str)
-    if m:
-        suffix = m.group(1)
-        log.debug("PCS_RULE 3 - preserve suffix \"%s\" for \"%s\"" % (suffix, comp_str))
-        comp_str = comp_str.replace(suffix, SUFFIX_TOKEN, 1)
-
-    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
-    # coelescing spaces (might as well)
-    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', comp_str)
-    if m:
-        log.debug("PCS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (comp_str))
-        comp_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
-
-    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
-    # Vaughan Williams)
-
-    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
-
-    # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
-
-    # step N - finally...
-    if suffix:
-        comp_str = comp_str.replace(SUFFIX_TOKEN, suffix, 1)
-
-    comp_data = mkcomp(comp_str, orig_comp_str)
-    return ml_dict({'composer': comp_data})
-
-def parse_work_str(work_str, flags = None):
-    """Modifies data in-place
-
+def parse_work_str(work_str, flags = 0):
+    """
     :param work_str: raw string from playlist
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
@@ -274,34 +453,16 @@ def parse_work_str(work_str, flags = None):
     if not work_str:
         return {}
 
-    orig_work_str = work_str
+    ctx = ParseCtx(work_str, flags | ParseFlag.WORK)
+    ctx.parse_entity_str()
 
-    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
-    m = re.match(r'"(.*)"$', work_str)
-    if m:
-        log.debug("PWS_RULE 1a - strip enclosing double quotes \"%s\"" % (work_str))
-        work_str = m.group(1)  # note: could be empty string, handle downstream!
+    work_data = ctx.mkwork(ctx.ent_str)
+    ent_data = ml_dict({'work': work_data})
+    ctx.finalize(ent_data)
+    return ent_data
 
-    # step 2 - fix up doubled-up double quotes
-    m = re.match(r'(.*?)""([^"]*)""(.*)$', work_str)
-    while m:
-        log.debug("PWS_RULE 2 - fix up doubled-up double quotes '%s'" % (work_str))
-        work_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
-        m = re.match(r'(.*?)""([^"]*)""(.*)$', work_str)
-
-    # step 3 - convert single-quoted titles to double-quoted
-    m = re.match(r'(.*?)\'([^\']*)\'(.*)$', work_str)
-    while m:
-        log.debug("PWS_RULE 3 - convert single-quoted titles to double quotes '%s'" % (work_str))
-        work_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
-        m = re.match(r'(.*?)\'([^\']*)\'(.*)$', work_str)
-
-    work_data = mkwork(work_str, orig_work_str)
-    return ml_dict({'work': work_data})
-
-def parse_conductor_str(cond_str, flags = None):
-    """Modifies data in-place
-
+def parse_conductor_str(cond_str, flags = 0):
+    """
     :param cond_str: raw string from playlist
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
@@ -309,55 +470,16 @@ def parse_conductor_str(cond_str, flags = None):
     if not cond_str:
         return {}
 
-    orig_cond_str = cond_str
+    ctx = ParseCtx(cond_str, flags | ParseFlag.CONDUCTOR)
+    ctx.parse_entity_str()
 
-    # step 1 - overall line fixup--TODO: see note in parse_performer_str()!!!
-    m = re.match(r'"([^"]*)"$', cond_str)
-    if m:
-        log.debug("PDS_RULE 1 - strip enclosing quotes \"%s\"" % (cond_str))
-        cond_str = m.group(1)  # note: could be empty string, handle downstream!
-    m = re.match(r'\((.*[^)])\)?$', cond_str)
-    if m:
-        log.debug("PDS_RULE 2 - strip enclosing parens \"%s\"" % (cond_str))
-        cond_str = m.group(1)  # note: could be empty string, handle downstream!
+    cond_data = ctx.mkcond(ctx.ent_str)
+    perf_data = [ctx.mkperf(ctx.ent_str, 'conductor')]
+    ent_data = ml_dict({'conductor': cond_data, 'performers': perf_data})
+    ctx.finalize(ent_data)
+    return ent_data
 
-    # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
-    # from regular comma processing)
-    suffix = None
-    m = re.search(r'(,\s+(?:Jr|Sr)\.?)', cond_str)
-    if m:
-        suffix = m.group(1)
-        log.debug("PDS_RULE 3 - preserve suffix \"%s\" for \"%s\"" % (suffix, cond_str))
-        cond_str = cond_str.replace(suffix, SUFFIX_TOKEN, 1)
-
-    # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
-    # coelescing spaces (might as well)
-    m = re.match(r'([\w<>-]+),((?:\s+[\w-]+)+)$', cond_str)
-    if m:
-        log.debug("PDS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (cond_str))
-        cond_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
-
-    # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
-    # Vaughan Williams)
-
-    # step 5 - multiple names (e.g. "/" or "&" or "and" or ",")
-
-    # step 6 - remove conductor role suffix ("cond.", "conductor", etc.)
-    m = re.match(r'(.+), ([\w\./ ]+)$', cond_str)
-    if m:
-        if m.group(2).lower() in COND_STRS:
-            log.debug("PDS_RULE 5 - removing role suffix \"%s\" for \"%s\"" %
-                      (m.group(2), cond_str))
-            cond_str = m.group(1)
-
-    # step N - finally...
-    if suffix:
-        cond_str = cond_str.replace(SUFFIX_TOKEN, suffix, 1)
-
-    cond_data = mkcond(cond_str, orig_cond_str)
-    return ml_dict({'conductor': cond_data})
-
-def parse_performer_str(perf_str, flags = None):
+def parse_performer_str(perf_str, flags = 0):
     """
     DESIGN NOTES (for future):
       * context-sensitive application of individual parsing rules, either implicitly
@@ -371,73 +493,93 @@ def parse_performer_str(perf_str, flags = None):
     :param flags: (not yet implemented)
     :return: list of perf_data structures (see LATER above)
     """
-    orig_perf_str = perf_str
+    if not perf_str:
+        return {}
+
+    ctx = ParseCtx(perf_str, flags | ParseFlag.PERFORMER)
+    ctx.parse_entity_str()
 
     def parse_perf_item(perf_item, fld_delim = ','):
-        sub_data = []
+        sub_perfs = []
+        sub_cond = None
         if perf_item.count(fld_delim) % 2 == 1:
             fields = perf_item.split(fld_delim)
             while fields:
                 pers, role = (fields.pop(0), fields.pop(0))
                 # special case for "<ens>/<cond last, first>"
                 if pers.count('/') == 1:
-                    log.debug("PPS_RULE 1 - slash separating ens from cond_last \"%s\"" % (pers))
+                    log.debug("PFS_RULE 6 - slash separating ens from cond_last \"%s\"" % (pers))
                     ens_name, cond_last = pers.split('/')
                     cond_name = "%s %s" % (role, cond_last)
-                    sub_data.append(mkperf(ens_name, 'ensemble', orig_perf_str))
-                    sub_data.append(mkperf(cond_name, 'conductor', orig_perf_str))
+                    sub_perfs.append(ctx.mkperf(ens_name, 'ensemble'))
+                    sub_perfs.append(ctx.mkperf(cond_name, 'conductor'))
                 else:
-                    sub_data.append(mkperf(pers, role, orig_perf_str))
+                    if role.strip().lower() in COND_STRS:
+                        # TODO: check for overwrite!!!
+                        sub_cond = ctx.mkcond(pers)
+                    sub_perfs.append(ctx.mkperf(pers, role))
         else:
             # TODO: if even number of field delimiters, need to look closer at item
             # contents/format to figure out what to do!!!
-            sub_data.append(mkperf(perf_item, None, orig_perf_str))
-        return {'performers': sub_data}
+            sub_perfs.append(ctx.mkperf(perf_item, None))
+        return {'performers': sub_perfs, 'conductor': sub_cond} if sub_cond \
+               else {'performers': sub_perfs}
 
     ens_data  = []
     perf_data = []
     ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
+    """
     # TODO: should really move the quote processing as far upstream as possible (for
     # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
-    m = re.match(r'"([^"]*)"$', perf_str)
+    m = re.fullmatch(r'"([^"]*)"', perf_str)
     if m:
-        log.debug("PPS_RULE 2 - strip enclosing quotes \"%s\"" % (perf_str))
+        log.debug("PFS_RULE 1 - strip enclosing quotes \"%s\"" % (perf_str))
         perf_str = m.group(1)  # note: could be empty string, handle downstream!
-    m = re.match(r'\((.*[^)])\)?$', perf_str)
+    m = re.fullmatch(r'\((.*[^)])\)?', perf_str)
     if m:
-        log.debug("PPS_RULE 3 - strip enclosing parens \"%s\"" % (perf_str))
+        log.debug("PFS_RULE 2 - strip enclosing parens \"%s\"" % (perf_str))
         perf_str = m.group(1)  # note: could be empty string, handle downstream!
+    """
+    # TODO: genericize performer/person/role stuff (note, ctx.ent_str not updated below)!!!
+    perf_str = ctx.ent_str
+
     # special case for ugly record (WNED 2018-09-17)
     m = re.match(r'(.+?)\r', perf_str)
     if m:
-        log.debug("PPS_RULE 4 - ugly broken record for WNED \"%s\"" % (perf_str))
+        log.debug("PFS_RULE 3 - ugly broken record for WNED \"%s\"" % (perf_str))
         perf_str = m.group(1)
         m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
         if m:
             perf_str = '; '.join(m.groups())
 
+    # pattern used by IPR, VPR, WIAA, WNED
     if re.match(r'\/.+ \- ', perf_str):
-        log.debug("PPS_RULE 5 - leading slash for performer fields \"%s\"" % (perf_str))
+        log.debug("PFS_RULE 4 - leading slash for performer fields \"%s\"" % (perf_str))
         for perf_item in perf_str.split('/'):
             if perf_item:
                 ret_data.merge(parse_perf_item(perf_item, ' - '))
     elif ';' in perf_str:
-        log.debug("PPS_RULE 6 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
+        log.debug("PFS_RULE 5 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
         for perf_item in perf_str.split(';'):
             if perf_item:
                 ret_data.merge(parse_perf_item(perf_item))
     elif perf_str:
         ret_data.merge(parse_perf_item(perf_str))
 
+    ctx.finalize(ret_data)
     return ret_data
 
-def parse_ensemble_str(ens_str, flags = None):
+def parse_ensemble_str(ens_str, flags = 0):
     """
     :param ens_str:
     :param flags: (not yet implemented)
     :return: dict of ens_data/perf_data structures, indexed by type
     """
-    orig_ens_str = ens_str
+    if not ens_str:
+        return {}
+
+    ctx = ParseCtx(ens_str, flags | ParseFlag.ENSEMBLE)
+    ctx.parse_entity_str()
 
     def parse_ens_item(ens_item, fld_delim = ','):
         sub_ens_data = []
@@ -451,13 +593,13 @@ def parse_ensemble_str(ens_str, flags = None):
                 # that later, when we have NER), otherwise treat as performer/role!!!
                 #if re.match(r'[A-Z]', role[0]):
                 if re.match(r'\p{Lu}', role[0]):
-                    sub_ens_data.append(mkens(name, orig_ens_str))
+                    sub_ens_data.append(ctx.mkens(name))
                 else:
-                    sub_perf_data.append(mkperf(name, role, orig_ens_str))
+                    sub_perf_data.append(ctx.mkperf(name, role))
         else:
             # TODO: if even number of field delimiters, need to look closer at item
             # contents/format to figure out what to do (i.e. NER)!!!
-            sub_ens_data.append(mkens(ens_item, orig_ens_str))
+            sub_ens_data.append(ctx.mkens(ens_item))
         return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
 
     def parse_ens_fields(fields):
@@ -465,18 +607,18 @@ def parse_ensemble_str(ens_str, flags = None):
         sub_perf_data = []
         while fields:
             if len(fields) == 1:
-                sub_ens_data.append(mkens(fields.pop(0), orig_ens_str))
+                sub_ens_data.append(ctx.mkens(fields.pop(0)))
                 break  # same as continue
             # more reliable to do this moving backward from the end (sez me)
             if ' ' not in fields[-1]:
                 # REVISIT: we presume a single-word field to be a city/location (for now);
                 # as above, we should really look at field contents to properly parse!!!
                 ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                sub_ens_data.append(mkens(ens, orig_ens_str))
+                sub_ens_data.append(ctx.mkens(ens))
             else:
                 # yes, do this twice!
-                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
-                sub_ens_data.append(mkens(fields.pop(-1), orig_ens_str))
+                sub_ens_data.append(ctx.mkens(fields.pop(-1)))
+                sub_ens_data.append(ctx.mkens(fields.pop(-1)))
         return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
 
     ens_data  = []
@@ -491,7 +633,7 @@ def parse_ensemble_str(ens_str, flags = None):
         ret_data.merge(parse_ens_fields(ens_fields))
     else:
         # ens_data is implcitly part of ret_data
-        ens_data.append(mkens(ens_str, orig_ens_str))
+        ens_data.append(ctx.mkens(ens_str))
 
     return ret_data
 
@@ -504,9 +646,13 @@ class MusicEnt(object):
         """
         :param entity: [string] name of entity (same as table name)
         """
-        self.name = entity
-        self.tab  = db.get_table(self.name)
-        self.cols = set([c.name for c in self.tab.columns])
+        self.name     = entity
+        self.tab      = db.get_table(self.name)
+        self.cols     = set([c.name for c in self.tab.columns])
+        self.last_sel = None
+        self.last_ins = None
+        self.last_upd = None
+        self.last_del = None
 
     def select(self, crit):
         """
@@ -527,6 +673,7 @@ class MusicEnt(object):
             sel = sel.where(self.tab.c[col] == val)
         with db.conn.begin() as trans:
             res = db.conn.execute(sel)
+        self.last_sel = sel
         return res
 
     def insert(self, data):
@@ -545,6 +692,28 @@ class MusicEnt(object):
             ins = self.tab.insert()
             with db.conn.begin() as trans:
                 res = db.conn.execute(ins, data)
+        self.last_ins = ins
+        return res
+
+    def update(self, row, data):
+        """
+        :param row: SQLAlchemy RowProxy from select statement
+        :param data: dict of data to update
+        :return: SQLAlchemy ResultProxy
+        """
+        if not data:
+            raise RuntimeError("Update data must be specified")
+        unknown = set(data) - self.cols
+        if unknown:
+            raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
+
+        upd = self.tab.update()
+        for col, val in key_data(row, self.name).items():
+            upd = upd.where(self.tab.c[col] == val)
+        with db.conn.begin() as trans:
+            res = db.conn.execute(upd, data)
+        # TODO: update row._row with updated data values!!!
+        self.last_upd = upd
         return res
 
     def inserted_row(self, res, ent_override = None):
@@ -597,7 +766,7 @@ class MusicLib(object):
         if sel_res.rowcount == 1:
             sta_row = sel_res.fetchone()
         else:
-            log.debug("Inserting station \"%s\" into musiclib" % (station.name))
+            log.trace("Inserting station \"%s\" into musiclib" % (station.name))
             ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
@@ -613,7 +782,7 @@ class MusicLib(object):
         else:
             prog_name = prog_data['name']  # for convenience
             prog_label = "\"%s\"" % (prog_name)
-            log.debug("Inserting program %s into musiclib" % (prog_label))
+            log.trace("Inserting program %s into musiclib" % (prog_label))
             ins_res = prog.insert(prog_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert program %s into musiclib" % (prog_label))
@@ -629,7 +798,7 @@ class MusicLib(object):
         try:
             ins_res = prog_play.insert(pp_data)
             pp_row = prog_play.inserted_row(ins_res)
-            log.debug("Created program_play ID %d (%s, \"%s\", %s %s)" %
+            log.trace("Created program_play ID %d (%s, \"%s\", %s %s)" %
                       (pp_row.id, sta_row.name, prog_row.name,
                        pp_row.prog_play_date, pp_row.prog_play_start))
         except IntegrityError:
@@ -664,7 +833,7 @@ class MusicLib(object):
         else:
             # NOTE: should really never get here (select should not fail), since this
             # same code was executed when inserting the program_play
-            log.debug("Inserting station \"%s\" into musiclib" % (station.name))
+            log.trace("Inserting station \"%s\" into musiclib" % (station.name))
             ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
@@ -681,9 +850,11 @@ class MusicLib(object):
         sel_res = comp.select(key_data(comp_data, 'person'))
         if sel_res.rowcount == 1:
             comp_row = sel_res.fetchone()
+            if not comp_row.is_composer:
+                comp.update(comp_row, {'is_composer': True})
         else:
             comp_name = comp_data['name']  # for convenience
-            log.debug("Inserting composer \"%s\" into musiclib" % (comp_name))
+            log.trace("Inserting composer \"%s\" into musiclib" % (comp_name))
             ins_res = comp.insert(comp_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert composer/person \"%s\" into musiclib" % (comp_name))
@@ -705,7 +876,7 @@ class MusicLib(object):
             work_row = sel_res.fetchone()
         else:
             work_name = work_data['name']  # for convenience
-            log.debug("Inserting work \"%s\" into musiclib" % (work_name))
+            log.trace("Inserting work \"%s\" into musiclib" % (work_name))
             ins_res = work.insert(work_data)
             if ins_res.rowcount == 0:
                 raise RuntimeError("Could not insert work/person \"%s\" into musiclib" % (work_name))
@@ -720,9 +891,11 @@ class MusicLib(object):
             sel_res = cond.select(key_data(cond_data, 'person'))
             if sel_res.rowcount == 1:
                 cond_row = sel_res.fetchone()
+                if not cond_row.is_conductor:
+                    cond.update(cond_row, {'is_conductor': True})
             else:
                 cond_name = cond_data['name']  # for convenience
-                log.debug("Inserting conductor \"%s\" into musiclib" % (cond_name))
+                log.trace("Inserting conductor \"%s\" into musiclib" % (cond_name))
                 ins_res = cond.insert(cond_data)
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert conductor/person \"%s\" into musiclib" % (cond_name))
@@ -741,7 +914,7 @@ class MusicLib(object):
                 rec_row = sel_res.fetchone()
             else:
                 rec_ident = "%s %s" % (rec_data['label'], rec_data['catalog_no'])  # for convenience
-                log.debug("Inserting recording \"%s\" into musiclib" % (rec_ident))
+                log.trace("Inserting recording \"%s\" into musiclib" % (rec_ident))
                 ins_res = rec.insert(rec_data)
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_ident))
@@ -758,7 +931,7 @@ class MusicLib(object):
                 rec_row = sel_res.fetchone()
             else:
                 rec_name = rec_data['name']  # for convenience
-                log.debug("Inserting recording \"%s\" into musiclib" % (rec_name))
+                log.trace("Inserting recording \"%s\" into musiclib" % (rec_name))
                 ins_res = rec.insert(rec_data)
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_name))
@@ -773,9 +946,11 @@ class MusicLib(object):
             sel_res = perf_person.select(key_data(perf_data['person'], 'person'))
             if sel_res.rowcount == 1:
                 perf_person_row = sel_res.fetchone()
+                if perf_data['role'] not in COND_STRS and not perf_person_row.is_performer:
+                    perf_person.update(perf_person_row, {'is_performer': True})
             else:
                 perf_name = perf_data['person']['name']  # for convenience
-                log.debug("Inserting performer/person \"%s\" into musiclib" % (perf_name))
+                log.trace("Inserting performer/person \"%s\" into musiclib" % (perf_name))
                 ins_res = perf_person.insert(perf_data['person'])
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % (perf_name))
@@ -793,7 +968,7 @@ class MusicLib(object):
                 perf_name = perf_data['person']['name']  # for convenience
                 perf_role = perf_data['role']
                 perf_label = "\"%s\" [%s]" % (perf_name, perf_role)
-                log.debug("Inserting performer %s into musiclib" % (perf_label))
+                log.trace("Inserting performer %s into musiclib" % (perf_label))
                 ins_res = perf.insert(entity_data(perf_data, 'performer'))
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert performer %s into musiclib" % (perf_label))
@@ -810,7 +985,7 @@ class MusicLib(object):
                 ens_row = sel_res.fetchone()
             else:
                 ens_name = ens_data['name']  # for convenience
-                log.debug("Inserting ensemble \"%s\" into musiclib" % (ens_name))
+                log.trace("Inserting ensemble \"%s\" into musiclib" % (ens_name))
                 ins_res = ens.insert(ens_data)
                 if ins_res.rowcount == 0:
                     raise RuntimeError("Could not insert ensemble \"%s\" into musiclib" % (ens_name))
@@ -839,7 +1014,7 @@ class MusicLib(object):
             ins_res = play.insert(play_data)
             play_row = play.inserted_row(ins_res)
             play_new = True
-            log.debug("Created play ID %d (%s, \"%s\", %s %s)" %
+            log.trace("Created play ID %d (%s, \"%s\", %s %s)" %
                       (play_row.id, comp_row.name, work_row.name,
                        play_row.play_date, play_row.play_start))
         except IntegrityError:
@@ -862,7 +1037,7 @@ class MusicLib(object):
                     ins_res = play_perf.insert(play_perf_data)
                     play_perf_rows.append(play_perf.inserted_row(ins_res))
                 except IntegrityError:
-                    log.debug("Skipping insert of duplicate play_performer record:\n%s" % (play_perf_data))
+                    log.trace("Skipping insert of duplicate play_performer record:\n%s" % (play_perf_data))
 
             for ens_row in ens_rows:
                 play_ens_data = {'play_id': play_row.id, 'ensemble_id': ens_row.id}
@@ -871,7 +1046,7 @@ class MusicLib(object):
                     ins_res = play_ens.insert(play_ens_data)
                     play_ens_rows.append(play_ens.inserted_row(ins_res))
                 except IntegrityError:
-                    log.debug("Skipping insert of duplicate play_ensemble record:\n%s" % (play_ens_data))
+                    log.trace("Skipping insert of duplicate play_ensemble record:\n%s" % (play_ens_data))
 
         return {k: v for k, v in play_row.items()}
 
@@ -929,7 +1104,7 @@ class MusicLib(object):
                     es_row = es.inserted_row(ins_res)
                     ret.append({k: v for k, v in es_row.items()})
                 except IntegrityError:
-                    log.debug("Duplicate entity_string \"%s\" [%s] for station ID %d" %
+                    log.trace("Duplicate entity_string \"%s\" [%s] for station ID %d" %
                               (entity_str, entity_src, ctx['station_id']))
 
         return ret

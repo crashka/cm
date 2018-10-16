@@ -493,8 +493,6 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
-* get dbname from command line (station.py) or environment
-   * store dbname in MusicLib (instance!) and DatabaseCtx in MusicEnt
 * rectify denorm of composer/conductor/ensemble in performer/play_performer
 * abstract entity_string parsing
    * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
@@ -502,7 +500,7 @@ To Do - Immediate/Active
 * investigate anomalies with play_seq matches
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * rectify program based on play_seq matches
-* debug/fix work/play with composer/person '<none>'
+* debug/fix work/play with composer/person '<none>' and work '<unknown>'
 * identify syndicated plays, factor out of queries (using master_play_id)
 * add stations: WQXR, WFMT, KUSC, WDAV, KING, WETA, KDFC, KQAC
 * debug/fix outstanding anomalies for person
@@ -513,10 +511,7 @@ To Do - Bugs/Tweaks
 -------------------
 
 * figure out duplicate start time (different works) for plays (WWFM)
-* make sure unicode handling in names is correct (even before canonicalization)
 * more normalization for person (if needed, after abstract entity parsing)
-* add ``--force`` flag to overwrite existing playlists
-* force-pull all stations 09/13-09/18 (and 10/08) due to previous tight (15 minute) cron window
 * create backup files for ``station_info.json`` and ``playlists.json``
 
 ----------------
@@ -527,14 +522,13 @@ To Do - Features
 * authoritative musiclib/ref data (e.g. from arkivmusic)
 * track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
-* fork/port to python3 (rename to cmir)--should do as soon as tests are in place!!!
 * make logging (and printing for CLI commands) consistent
 * write valid, missing, invalid to state structure
 * fetch missing playlists
 * validate playlist contents, record as metadata
 * context manager for throttling playlist fetches
 * job queue for playlist fetches (cycle through stations)
-* get older playlists (determine epoch/beginning of time) for all stations
+* automatically get older playlists (determine epoch) for all stations
 * archive function for playlists (and station info)
 * locate ``stations`` directory in ``config.yml`` (can be outside of cmir)
 

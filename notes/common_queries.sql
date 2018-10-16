@@ -285,17 +285,6 @@ select master_id, count(*), array_agg(synd_level order by synd_level desc)
 --   * distinct from other stations
 --   * syndicated vs. local programming/shows
 
--- investigate seq_hash = 0
-select ps.hash_level, s.name as station, comp.name as composer, w.name as work,
-       pl.play_date, pl.play_start
-  from play_seq ps
-       join play pl     on pl.id   = ps.play_id
-       join person comp on comp.id = pl.composer_id
-       join work w      on w.id    = pl.work_id
-       join station s   on s.id    = pl.station_id
- where seq_hash = 0
- order by 1 desc, 3, 4, s.synd_level desc
-
 -- composers with non-standard names
 select distinct p.name from person p
        join play pl on pl.composer_id = p.id
@@ -325,30 +314,40 @@ select p.name, array_agg(pl.id)
  order by 1
 
 -- single comma
-select distinct p.name
+select p.name, count(*), array_agg(distinct s.name order by s.name)
   from person p
        join play pl on pl.composer_id = p.id
+       join station s on s.id = pl.station_id
  where p.name ~ '^[^,]+,[^,]+$'
+ group by 1
  order by 1
 
 -- Jr./Sr.
-select distinct p.name
+select p.name, count(*), array_agg(distinct s.name order by s.name)
   from person p
        join play pl on pl.composer_id = p.id
+       join station s on s.id = pl.station_id
  where p.name ~ '\m(Jr|Sr)\.?\M'
+ group by 1
  order by 1
 
 -- II/III
-select distinct p.name
+select p.name, count(*), array_agg(distinct s.name order by s.name)
   from person p
        join play pl on pl.composer_id = p.id
+       join station s on s.id = pl.station_id
  where p.name ~ '\mI{2,3}\M'
+ group by 1
+ order by 1
 
 -- all together
-select distinct p.name
+select p.name, count(*), array_agg(distinct s.name order by s.name)
   from person p
        join play pl on pl.composer_id = p.id
+       join station s on s.id = pl.station_id
  where p.name ~ '\m(Jr\.?|Sr\.?|I{2,3})\M'
+ group by 1
+ order by 1
 
 -- investigate plays
 select pl.id as play_id, s.name as station, s.synd_level, pr.name as program, pl.play_date,
