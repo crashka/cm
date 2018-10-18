@@ -691,7 +691,7 @@ def normalize_name(name, flags = 0):
             parts.remove(honor)
             aliases.add(', '.join(parts))
             if hnr:
-                log.warning("Don't know how to handle multiple honorifics in \"%s\"" % (name))
+                log.outlier("Don't know how to handle multiple honorifics in \"%s\"" % (name))
         if sfx:
             suffix = sfx.pop()
             suffix_sep = ', '
@@ -699,17 +699,17 @@ def normalize_name(name, flags = 0):
             # PONDER: should we add this???
             #aliases.add(' '.join(parts))
             if sfx:
-                log.warning("Don't know how to handle multiple suffixes in \"%s\"" % (name))
+                log.outlier("Don't know how to handle multiple suffixes in \"%s\"" % (name))
         if cdx:
             codex = cdx.pop()
             parts.remove(codex)
             if hnr:
-                log.warning("Don't know how to handle multiple codexes in \"%s\"" % (name))
+                log.outlier("Don't know how to handle multiple codexes in \"%s\"" % (name))
         if ano:
             anon = ano.pop()
             parts.remove(anon)
             if ano:
-                log.warning("Don't know how to handle multiple anons in \"%s\"" % (name))
+                log.outlier("Don't know how to handle multiple anons in \"%s\"" % (name))
     if not suffix:
         if parts[-1] in SUFFIXES:
             # special case for malformed input (e.g. "First Last, Jr.", where listing by

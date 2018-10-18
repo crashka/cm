@@ -298,8 +298,9 @@ def load_schema(meta):
             Column('ref_source',        Text,        nullable=True),
             Column('addl_ref',          Text,        nullable=True),
             Column('source_data',       JSONB),
-            Column('mstr_entity_name',  Text),       # TEMP!
-            Column('mstr_entity_id',    Integer),    # LATER!
+            # REVISIT: master entities are stored in the same table, for now!!!
+            Column('mstr_entity_name',  Text),
+            Column('mstr_entity_id',    Integer,     ForeignKey('entity_ref.id')),
 
             # constraints/indexes
             UniqueConstraint('entity_ref', 'entity_type', 'ref_source')

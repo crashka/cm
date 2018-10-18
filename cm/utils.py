@@ -202,25 +202,30 @@ def prettyprint(data, indent=4, noprint=False):
 # Trace logging support #
 #########################
 
-# copied from https://gist.github.com/numberoverzero/f803ebf29a0677b6980a5a733a10ca71
-# (this is done properly!)
+# from https://stackoverflow.com/questions/2183233/
 
 import logging
-_trace_installed = False
 
-def install_trace_logger():
-    global _trace_installed
-    if _trace_installed:
-        return
-    level = logging.TRACE = logging.DEBUG - 5
+TRACE = logging.DEBUG - 5
+OUTLIER = logging.WARNING
 
-    def log_logger(self, message, *args, **kwargs):
-        if self.isEnabledFor(level):
-            self._log(level, message, args, **kwargs)
-    logging.getLoggerClass().trace = log_logger
+class MyLogger(logging.getLoggerClass()):
+    def __init__(self, name, level=logging.NOTSET):
+        super().__init__(name, level)
 
-    def log_root(msg, *args, **kwargs):
-        logging.log(level, msg, *args, **kwargs)
-    logging.addLevelName(level, "TRACE")
-    logging.trace = log_root
-    _trace_installed = True
+        logging.addLevelName(TRACE, "TRACE")
+        logging.addLevelName(OUTLIER, "OUTLIER")
+
+    def trace(self, msg, *args, **kwargs):
+        if self.isEnabledFor(TRACE):
+            self._log(TRACE, msg, args, **kwargs)
+
+    def outlier(self, msg, *args, **kwargs):
+        """Currently just write to default logging channel, later perhaps write to separate
+        channel, or store in database
+        """
+        if self.isEnabledFor(OUTLIER):
+            kwargs['stack_info'] = True
+            self._log(OUTLIER, msg, args, **kwargs)
+
+logging.setLoggerClass(MyLogger)

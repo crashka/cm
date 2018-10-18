@@ -313,94 +313,23 @@ class RefData(object):
     def parse_chunk(self, cat, chunk):
         """
         """
+        PERSON_CAT = {'composers', 'conductors', 'performers'}
         for item in chunk.ul('li', recursive=False):
-            name = item.a.string.strip()
-            href = item.a['href']
-            addl_ref = None
+            name      = item.a.string.strip()
+            href      = item.a['href']
+            ent_name  = None
+            addl_ref  = None
+            alt_names = set()
+
             m = re.fullmatch(r'(.+) \[(.*)\]', name)
             if m:
                 name = m.group(1)
                 addl_ref = m.group(2)
-            """
-            parts = name.split(', ')
-            # don't try and do too much here (i.e. single-comma case as well), instead handle
-            # outliers below (at the risk of unstreamlining)
-            if len(parts) > 2:
-                parts_set = set(parts)
-                hnr = parts_set & HONORIFICS
-                sfx = parts_set & SUFFIXES
-                cdx = parts_set & CODEX_LIST
-                ano = parts_set & ANONYMOUS
 
-                if hnr:
-                    honor = hnr.pop()
-                    parts.remove(honor)
-                    alt_names.append(', '.join(parts))
-                    if hnr:
-                        log.warning("Don't know how to handle multiple honorifics in \"%s\"" % (name))
-                if sfx:
-                    suffix = sfx.pop()
-                    suffix_sep = ', '
-                    parts.remove(suffix)
-                    # PONDER: should we add this???
-                    #alt_names.append(' '.join(parts))
-                    if sfx:
-                        log.warning("Don't know how to handle multiple suffixes in \"%s\"" % (name))
-                if cdx:
-                    codex = cdx.pop()
-                    parts.remove(codex)
-                    if hnr:
-                        log.warning("Don't know how to handle multiple codexes in \"%s\"" % (name))
-                if ano:
-                    anon = ano.pop()
-                    parts.remove(anon)
-                    if ano:
-                        log.warning("Don't know how to handle multiple anons in \"%s\"" % (name))
-            if not suffix:
-                if parts[-1] in SUFFIXES:
-                    # special case for malformed input (e.g. "First Last, Jr.", where listing by
-                    # last name is expected)
-                    suffix = parts.pop(-1)
-                    suffix_sep = ', '
-                else:
-                    # note, this pattern is overly-generic for the separator (given parsing above),
-                    # but leave this way, since it conveys the larger intent
-                    pattern = r'(.+)(,? )(%s)' % ('|'.join({s.replace('.', r'\.') for s in SUFFIXES}))
-                    m = re.fullmatch(pattern, parts[-1])
-                    if m:
-                        parts[-1]  = m.group(1)
-                        suffix_sep = m.group(2)
-                        suffix     = m.group(3)
-            if parts[0] in ANONYMOUS:
-                assert not ano
-                if len(parts) > 1:
-                    parts[0] += ','
-                    alt_names.append(' '.join(parts[1:]))
+            if cat in PERSON_CAT:
+                ent_name, alt_names = normalize_name(name)
             else:
-                # REVISIT: this is kind of brash, should really validate this is what we want
-                # in all cases!!!
-                parts.reverse()
-            # TODO: check for logical inconsistencies (soft mutual exlusion)!!!
-            if honor:
-                parts.insert(0, honor)
-            if suffix:
-                parts[-1] += suffix_sep + suffix
-            if codex:
-                parts.insert(0, codex)
-            if anon:
-                parts.insert(0, anon + ',')
-            ent_name = ' '.join(parts)
-            if not honor:
-                pattern = r"(%s) (.+)" % ('|'.join(HONORIFICS))
-                m = re.fullmatch(pattern, ent_name)
-                if m:
-                    honor = m.group(1)
-                    alt_names.append(m.group(2))
-            while len(parts) > 2:
-                parts.pop(0)
-                alt_names.append(' '.join(parts))
-            """
-            ent_name, alt_names = normalize_name(name)
+                ent_name = name
             href = re.sub(r';jsessionid=\w+', '', href)
             m = re.search(r'\((\d+)\)', item.contents[1])
             recs = int(m.group(1)) if m else 0
