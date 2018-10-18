@@ -493,7 +493,6 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
-* rectify denorm of composer/conductor/ensemble in performer/play_performer
 * abstract entity_string parsing
    * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!

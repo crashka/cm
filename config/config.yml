@@ -241,6 +241,7 @@ default:
     arkivmusic:
       # LATER: abstract to 'browse_by'
       url_fmt:      'http://www.arkivmusic.com/classical/NameList?alpha=<STARTS_WITH>&role_wanted=<ROLE>'
+      charset:      'iso-8859-1'
 
       categories:
         composers:

@@ -61,3 +61,5 @@ install_trace_logger()
 
 # kindly internet fetch interval (TODO: move to config file!!!)
 DFLT_FETCH_INT = 2.0
+
+DFLT_HTML_PARSER = 'html.parser'

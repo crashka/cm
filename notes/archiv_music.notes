@@ -26,3 +26,143 @@ http://www.arkivmusic.com/classical/albumList.jsp?name_id1=5378&name_role1=1&bco
 David Plantier
 http://www.arkivmusic.com/classical/Name/David-Plantier/Performer/45611-2
 http://www.arkivmusic.com/classical/albumList.jsp?name_id1=45611&name_role1=2&bcorder=2
+
+
+Composer page
+http://www.arkivmusic.com/classical/Name/Claude-Debussy/Composer/2887-1
+
+Genre page [Orchestral] (drilldown from composer)
+http://www.arkivmusic.com/classical/Drilldown?name_id1=2887&name_role1=1&bcorder=1&genre=55
+
+Composition page [Fantaisie for Piano and Orchestra] (drilldown from genre)
+http://www.arkivmusic.com/classical/Drilldown?name_id1=2887&name_role1=1&genre=55&bcorder=19&comp_id=421105
+
+Composition recordings (drilldown from composition page)
+http://www.arkivmusic.com/classical/albumList.jsp?name_id1=2887&name_role1=1&comp_id=421105&genre=55&bcorder=195
+
+Genres (incomplete):
+
+95  2 Pianos/4 Hands
+27  Arias from Choral Works
+28  Arias from Operas
+70  Chamber Music
+43  Choral
+33  Operas
+55  Orchestral
+11  Orchestral or Piano
+130 Solo Piano
+134 Songs
+14  Stage Works
+
+==================
+Non-standard names
+==================
+
+Composers
+---------
+Alcock, John, Sr.
+Altmann, Wilhelm, Dr.
+Anderson, Thomas J., Jr.
+apple, =, A
+Ballard, Clint, Jr.
+Beckel, James A., Jr.
+Benoit, Paul, Dom
+Book, Anonymous, Bay P.
+Book, Anonymous, W. L.
+Booker, Jr., Charles L.
+Braham, John & Dixey, Henry E.
+Breviary, Anonymous, S.
+Brewster, W.H., Rev.
+Brown, Dane, Jr.
+Brown, Oscar, Jr.
+Brown, Walter & McShann, Jay
+Brown,, Uzee, Jr.
+Burgess, Henry, Jr.
+Cardoso, Manuel, Frei
+Clark, Mattie Moss, Dr.
+Codex, Anonymous, T.
+Connick, Harry, Jr.
+Cordiforme, Anonymous, C.
+de Dia, Beatriz, Comtessa
+de Kinkelder, D/Rocha, E
+De la Pierre, Paul, Jr.
+De la Pierre, Paul, Sr.
+de Musica, Anonymous, C.
+Dexter, Dave, Jr.
+Domingo, Placido, Jr.
+Dunn, Vivian, Sir
+Fahrbach, Philipp, Jr.
+Fahrbach, Philipp, Sr.
+Gold, Bert, Cpl.
+Hagenbuch,, Robert A., Jr
+Hammond, Thomas, Jr.
+Henderson, Luther, Jr.
+Herzog, Arthur, Jr.
+Hopla, R. Wayne, Capt.
+Hymnorum, Anonymous, F. s
+Ives, Elam, Jr.
+Kahn, Gus / Donaldson, Wa
+Keyrouz, Marie, Sister
+Ledger, Philip, Sir
+Linley, Thomas, Sr.
+Logy, Anton de, Comte
+Macfarren, George, Sir
+Mackerras, Charles, Sir
+Mageau, Mary, Sister
+Manuscript, Anonymous, T.
+McGuire, Jim [comp, gtr]
+Milburn, Dwayne, Capt.
+Moltke, Cuno von, Count
+Mure, William, Sir
+Nonnberg, Anonymous, S.
+Ouseley, F.A. Gore, Sir
+Ottelio, Anonymous, C.
+Ouseley, F.A. Gore, Sir
+Owen, Richard, Sr.
+Owens, Ulysses, Jr.
+Parker, Ray, Jr.
+Pitts, William S., Dr.
+Puccini, Giacomo, Sr.
+Reading, John, Sr.
+Ronald, Landon, Sir
+Sadler, Barry, Sgt.
+Sargent, Malcolm, Sir
+Smyth, Ethel, Dame
+Tablature, Anonymous, G.
+Tablature, Anonymous, W.
+Tew, Christopher, C.
+Vardell, Charles G., Jr.
+Webbe, Samuel, Jr.
+White, Donald, H.
+Willcocks, David, Sir
+Wolff, Sebastian, Fr.
+Work, John Wesley, Jr.
+Zellbell, Ferdinand, Jr.
+Zellbell, Ferdinand, Sr.
+
+Ensembles
+---------
+Buzzola Conservatory of Music, Adria, Instrumental
+Frescobaldi Conservatory of Music, Ferrara, Instru
+National Symphony, Washington, D. C.
+National Symphony, Washington, D. C.
+Pamina Trio (Violin, Clarinet, Piano)
+
+Performers
+----------
+Chi, Yunhong [Vocals, Clarinet, Triangle]
+Domingo, Placido, Jr.
+Edmondson, Clare Marika [Harp, Vocals, Arranger]
+Gonzales, Quintin [Cuatro, Maracas, Claves, Guitar]
+Harmon, Huia [Vocals, Flute, Mouth Percussion]
+Heaney, Paul [Banjo, Guitar, Bass Guitar]
+Janeanne Houston, soprano, Robert Jorgensen, piano
+Jennifer Dalmas, Eugene Raychev, Burcu Tunca, Rob Eisenberg
+Laufer, Gabriel [Percussion, Timpani, Vibraphone]
+Little, Elizabeth [Viola, Bass Viol, Strings, Viol]
+
+Newman, Mary Jane [Conductor, Organ, Harpsichord]
+Ross, Michel [Piano, Percussion, Drums]
+Sommer, Christoph [Lute, Theorbo, Baroque Guitar]
+Tanaka, Shiori [Marimba, Percussion, Arranger]
+Yury Martynov [Piano, Fortepiano, Harpsichord, Organ]

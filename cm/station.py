@@ -43,19 +43,19 @@ ConfigKey      = LOV(['URL_FMT',
                       'FETCH_INTERVAL',
                       'PARSER_CLS',
                       'SYND_LEVEL'], 'lower')
-REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
-                      ConfigKey.DATE_FMT,
-                      ConfigKey.TIMEZONE,
-                      ConfigKey.PLAYLIST_EXT,
-                      ConfigKey.PARSER_CLS])
+REQUIRED_ATTRS = {ConfigKey.URL_FMT,
+                  ConfigKey.DATE_FMT,
+                  ConfigKey.TIMEZONE,
+                  ConfigKey.PLAYLIST_EXT,
+                  ConfigKey.PARSER_CLS}
 
 # the following correspond to hardwired Station member variables
-INFO_KEYS      = set(['name',
-                      'status',
-                      'config',
-                      'state'])
+INFO_KEYS      = {'name',
+                  'status',
+                  'config',
+                  'state'}
 # if any of the info keys should not be dumped to log file
-NOPRINT_KEYS   = set([])
+NOPRINT_KEYS   = set()
 
 # local module LOVs
 Status         = LOV(['NEW',

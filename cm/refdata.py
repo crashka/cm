@@ -20,8 +20,9 @@ import logging
 from bs4 import BeautifulSoup
 import requests
 
-from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT
+from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER
 from utils import LOV, prettyprint, strtype, collecttype
+from musiclib import normalize_name
 
 #####################
 # core/config stuff #
@@ -35,18 +36,21 @@ REFDATA      = cfg.config('refdata')
 ##############################
 
 ConfigKey      = LOV(['URL_FMT',
+                      'CHARSET',
                       'CATEGORIES',
                       'HTTP_HEADERS',
                       'FETCH_INTERVAL'], 'lower')
-REQUIRED_ATTRS = set([ConfigKey.URL_FMT,
-                      ConfigKey.CATEGORIES])
+REQUIRED_ATTRS = {ConfigKey.URL_FMT,
+                  ConfigKey.CATEGORIES}
 
 # the following correspond to hardwired RefData member variables
-INFO_KEYS      = set(['name',
-                      'status',
-                      'config',
-                      'state',
-                      'categories'])
+INFO_KEYS      = {'name',
+                  'status',
+                  'config',
+                  'state',
+                  'categories'}
+# if any of the info keys should not be dumped to log file
+NOPRINT_KEYS   = {'categories'}
 
 # local module LOVs
 Status         = LOV(['NEW',
@@ -94,6 +98,9 @@ class RefData(object):
         self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
         if not self.tokens:
             raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
+        self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
+        self.charset = self.config.get(ConfigKey.CHARSET)
+        log.debug("HTML parser: %s, charset: %s" % (self.html_parser, self.charset))
 
         # these are the directories/files for the current refdata source
         self.refdata_dir       = os.path.join(BASE_DIR, 'refdata', self.name)
@@ -134,7 +141,7 @@ class RefData(object):
         """
         with open(self.refdata_info_file, 'w') as f:
             json.dump(self.refdata_info(), f, indent=2)
-        log.debug("Storing state for %s\n%s" % (self.name, prettyprint(self.refdata_info(), noprint=True)))
+        log.debug("Storing state for %s\n%s" % (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def load_state(self, force = False):
         """Loads refdata info (canonical fields) from refdata_info.json file
@@ -147,7 +154,7 @@ class RefData(object):
                     refdata_info = json.load(f)
                 self.state.update(refdata_info.get('state', {}))
                 self.categories.update(refdata_info.get('categories', {}))
-        log.debug("Loading state for %s\n%s" % (self.name, prettyprint(self.refdata_info(), noprint=True)))
+        log.debug("Loading state for %s\n%s" % (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def build_url(self, cat, key):
         """Builds category data URL based on url_fmt, which is a required attribute in the refdata info
@@ -294,8 +301,8 @@ class RefData(object):
             for key in keys:
                 catdata_name = self.catdata_name(cat, key)
                 catdata_file = self.catdata_file(cat, key)
-                with open(catdata_file) as f:
-                    soup = BeautifulSoup(f, "lxml")
+                with open(catdata_file, encoding=self.charset) as f:
+                    soup = BeautifulSoup(f, self.html_parser)
 
                 holder = soup.find('div', id="namelist_holder")
                 chunk = holder.find('div', id="letterchunk-1")
@@ -307,19 +314,107 @@ class RefData(object):
         """
         """
         for item in chunk.ul('li', recursive=False):
-            addl_role = None
             name = item.a.string.strip()
             href = item.a['href']
-            if name.count(',') == 1:
-                last, first = name.split(',')
-                m = re.match(r'(.+) \[(.*)\]$', first)
+            addl_ref = None
+            m = re.fullmatch(r'(.+) \[(.*)\]', name)
+            if m:
+                name = m.group(1)
+                addl_ref = m.group(2)
+            """
+            parts = name.split(', ')
+            # don't try and do too much here (i.e. single-comma case as well), instead handle
+            # outliers below (at the risk of unstreamlining)
+            if len(parts) > 2:
+                parts_set = set(parts)
+                hnr = parts_set & HONORIFICS
+                sfx = parts_set & SUFFIXES
+                cdx = parts_set & CODEX_LIST
+                ano = parts_set & ANONYMOUS
+
+                if hnr:
+                    honor = hnr.pop()
+                    parts.remove(honor)
+                    alt_names.append(', '.join(parts))
+                    if hnr:
+                        log.warning("Don't know how to handle multiple honorifics in \"%s\"" % (name))
+                if sfx:
+                    suffix = sfx.pop()
+                    suffix_sep = ', '
+                    parts.remove(suffix)
+                    # PONDER: should we add this???
+                    #alt_names.append(' '.join(parts))
+                    if sfx:
+                        log.warning("Don't know how to handle multiple suffixes in \"%s\"" % (name))
+                if cdx:
+                    codex = cdx.pop()
+                    parts.remove(codex)
+                    if hnr:
+                        log.warning("Don't know how to handle multiple codexes in \"%s\"" % (name))
+                if ano:
+                    anon = ano.pop()
+                    parts.remove(anon)
+                    if ano:
+                        log.warning("Don't know how to handle multiple anons in \"%s\"" % (name))
+            if not suffix:
+                if parts[-1] in SUFFIXES:
+                    # special case for malformed input (e.g. "First Last, Jr.", where listing by
+                    # last name is expected)
+                    suffix = parts.pop(-1)
+                    suffix_sep = ', '
+                else:
+                    # note, this pattern is overly-generic for the separator (given parsing above),
+                    # but leave this way, since it conveys the larger intent
+                    pattern = r'(.+)(,? )(%s)' % ('|'.join({s.replace('.', r'\.') for s in SUFFIXES}))
+                    m = re.fullmatch(pattern, parts[-1])
+                    if m:
+                        parts[-1]  = m.group(1)
+                        suffix_sep = m.group(2)
+                        suffix     = m.group(3)
+            if parts[0] in ANONYMOUS:
+                assert not ano
+                if len(parts) > 1:
+                    parts[0] += ','
+                    alt_names.append(' '.join(parts[1:]))
+            else:
+                # REVISIT: this is kind of brash, should really validate this is what we want
+                # in all cases!!!
+                parts.reverse()
+            # TODO: check for logical inconsistencies (soft mutual exlusion)!!!
+            if honor:
+                parts.insert(0, honor)
+            if suffix:
+                parts[-1] += suffix_sep + suffix
+            if codex:
+                parts.insert(0, codex)
+            if anon:
+                parts.insert(0, anon + ',')
+            ent_name = ' '.join(parts)
+            if not honor:
+                pattern = r"(%s) (.+)" % ('|'.join(HONORIFICS))
+                m = re.fullmatch(pattern, ent_name)
                 if m:
-                    first = m.group(1)
-                    addl_role = m.group(2)
-                name = "%s %s" % (first.strip(), last.strip())
+                    honor = m.group(1)
+                    alt_names.append(m.group(2))
+            while len(parts) > 2:
+                parts.pop(0)
+                alt_names.append(' '.join(parts))
+            """
+            ent_name, alt_names = normalize_name(name)
+            href = re.sub(r';jsessionid=\w+', '', href)
+            m = re.search(r'\((\d+)\)', item.contents[1])
+            recs = int(m.group(1)) if m else 0
+
             log.debug("REFLIB: %s \"%s\" [%s]" % (cat, name, href))
-            if addl_role:
-                log.debug("REFLIB: %s \"%s\" [%s]" % (addl_role, name, href))
+            if ent_name:
+                log.debug("        entity name: %s" % (ent_name))
+            if alt_names:
+                log.debug("        alt names: %s" % (alt_names))
+            if addl_ref:
+                log.debug("        addl ref: %s" % (addl_ref))
+            if recs:
+                log.debug("        recordings: %d" % (recs))
+
 
 #####################
 # command line tool #
@@ -331,7 +426,7 @@ import click
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) refdata sources, and their categories")
 @click.option('--create',    'cmd', flag_value='create', help="Create new refdata source (skip if refdata source exists)")
 @click.option('--fetch',     'cmd', flag_value='fetch', help="Fetch data by category for refdata source")
-@click.option('--parse',     'cmd', flag_value='parse', help="Parse refdata and write to reflib")
+@click.option('--parse',     'cmd', flag_value='parse', help="Parse refdata and write to entity_ref")
 @click.option('--cat',       help="Category (or comma-separated list of categories) to fetch")
 @click.option('--key',       help="Category-dependent key/index for category data (e.g. first letter or name)")
 @click.option('--force',     is_flag=True, help="Overwrite existing category data (otherwise skip over), applies only to --fetch")

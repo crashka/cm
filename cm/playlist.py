@@ -14,7 +14,8 @@ from urllib.parse import urlsplit, parse_qs
 import pytz
 from bs4 import BeautifulSoup
 
-from core import cfg, env, log, dbg_hand
+from core import cfg, env, log, dbg_hand, DFLT_HTML_PARSER
+
 from musiclib import (MusicLib, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
                       parse_conductor_str, parse_performer_str, parse_ensemble_str)
 from datasci import HashSeq
@@ -25,19 +26,17 @@ from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, dat
 # common constants/functions #
 ##############################
 
-INFO_KEYS    = set(['sta_name',
-                    'datestr',
-                    'name',
-                    'status',
-                    'file',
-                    'parsed_info'])
-NOPRINT_KEYS = set(['parsed_info'])
+INFO_KEYS    = {'sta_name',
+                'datestr',
+                'name',
+                'status',
+                'file',
+                'parsed_info'}
+NOPRINT_KEYS = {'parsed_info'}
 
 # Lists of Values
 PLStatus = LOV(['NEW',
                 'PARSED'], 'lower')
-
-DFLT_HTML_PARSER = 'html.parser'
 
 ##################
 # Playlist class #

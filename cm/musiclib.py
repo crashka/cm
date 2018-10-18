@@ -40,20 +40,21 @@ def get_entity(entity):
     return handle
 
 user_keys = {
-    'person'        : set(['name']),
-    'performer'     : set(['person_id', 'role']),
-    'ensemble'      : set(['name']),
-    'work'          : set(['composer_id', 'name']),
-    'recording'     : set(['label', 'catalog_no']),
-    'recording_alt' : set(['name', 'label']),
-    'station'       : set(['name']),
-    'program'       : set(['name', 'host_name']),
-    'program_play'  : set(['station_id', 'prog_play_date', 'prog_play_start', 'program_id']),
-    'play'          : set(['station_id', 'play_date', 'play_start', 'work_id']),
-    'play_performer': set(['play_id', 'performer_id']),
-    'play_ensemble' : set(['play_id', 'ensemble_id']),
-    'play_seq'      : set(['hash_level', 'hash_type', 'play_id']),
-    'entity_string' : set(['entity_str', 'source_fld', 'station_id'])
+    'person'        : {'name'},
+    'performer'     : {'person_id', 'role'},
+    'ensemble'      : {'name'},
+    'work'          : {'composer_id', 'name'},
+    'recording'     : {'label', 'catalog_no'},
+    'recording_alt' : {'name', 'label'},
+    'station'       : {'name'},
+    'program'       : {'name', 'host_name'},
+    'program_play'  : {'station_id', 'prog_play_date', 'prog_play_start', 'program_id'},
+    'play'          : {'station_id', 'play_date', 'play_start', 'work_id'},
+    'play_performer': {'play_id', 'performer_id'},
+    'play_ensemble' : {'play_id', 'ensemble_id'},
+    'play_seq'      : {'hash_level', 'hash_type', 'play_id'},
+    'entity_string' : {'entity_str', 'source_fld', 'station_id'},
+    'entity_ref'    : {'entity_ref', 'entity_type', 'ref_source'}
 }
 
 child_recs = {
@@ -156,13 +157,13 @@ class ml_dict(UserDict):
 # Parsing logic #
 #################
 
-COND_STRS = set(['conductor',
-                 'cond.',
-                 'cond'])
+COND_STRS = {'conductor',
+             'cond.',
+             'cond'}
 
 # HACK: list of "magic" ensemble names to skip!!!
-SKIP_ENS = set(['ensemble',
-                'soloists'])
+SKIP_ENS = {'ensemble',
+            'soloists'}
 
 SUFFIX_TOKEN = '<<SUFFIX>>'
 
@@ -327,12 +328,13 @@ class ParseCtx(object):
         # step 6 - "arr.", "arranged", "orch.", "orchestrated", etc. (for composer)
 
         # step 7 - remove conductor role suffix ("cond.", "conductor", etc.)
-        m = re.fullmatch(r'(.+), ([\w\./ ]+)', person_str)
-        if m:
-            if m.group(2).lower() in COND_STRS:
-                log.debug("PPS_RULE 5 - removing role suffix \"%s\" for \"%s\"" %
-                          (m.group(2), person_str))
-                person_str = m.group(1)
+        if flags & ParseFlag.CONDUCTOR:
+            m = re.fullmatch(r'(.+), ([\w\./ ]+)', person_str)
+            if m:
+                if m.group(2).lower() in COND_STRS:
+                    log.debug("PPS_RULE 5 - removing role suffix \"%s\" for \"%s\"" %
+                              (m.group(2), person_str))
+                    person_str = m.group(1)
 
         return person_str
 
@@ -637,6 +639,135 @@ def parse_ensemble_str(ens_str, flags = 0):
 
     return ret_data
 
+###############################
+# String/entity normalization #
+###############################
+
+HONORIFICS = {'Frei', 'Sir', 'Count', 'Comtessa', 'Compte',
+              'Sister', 'Dame', 'Capt.', 'Cpl.', 'Rev.', 'Dr.'}
+SUFFIXES   = {'Jr.', 'Sr.', 'Jr', 'Sr', 'II', 'III', 'IV'}
+CODEX_LIST = {'Codex','Tablature', 'Manuscript', 'Book', 'Breviary',
+              'Hymnorum', 'Cordiforme', 'Nonnberg', 'Ottelio'}
+ANONYMOUS  = {'Anonymous', 'Unknown'}
+
+def normalize_name(name, flags = 0):
+    """Normalize a western-style name
+
+    ATTENTION: currently expecting input to be "Last, First", though this handles variations
+    on placement of honorifics and suffixes, as well as some common malformed inputs
+
+    :param name_str:
+    :param flags:
+    :return: tuple of (normalized_name [string], aliases [set of strings])
+    """
+    orig_name  = name
+    normalized = None
+    aliases    = set()
+    honor      = None
+    suffix     = None
+    suffix_sep = None
+    codex      = None
+    anon       = None
+
+    # collapse whitespace and punctuation, if needed
+    if re.search(r'\s{2}', name):
+        name = re.sub(r'\s{2,}', ' ', name)
+    if re.search(r',{2}', name):
+        name = re.sub(r',{2,}', ',', name)
+    name = name.strip(' ,')
+
+    parts = name.split(', ')
+    # don't try and do too much here (i.e. single-comma case as well), instead handle
+    # outliers below (at the risk of unstreamlining)
+    if len(parts) > 2:
+        parts_set = set(parts)
+        hnr = parts_set & HONORIFICS
+        sfx = parts_set & SUFFIXES
+        cdx = parts_set & CODEX_LIST
+        ano = parts_set & ANONYMOUS
+
+        if hnr:
+            honor = hnr.pop()
+            parts.remove(honor)
+            aliases.add(', '.join(parts))
+            if hnr:
+                log.warning("Don't know how to handle multiple honorifics in \"%s\"" % (name))
+        if sfx:
+            suffix = sfx.pop()
+            suffix_sep = ', '
+            parts.remove(suffix)
+            # PONDER: should we add this???
+            #aliases.add(' '.join(parts))
+            if sfx:
+                log.warning("Don't know how to handle multiple suffixes in \"%s\"" % (name))
+        if cdx:
+            codex = cdx.pop()
+            parts.remove(codex)
+            if hnr:
+                log.warning("Don't know how to handle multiple codexes in \"%s\"" % (name))
+        if ano:
+            anon = ano.pop()
+            parts.remove(anon)
+            if ano:
+                log.warning("Don't know how to handle multiple anons in \"%s\"" % (name))
+    if not suffix:
+        if parts[-1] in SUFFIXES:
+            # special case for malformed input (e.g. "First Last, Jr.", where listing by
+            # last name is expected)
+            suffix = parts.pop(-1)
+            suffix_sep = ', '
+        else:
+            # note, this pattern is overly-generic for the separator (given parsing above),
+            # but leave this way, since it conveys the larger intent
+            pattern = r'(.+)(,? )(%s)' % ('|'.join({s.replace('.', r'\.') for s in SUFFIXES}))
+            m = re.fullmatch(pattern, parts[-1])
+            if m:
+                parts[-1]  = m.group(1)
+                suffix_sep = m.group(2)
+                suffix     = m.group(3)
+    if parts[0] in ANONYMOUS:
+        assert not anon
+        # NOTE: just do this here (rather than "anon = parts.pop(0)", etc.), to keep things
+        # simple (relatively speaking)
+        if len(parts) > 1:
+            parts[0] += ','
+            aliases.add(' '.join(parts[1:]))
+    else:
+        # REVISIT: this is kind of brash, should really validate this is what we want
+        # in all cases!!!
+        parts.reverse()
+        if parts[0] in ANONYMOUS:
+            assert not anon
+            # see NOTE, above (also applies here)
+            if len(parts) > 1:
+                parts[0] += ','
+                aliases.add(' '.join(parts[1:]))
+    # TODO: check for logical inconsistencies (soft mutual exlusion)!!!
+    if honor:
+        parts.insert(0, honor)
+    if suffix:
+        parts[-1] += suffix_sep + suffix
+    if codex:
+        parts.insert(0, codex)
+    if anon:
+        parts.insert(0, anon + ',')
+    normalized = ' '.join(parts)
+    if not honor:
+        pattern = r"(%s) (.+)" % ('|'.join(HONORIFICS))
+        m = re.fullmatch(pattern, normalized)
+        if m:
+            honor = m.group(1)
+            aliases.add(m.group(2))
+    while len(parts) > 2:
+        parts.pop(0)
+        aliases.add(' '.join(parts))
+    # REVISIT: not sure we really want to do this (especially if/when we know it comes in
+    # malfored)--perhaps better left to caller's discretion (modulo slight fixup, above)!!!
+    #if normalized != name:
+    #    aliases.add(name)
+
+    return (normalized, aliases)
+
 ##################
 # MusicEnt class #
 ##################
@@ -648,7 +779,7 @@ class MusicEnt(object):
         """
         self.name     = entity
         self.tab      = db.get_table(self.name)
-        self.cols     = set([c.name for c in self.tab.columns])
+        self.cols     = {c.name for c in self.tab.columns}
         self.last_sel = None
         self.last_ins = None
         self.last_upd = None
@@ -1084,6 +1215,7 @@ class MusicLib(object):
         """
         :return: list of key-value dict comprehensions for inserted entity_string fields
         """
+        ### ATTENTION: NOT COMPLETED, NOT WORKING!!! ###
         ctx = playlist.parse_ctx
         ret = []
         es = get_entity('entity_string')
@@ -1102,6 +1234,36 @@ class MusicLib(object):
                 try:
                     ins_res = es.insert(ent_str_data)
                     es_row = es.inserted_row(ins_res)
+                    ret.append({k: v for k, v in es_row.items()})
+                except IntegrityError:
+                    log.trace("Duplicate entity_string \"%s\" [%s] for station ID %d" %
+                              (entity_str, entity_src, ctx['station_id']))
+
+        return ret
+
+    @staticmethod
+    def insert_entity_ref(refsource, data):
+        """
+        :return: key-value dict comprehension for inserted play fields
+        """
+        ctx = playlist.parse_ctx
+        ret = []
+        er = get_entity('entity_ref')
+        for entity_src, src_data in data['entity_ref'].items():
+            for entity_ref in src_data:
+                if not (entity_ref and re.search('\w', entity_ref)):
+                    continue
+                ent_ref_data = {
+                    'entity_ref'  : entity_ref,
+                    'source_fld'  : entity_src,
+                    'station_id'  : ctx['station_id'],
+                    'prog_play_id': ctx['prog_play_id'],
+                    'play_id'     : ctx['play_id']
+                }
+
+                try:
+                    ins_res = er.insert(ent_ref_data)
+                    es_row = er.inserted_row(ins_res)
                     ret.append({k: v for k, v in es_row.items()})
                 except IntegrityError:
                     log.trace("Duplicate entity_string \"%s\" [%s] for station ID %d" %

@@ -28,6 +28,7 @@ Entity = LOV([
     'PLAY_SEQ',
     'PLAY_SEQ_MATCH',
     'ENTITY_STRING',
+    'ENTITY_REF',
     # administrative
     'TO_DO_LIST'], 'lower')
 
@@ -289,6 +290,19 @@ def load_schema(meta):
 
             # constraints/indexes
             UniqueConstraint('entity_str', 'source_fld', 'station_id')
+        ),
+        Entity.ENTITY_REF: Table('entity_ref', meta,
+            Column('id',                Integer,     primary_key=True),
+            Column('entity_ref',        Text,        nullable=False),
+            Column('entity_type',       Text,        nullable=False),
+            Column('ref_source',        Text,        nullable=True),
+            Column('addl_ref',          Text,        nullable=True),
+            Column('source_data',       JSONB),
+            Column('mstr_entity_name',  Text),       # TEMP!
+            Column('mstr_entity_id',    Integer),    # LATER!
+
+            # constraints/indexes
+            UniqueConstraint('entity_ref', 'entity_type', 'ref_source')
         ),
         Entity.TO_DO_LIST: Table('to_do_list', meta,
             Column('id',                Integer,     primary_key=True),
