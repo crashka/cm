@@ -17,7 +17,7 @@ from sqlalchemy.exc import *
 
 from core import cfg, env, log, dbg_hand
 from database import DatabaseCtx
-from utils import LOV, prettyprint, strtype, collecttype, mappingtype
+from utils import LOV, prettyprint, strtype, collecttype, mappingtype, str_similarity
 
 ##############################
 # common constants/functions #
@@ -176,6 +176,11 @@ BRACKETS = {'"': '"',
             '[': ']'}
 
 DELIMS = {}
+
+NAME_RE   = r'[\p{L}\.,\' -]+'
+ROLE_RE   = r'[\p{L}\.\'\(\)\/ -]+'
+ROLE_RE2  = r'[\p{L}\.\'\(\)\/\, -]+'  # comma added for bracketed case
+NAME_EXCL = r'[^\p{L}\.,\' -]'
 
 ParseFlag = LOV({'COMPOSER' : 0x0001,
                  'CONDUCTOR': 0x0002,
@@ -369,33 +374,33 @@ class ParseCtx(object):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.warn("Empty composer name \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Empty composer name \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         elif not re.match(r'\w', name):
-            log.warn("Bad leading character in composer \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Bad leading character in composer \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_composer': True}
 
     def mkwork(self, name, orig_str = None):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.warn("Empty work name \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Empty work name \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         elif not re.match(r'\w', name):
-            log.warn("Bad leading character in work \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Bad leading character in work \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None}
 
     def mkcond(self, name, orig_str = None):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.warn("Empty conductor name \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Empty conductor name \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         elif not re.match(r'\w', name):
-            log.warn("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_conductor': True}
 
     def mkperf(self, name, role, orig_str = None):
@@ -404,11 +409,11 @@ class ParseCtx(object):
         if role:
             role = role.strip()
         if not name:
-            log.warn("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
-                     (name, role, orig_str))
+            log.outlier("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
+                        (name, role, orig_str))
         elif not re.match(r'\w', name):
-            log.warn("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
-                     (name, role, orig_str))
+            log.outlier("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
+                        (name, role, orig_str))
         perf_person = {'name': name, 'raw_name': orig_str if name != orig_str else None}
         if role not in COND_STRS:
             perf_person['is_performer'] = True
@@ -418,11 +423,11 @@ class ParseCtx(object):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.warn("Empty ensemble name \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Empty ensemble name \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         elif not re.match(r'\w', name):
-            log.warn("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
-                     (name, orig_str))
+            log.outlier("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
+                        (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None}
 
 #+--------------------+
@@ -643,6 +648,8 @@ def parse_ensemble_str(ens_str, flags = 0):
 # String/entity normalization #
 ###############################
 
+NormFlag = LOV({'INCL_SELF' : 0x0001})
+
 HONORIFICS = {'Frei', 'Sir', 'Count', 'Comtessa', 'Compte',
               'Sister', 'Dame', 'Capt.', 'Cpl.', 'Rev.', 'Dr.'}
 SUFFIXES   = {'Jr.', 'Sr.', 'Jr', 'Sr', 'II', 'III', 'IV'}
@@ -658,7 +665,7 @@ def normalize_name(name, flags = 0):
 
     :param name_str:
     :param flags:
-    :return: tuple of (normalized_name [string], aliases [set of strings])
+    :return: tuple of (normalized_name [str], aliases [set of str], raw_name [str])
     """
     orig_name  = name
     normalized = None
@@ -669,12 +676,14 @@ def normalize_name(name, flags = 0):
     codex      = None
     anon       = None
 
-    # collapse whitespace and punctuation, if needed
+    # collapse/fix whitespace and punctuation, if needed
     if re.search(r'\s{2}', name):
         name = re.sub(r'\s{2,}', ' ', name)
     if re.search(r',{2}', name):
         name = re.sub(r',{2,}', ',', name)
-    name = name.strip(' ,')
+    if re.search(r',\S', name):
+        name = re.sub(r',(\S)', r', \1', name)
+    name = name.strip(' ,;')
 
     parts = name.split(', ')
     # don't try and do too much here (i.e. single-comma case as well), instead handle
@@ -752,6 +761,22 @@ def normalize_name(name, flags = 0):
     if anon:
         parts.insert(0, anon + ',')
     normalized = ' '.join(parts)
+
+    # build aliases for nicknames (capture delimiter to distinguish matching pattern)
+    pattern1 = r'(%s) (\")(%s)\" (%s)' % (NAME_RE, NAME_RE, NAME_RE)
+    pattern2 = r'(%s) (\()(%s)\) (%s)' % (NAME_RE, NAME_RE, NAME_RE)
+    m = re.fullmatch(pattern1, normalized) or re.fullmatch(pattern2, normalized)
+    if m:
+        aliases.add("%s %s" % (m.group(1), m.group(4)))
+        aliases.add("%s %s" % (m.group(3), m.group(4)))
+        # add a quoted version for either case (don't worry about a paren'ed version)
+        aliases.add("\"%s\" %s" % (m.group(3), m.group(4)))
+        if m.group(2) == '(':
+            aliases.add("%s \"%s\" %s" % (m.group(1), m.group(3), m.group(4)))
+    elif re.search(NAME_EXCL, normalized):
+        log.outlier("Non-standard char(s) in normalized name \"%s\" (raw: \"%s\")" %
+                    (normalized, name))
+
     if not honor:
         pattern = r"(%s) (.+)" % ('|'.join(HONORIFICS))
         m = re.fullmatch(pattern, normalized)
@@ -763,10 +788,10 @@ def normalize_name(name, flags = 0):
         aliases.add(' '.join(parts))
     # REVISIT: not sure we really want to do this (especially if/when we know it comes in
     # malfored)--perhaps better left to caller's discretion (modulo slight fixup, above)!!!
-    #if normalized != name:
-    #    aliases.add(name)
+    if normalized != name and flags & NormFlag.INCL_SELF:
+        aliases.add(name)
 
-    return (normalized, aliases)
+    return (normalized, aliases, name)
 
 ##################
 # MusicEnt class #
@@ -1215,7 +1240,6 @@ class MusicLib(object):
         """
         :return: list of key-value dict comprehensions for inserted entity_string fields
         """
-        ### ATTENTION: NOT COMPLETED, NOT WORKING!!! ###
         ctx = playlist.parse_ctx
         ret = []
         es = get_entity('entity_string')
@@ -1242,32 +1266,43 @@ class MusicLib(object):
         return ret
 
     @staticmethod
-    def insert_entity_ref(refsource, data):
+    def insert_entity_ref(refdata, ent_data, ent_refs, raw_name = None):
         """
-        :return: key-value dict comprehension for inserted play fields
+        :return: key-value dict comprehension for inserted entity_ref fields
         """
-        ctx = playlist.parse_ctx
+        #ctx = refdata.parse_ctx
+        ent_name = ent_data['entity_ref']
+        ent_type = ent_data['entity_type']
+        ref_source = ent_data['ref_source']
         ret = []
         er = get_entity('entity_ref')
-        for entity_src, src_data in data['entity_ref'].items():
-            for entity_ref in src_data:
-                if not (entity_ref and re.search('\w', entity_ref)):
-                    continue
-                ent_ref_data = {
-                    'entity_ref'  : entity_ref,
-                    'source_fld'  : entity_src,
-                    'station_id'  : ctx['station_id'],
-                    'prog_play_id': ctx['prog_play_id'],
-                    'play_id'     : ctx['play_id']
-                }
 
-                try:
-                    ins_res = er.insert(ent_ref_data)
-                    es_row = er.inserted_row(ins_res)
-                    ret.append({k: v for k, v in es_row.items()})
-                except IntegrityError:
-                    log.trace("Duplicate entity_string \"%s\" [%s] for station ID %d" %
-                              (entity_str, entity_src, ctx['station_id']))
+        try:
+            ins_res = er.insert(ent_data)
+            es_row = er.inserted_row(ins_res)
+            ret.append({k: v for k, v in es_row.items()})
+        except IntegrityError:
+            log.trace("Duplicate entity name \"%s\" [%s] for refdata \"%s\"" %
+                      (ent_name, ent_type, ref_source))
+
+        ent_ref_data = ent_data.copy()
+        del ent_ref_data['is_entity']
+        for ref_str in ent_refs:
+            ent_ref_data['entity_ref'] = ref_str,
+            ent_ref_data['ref_strength'] = round(str_similarity(ref_str, ent_name) * 100.0)
+            # FIX: see comment in caller (refdata.py)!!!
+            if raw_name and ref_str == raw_name:
+                ent_ref_data['is_raw'] = True
+            elif ent_ref_data.get('is_raw'):
+                del ent_ref_data['is_raw']
+
+            try:
+                ins_res = er.insert(ent_ref_data)
+                es_row = er.inserted_row(ins_res)
+                ret.append({k: v for k, v in es_row.items()})
+            except IntegrityError:
+                log.trace("Duplicate entity_ref \"%s\" [%s] for refdata \"%s\"" %
+                          (ref_str, ent_type, ref_source))
 
         return ret
 

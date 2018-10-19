@@ -390,7 +390,7 @@ class Station(object):
                     f.write(playlist_text)
                 status = PlaylistStatus.OK
                 if self.playlist_min and len(playlist_text) < self.playlist_min:
-                    log.warning("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_text)))
+                    log.info("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_text)))
                     status = PlaylistStatus.NOTOK
                 self.playlists[playlist_name] = {
                     PlaylistAttr.FILE   : os.path.relpath(playlist_file, self.station_dir),

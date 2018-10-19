@@ -8,6 +8,7 @@ import json
 import datetime as dt
 
 import yaml
+import Levenshtein
 
 #####################
 # config management #
@@ -186,6 +187,14 @@ def truthy(val):
     else:
         return bool(val)
 
+def str_similarity(a, b):
+    """
+    :return: float (ratio) in the range [0, 1]
+    """
+    return Levenshtein.ratio(a, b)
+    #return SequenceMatcher(None, a, b).ratio()
+    #return SequenceMatcher(None, a, b).quick_ratio()
+
 def prettyprint(data, indent=4, noprint=False):
     """Nicer version of pprint (which is actually kind of ugly)
 
@@ -207,7 +216,7 @@ def prettyprint(data, indent=4, noprint=False):
 import logging
 
 TRACE = logging.DEBUG - 5
-OUTLIER = logging.WARNING
+OUTLIER = logging.WARNING + 5  # perhaps rename to "NOTICE"
 
 class MyLogger(logging.getLoggerClass()):
     def __init__(self, name, level=logging.NOTSET):

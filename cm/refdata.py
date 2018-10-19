@@ -10,7 +10,7 @@ in context/situ)
 """
 
 import os.path
-import re
+import regex as re
 import json
 import glob
 import datetime as dt
@@ -22,7 +22,7 @@ import requests
 
 from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER
 from utils import LOV, prettyprint, strtype, collecttype
-from musiclib import normalize_name
+from musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
 
 #####################
 # core/config stuff #
@@ -305,31 +305,75 @@ class RefData(object):
                     soup = BeautifulSoup(f, self.html_parser)
 
                 holder = soup.find('div', id="namelist_holder")
-                chunk = holder.find('div', id="letterchunk-1")
-                while chunk:
+                # note that "most-popular" may contain items not in the alphabetized letterchuck
+                # sections (e.g. due to leading non-alpha characters)--would be nice to discover
+                # a more complete index of some kind!
+                chunk = holder.find('div', id="most-popular")
+                if chunk:
                     self.parse_chunk(cat, chunk)
-                    chunk = chunk.find_next_sibling('div')
+                # this is probably the next div in most (if not all) cases, but let's just
+                # locate separately to be pedantic
+                chunk = holder.find('div', id="letterchunk-1")
+                if chunk:
+                    while chunk:
+                        self.parse_chunk(cat, chunk)
+                        chunk = chunk.find_next_sibling('div')
+                else:
+                    # items are contained directly in holder for sparse listings
+                    self.parse_chunk(cat, holder)
 
     def parse_chunk(self, cat, chunk):
         """
         """
         PERSON_CAT = {'composers', 'conductors', 'performers'}
+
         for item in chunk.ul('li', recursive=False):
             name      = item.a.string.strip()
             href      = item.a['href']
             ent_name  = None
+            ent_type  = cat.rstrip('s')
             addl_ref  = None
             alt_names = set()
+            raw_name  = None
 
-            m = re.fullmatch(r'(.+) \[(.*)\]', name)
-            if m:
-                name = m.group(1)
-                addl_ref = m.group(2)
+            # REVISIT: the original "raw" string is lost for these special cases--we should
+            # consider whether these are worth preserving or not (since they are presumably
+            # aberrations to begin with)!!!
+            if '[' in name:
+                # can be liberal in parsing here (compared to special case below)
+                m = re.fullmatch(r'(.+) \[(.*)\]', name)
+                if m:
+                    name = m.group(1)
+                    addl_ref = m.group(2)
+                if not m:
+                    # special case (for bad formatting somewhere upstream):
+                    #   "Keckler, Vocals] Joseph [Piano" -> "Keckler, Joseph [Piano/Vocals]"
+                    pattern = r'(%s), (%s)\] (%s) \[(%s)' % (NAME_RE, ROLE_RE, NAME_RE, ROLE_RE)
+                    m = re.fullmatch(pattern, name)
+                    if m:
+                        name = "%s, %s" % (m.group(1), m.group(3))
+                        addl_ref = "%s/%s" % (m.group(4), m.group(2))
+                if not m:
+                    # special case (for bad formatting somewhere upstream):
+                    #   "Bilan, Jr. [Xylophone] Ladislav" -> "Ladislav Bilan, Jr. [Xylophone]"
+                    pattern = r'(%s) \[(%s)\],? (%s)' % (NAME_RE, ROLE_RE2, NAME_RE)
+                    m = re.fullmatch(pattern, name)
+                    if m:
+                        name = "%s, %s" % (m.group(1), m.group(3))
+                        addl_ref = m.group(2)
+
+            if '&' in name:
+                # special case: "Jenkins, Gordon & His Orchestra" (just do a rough parse)
+                pattern = r'(%s), (%s) (& .+)' % (NAME_RE, NAME_RE)
+                m = re.fullmatch(pattern, name)
+                if m:
+                    name = "%s %s %s" % (m.group(2), m.group(1), m.group(3))
 
             if cat in PERSON_CAT:
-                ent_name, alt_names = normalize_name(name)
+                ent_name, alt_names, raw_name = normalize_name(name, NormFlag.INCL_SELF)
             else:
                 ent_name = name
+                raw_name = name
             href = re.sub(r';jsessionid=\w+', '', href)
             m = re.search(r'\((\d+)\)', item.contents[1])
             recs = int(m.group(1)) if m else 0
@@ -344,6 +388,21 @@ class RefData(object):
             if recs:
                 log.debug("        recordings: %d" % (recs))
 
+            ent_data = {'entity_ref'      : ent_name,
+                        'entity_type'     : ent_type,
+                        'ref_source'      : self.name,
+                        'addl_ref'        : addl_ref,
+                        'source_data'     : [str(c) for c in item.children],
+                        'is_entity'       : True,
+                        'mstr_entity_name': ent_name,
+                        'entity_strength' : recs,
+                        'ref_strength'    : 100}
+            # FIX: for now we're only using true and null as values for booleans, this is
+            # kind of stupid, but we need to be consistent across the entire database!!!
+            if raw_name and ent_name == raw_name:
+                ent_data['is_raw'] = True
+
+            er_recs = MusicLib.insert_entity_ref(self, ent_data, alt_names, raw_name)
 
 #####################
 # command line tool #

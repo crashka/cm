@@ -298,9 +298,13 @@ def load_schema(meta):
             Column('ref_source',        Text,        nullable=True),
             Column('addl_ref',          Text,        nullable=True),
             Column('source_data',       JSONB),
+            Column('is_raw',            Boolean),
             # REVISIT: master entities are stored in the same table, for now!!!
+            Column('is_entity',         Boolean),
             Column('mstr_entity_name',  Text),
             Column('mstr_entity_id',    Integer,     ForeignKey('entity_ref.id')),
+            Column('entity_strength',   Integer),    # experiemental, meaning TBD
+            Column('ref_strength',      Integer),    # experiemental, meaning TBD
 
             # constraints/indexes
             UniqueConstraint('entity_ref', 'entity_type', 'ref_source')
