@@ -493,6 +493,7 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
+* resolve issue with "." as person/ensemble name (WNED)
 * abstract entity_string parsing
    * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
@@ -509,6 +510,7 @@ To Do - Immediate/Active
 To Do - Bugs/Tweaks
 -------------------
 
+* handle HTTP status code correctly
 * figure out duplicate start time (different works) for plays (WWFM)
 * more normalization for person (if needed, after abstract entity parsing)
 * create backup files for ``station_info.json`` and ``playlists.json``

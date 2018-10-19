@@ -31,7 +31,9 @@ STATIONS     = cfg.config('stations')
 # common constants/functions #
 ##############################
 
-ConfigKey      = LOV(['URL_FMT',
+ConfigKey      = LOV(['URLS',
+                      'COND',
+                      'URL_FMT',
                       'DATE_FMT',
                       'DATE_FUNC',
                       'DATE_METH',
@@ -43,11 +45,19 @@ ConfigKey      = LOV(['URL_FMT',
                       'FETCH_INTERVAL',
                       'PARSER_CLS',
                       'SYND_LEVEL'], 'lower')
-REQUIRED_ATTRS = {ConfigKey.URL_FMT,
-                  ConfigKey.DATE_FMT,
-                  ConfigKey.TIMEZONE,
+REQD_CFG_ATTRS = {ConfigKey.TIMEZONE,
                   ConfigKey.PLAYLIST_EXT,
                   ConfigKey.PARSER_CLS}
+URL_ATTRS      = {ConfigKey.COND,
+                  ConfigKey.URL_FMT,
+                  ConfigKey.DATE_FMT,
+                  ConfigKey.DATE_FUNC,
+                  ConfigKey.DATE_METH}
+REQD_URL_ATTRS = {ConfigKey.COND,
+                  ConfigKey.URL_FMT,
+                  ConfigKey.DATE_FMT}
+
+DEFAULT_COND   = 'default'
 
 # the following correspond to hardwired Station member variables
 INFO_KEYS      = {'name',
@@ -132,25 +142,29 @@ class Station(object):
         self.status = Status.NEW
         self.config = STATION_BASE.copy()
         self.config.update(STATIONS[name])
-        for attr in REQUIRED_ATTRS:
-            if attr not in self.config:
-                raise RuntimeError("Required config attribute \"%s\" missing for \"%s\"" % (attr, name))
-
-        # extract tokens in url_fmt upfront
-        #self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
-        self.tokens = re.findall(r'(\<[\p{Lu}_]+\>)', self.url_fmt)
-        if not self.tokens:
-            raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
+        missing = REQD_CFG_ATTRS - self.config.keys()
+        if missing:
+            raise RuntimeError("Required config attribute(s) %s missing for \"%s\"" %
+                               (missing, name))
+        if not self.config.get(ConfigKey.URLS):
+            url_info = {k: self.config[k] for k in URL_ATTRS & self.config.keys()}
+            url_info[ConfigKey.COND] = DEFAULT_COND
+            self.urls = [url_info]
+        # IMPORTANT: from here on, we refer only to self.urls (not self.config[ConfigKey.URLS]),
+        # since it covers both multiple- and single- (i.e. default) URL configurations!!!
+        for url_info in self.urls:
+            url_missing = REQD_URL_ATTRS - url_info.keys()
+            if url_missing:
+                raise RuntimeError("Required URL attribute(s) %s missing for \"%s\"" %
+                                   (url_missing, name))
 
         self.station_dir       = os.path.join(BASE_DIR, 'stations', self.name)
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
         self.parser            = Parser.get(self)
-        # UGLY: it's not great that we are treating these attributes differently than REQUIRED_ATTRS
+        # UGLY: it's not great that we are treating these attributes differently than REQD_CFG_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
-        self.date_func         = self.config.get(ConfigKey.DATE_FUNC)
-        self.date_meth         = self.config.get(ConfigKey.DATE_METH)
         self.epoch             = self.config.get(ConfigKey.EPOCH)
         self.playlist_min      = self.config.get(ConfigKey.PLAYLIST_MIN)
         self.http_headers      = self.config.get(ConfigKey.HTTP_HEADERS, {})
@@ -211,36 +225,63 @@ class Station(object):
                 self.playlists.update(playlists)
         log.debug("Loading playlists for %s" % (self.name))
 
-    def build_date(self, date):
-        """Builds date string based on date_fmt, which is a required attribute in the station info
-        (applying either date_func or date_meth, if specified)
-
-        :param date: dt.date
-        :return: string
-        """
-        datestr = date2str(date, self.date_fmt)
-        if self.date_func:
-            # note that date_func needs to be in the module namespace (e.g. imported)
-            return globals()[self.date_func](datestr)
-        elif self.date_meth:
-            return getattr(datestr, self.date_meth)()
-        else:
-            return datestr
-
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
 
         :param date: dt.date
         :return: string
         """
-        # this is a magic variable name that matches a URL format token
-        date_str = self.build_date(date)
-        url = self.url_fmt
-        for token in self.tokens:
+        url_fmt   = None
+        tokens    = None
+        date_func = None
+        date_meth = None
+
+        tz = pytz.timezone(self.timezone)
+        today = dt.datetime.now(tz).date()
+
+        for url_info in self.urls:
+            cond = url_info[ConfigKey.COND]
+            if re.fullmatch(r'(?:\+|\-)\d+', cond):
+                cond_date = today + dt.timedelta(int(cond))
+                if cond_date < today and (date < cond_date or date >= today):
+                    continue
+                elif cond_date >= today and (date < today or date > cond_date):
+                    continue
+            elif cond == DEFAULT_COND:
+                if url_info is not self.urls[-1]:
+                    raise RuntimeError("Default condition must be specified last")
+            else:
+                raise RuntimeError("Condition \"%s\" not recognized" % (cond))
+
+            url_fmt   = url_info[ConfigKey.URL_FMT]
+            tokens    = re.findall(r'(\<[\p{Lu}_]+\>)', url_fmt)
+            if not tokens:
+                raise RuntimeError("No tokens in URL format string for cond \"%s\"" % (cond))
+            date_fmt  = url_info.get(ConfigKey.DATE_FMT)
+            date_func = url_info.get(ConfigKey.DATE_FUNC)
+            date_meth = url_info.get(ConfigKey.DATE_METH)
+            break
+        if not url_fmt:
+            raise RuntimeError("No matching URL condition for date %s" % (date2str(date)))
+
+        # note: "date_str" is a magic variable name that matches a URL format token
+        date_str = date2str(date, date_fmt)
+        if date_func:
+            # note that date_func needs to be in the module namespace (e.g. imported)--by the
+            # way, no real reason this here takes precedence over date_meth; we should really
+            # either enforce mutual exclusion, or flip the two if we actually want to support
+            # sequential execution (though no use case for that yet)
+            date_str = globals()[date_func](date_str)
+        elif date_meth:
+            date_str = getattr(date_str, date_meth)()
+
+        url = url_fmt
+        for token in tokens:
             token_var = token[1:-1].lower()
             value = vars().get(token_var) or getattr(self, token_var, None)
             if not value:
-                raise RuntimeError("Token attribute \"%s\" not found for \"%s\"" % (token_var, self.name))
+                raise RuntimeError("Token attribute \"%s\" not found for \"%s\"" %
+                                   (token_var, self.name))
             url = url.replace(token, value)
 
         return url

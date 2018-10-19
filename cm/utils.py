@@ -234,7 +234,7 @@ class MyLogger(logging.getLoggerClass()):
         channel, or store in database
         """
         if self.isEnabledFor(OUTLIER):
-            kwargs['stack_info'] = True
+            #kwargs['stack_info'] = True
             self._log(OUTLIER, msg, args, **kwargs)
 
 logging.setLoggerClass(MyLogger)

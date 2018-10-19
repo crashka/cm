@@ -113,9 +113,17 @@ default:
     WCPE:
       # Note: date in URL is the Monday of the week (needs to be handled in date_func)
       sample_url:   'https://theclassicalstation.org/music/archive/2018-09-17/tuesday.shtml'
-      url_fmt:      'https://theclassicalstation.org/music/archive/<DATE_STR>.shtml'
-      date_fmt:     '%Y-%m-%d/%A'
-      date_func:    'wcpe_special'
+      # the following works for the prior 7 days (counting current day)
+      sample_url2:  'https://theclassicalstation.org/music/friday.shtml'
+      urls:
+        - cond:         '-6'
+          url_fmt:      'https://theclassicalstation.org/music/<DATE_STR>.shtml'
+          date_fmt:     '%A'
+          date_meth:    'lower'
+        - cond:         'default'
+          url_fmt:      'https://theclassicalstation.org/music/archive/<DATE_STR>.shtml'
+          date_fmt:     '%Y-%m-%d/%A'
+          date_func:    'wcpe_special'
       timezone:     'America/New_York'
       playlist_ext: 'html'
       epoch:        '2011-08-15'
@@ -231,6 +239,17 @@ default:
       playlist_min: 5000
       parser_cls:   'ParserWWFM'
       synd_level:   70
+
+    WXXI:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/51ad047be1c860e313636032/day?date=2018-10-10&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '51ad047be1c860e313636032'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      epoch:        '2014-06-30'
+      playlist_ext: 'json'
+      parser_cls:   'ParserWWFM'
+      synd_level:   75
 
   refdata_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}

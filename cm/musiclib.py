@@ -440,7 +440,7 @@ def parse_composer_str(comp_str, flags = 0):
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
     """
-    if not comp_str:
+    if not comp_str or not re.search(r'\w', comp_str):
         return {}
 
     ctx = ParseCtx(comp_str, flags | ParseFlag.COMPOSER)
@@ -457,7 +457,7 @@ def parse_work_str(work_str, flags = 0):
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
     """
-    if not work_str:
+    if not work_str or not re.search(r'\w', work_str):
         return {}
 
     ctx = ParseCtx(work_str, flags | ParseFlag.WORK)
@@ -474,7 +474,7 @@ def parse_conductor_str(cond_str, flags = 0):
     :param flags: [int/bitfield] later
     :return: ml_dict of parsed data
     """
-    if not cond_str:
+    if not cond_str or not re.search(r'\w', cond_str):
         return {}
 
     ctx = ParseCtx(cond_str, flags | ParseFlag.CONDUCTOR)
@@ -500,7 +500,7 @@ def parse_performer_str(perf_str, flags = 0):
     :param flags: (not yet implemented)
     :return: list of perf_data structures (see LATER above)
     """
-    if not perf_str:
+    if not perf_str or not re.search(r'\w', perf_str):
         return {}
 
     ctx = ParseCtx(perf_str, flags | ParseFlag.PERFORMER)
@@ -582,7 +582,7 @@ def parse_ensemble_str(ens_str, flags = 0):
     :param flags: (not yet implemented)
     :return: dict of ens_data/perf_data structures, indexed by type
     """
-    if not ens_str:
+    if not ens_str or not re.search(r'\w', ens_str):
         return {}
 
     ctx = ParseCtx(ens_str, flags | ParseFlag.ENSEMBLE)
