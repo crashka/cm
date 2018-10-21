@@ -17,6 +17,7 @@ Entity = LOV([
     'ENSEMBLE',
     'WORK',
     'RECORDING',
+    'PERFORMANCE',
     # internet radio
     'STATION',
     'PROGRAM',
@@ -129,6 +130,18 @@ def load_schema(meta):
             #           ON recording (name, label)
             #        WHERE catalog_no IS NULL;
             UniqueConstraint('label', 'catalog_no')
+        ),
+        Entity.PERFORMANCE: Table('performance', meta,
+            Column('id',                Integer,     primary_key=True),
+            Column('work_id',           Integer,     ForeignKey('work.id'), nullable=False),
+            Column('performer_ids',     ARRAY(Integer)),  # ForeignKey('performer.id')
+            Column('ensemble_ids',      ARRAY(Integer)),  # ForeignKey('ensemble.id')
+            Column('conductor_id',      Integer,     ForeignKey('person.id')),
+            Column('recording_id',      Integer,     ForeignKey('recording.id')),
+            Column('notes',             ARRAY(Text)),
+
+            # constraints/indexes
+            UniqueConstraint('work_id', 'performer_ids', 'ensemble_ids', 'conductor_id')
         ),
         Entity.STATION: Table('station', meta,
             Column('id',                Integer,     primary_key=True),

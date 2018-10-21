@@ -103,15 +103,12 @@ class Playlist(object):
 #####################
 
 class Parser(object):
-    """Basically a helper class for Playlist, proper subclass is associated through
-    station config
-
-    FIX: cleanup object relationships between Station, Playlist, and Parser!!!
+    """Helper class for Playlist, proper subclass is associated through station config
     """
     @staticmethod
     def get(sta):
         """
-        :param sta: parser is bound to Station instance
+        :param sta: Station (to be bound to parser)
         :return: instantiated Parser subclass
         """
         cls = globals().get(sta.parser_cls)
@@ -125,24 +122,38 @@ class Parser(object):
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
         log.debug("HTML parser: %s" % (self.html_parser))
 
-    def parse(self, playlist, dryrun = False, force = False):
-        """Abstract method for parse operation
+    def iter_program_plays(self, playlist):
+        """Iterator for program plays within a playlist, yield value is passed into
+        map_program_play() and iter_plays())
+
+        :param playlist: Playlist object
+        :yield: subclass-specific program play representation
         """
-        raise RuntimeError("parse() not implemented in subclass (or base class called)")
+        raise RuntimeError("abstract method iter_program_plays() must be subclassed")
 
-##########################
-# Parser adapter classes #
-##########################
+    def iter_plays(self, prog_play):
+        """Iterator for plays within a program play, yield value is passed into map_play()
 
-# TODO: move to subdirectory(ies) when this gets too unwieldy!!!
+        :param prog_play: yield value from iter_program_plays()
+        :yield: subclass-specific play representation
+        """
+        raise RuntimeError("abstract method iter_plays() must be subclassed")
 
-#+------------+
-#| ParserWWFM |
-#+------------+
+    def map_program_play(self, prog_play):
+        """
+        :param prog_play: yield value from iter_program_plays()
+        :return: dict of normalized program play information
+        """
+        raise RuntimeError("abstract method map_program_play() must be subclassed")
 
-class ParserWWFM(Parser):
-    """Represents a playlist for a station
-    """
+    def map_play(self, pp_rec, play):
+        """
+        :param pp_rec: [dict] parent program play record
+        :param play: yield value from iter_plays()
+        :return: dict of normalized play information
+        """
+        raise RuntimeError("abstract method map_play() must be subclassed")
+
     def parse(self, playlist, dryrun = False, force = False):
         """Parse playlist, write to musiclib if not dryrun
 
@@ -151,13 +162,7 @@ class ParserWWFM(Parser):
         :param force: overwrite program_play/play in databsae
         :return: dict with parsed program_play/play info
         """
-        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
-        with open(playlist.file) as f:
-            pl_info = json.load(f)
-        pl_params = pl_info['params']
-        pl_progs = pl_info['onToday']
-
-        for prog in pl_progs:
+        for prog in self.iter_program_plays(playlist):
             # Step 1 - Parse out program_play info
             norm = self.map_program_play(prog)
             pp_rec = MusicLib.insert_program_play(playlist, norm)
@@ -169,8 +174,7 @@ class ParserWWFM(Parser):
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info (if present)
-            plays = prog.get('playlist') or []
-            for play in plays:
+            for play in self.iter_plays(prog):
                 norm = self.map_play(pp_rec, play)
                 play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
                 if not play_rec:
@@ -190,10 +194,49 @@ class ParserWWFM(Parser):
 
         return pp_rec
 
+##########################
+# Parser adapter classes #
+##########################
+
+# TODO: move to subdirectory(ies) when this gets too unwieldy!!!
+
+#+------------+
+#| ParserWWFM |
+#+------------+
+
+class ParserWWFM(Parser):
+    """Parser for WWFM-family of stations
+    """
+    def iter_program_plays(self, playlist):
+        """This is the implementation for WWFM (and others)
+
+        :param playlist: Playlist object
+        :yield: [list of dicts] 'onToday' item from WWFM playlist file
+        """
+        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        with open(playlist.file) as f:
+            pl_info = json.load(f)
+        pl_params = pl_info['params']
+        pl_progs = pl_info['onToday']
+        for prog in pl_progs:
+            yield prog
+        return
+
+    def iter_plays(self, prog):
+        """This is the implementation for WWFM (and others)
+
+        :param prog: [list of dicts] yield value from iter_program_plays()
+        :yield: 'playlist' item from WWFM playlist file
+        """
+        plays = prog.get('playlist') or []
+        for play in plays:
+            yield play
+        return
+
     def map_program_play(self, data):
         """This is the implementation for WWFM (and others)
 
-        raw data in: 'onToday' item from WWFM playlist file
+        raw data in: [list of dicts] 'onToday' item from WWFM playlist file
         normalized data out: {
             'program': {},
             'program_play': {}
@@ -345,15 +388,13 @@ class ParserWWFM(Parser):
 #+-----------+
 
 class ParserMPR(Parser):
-    """Represents a playlist for a station
+    """Parser for MPR station
     """
-    def parse(self, playlist, dryrun = False, force = False):
-        """Parse playlist, write to musiclib if not dryrun
+    def iter_program_plays(self, playlist):
+        """This is the implementation for MPR
 
         :param playlist: Playlist object
-        :param dryrun: don't write to database
-        :param force: overwrite program_play/play in databsae
-        :return: dict with parsed program_play/play info
+        :yield: [tuple] (pl_date, bs4 'dt' tag)
         """
         log.debug("Parsing html for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
@@ -367,47 +408,31 @@ class ParserMPR(Parser):
 
         pl_root = soup.find('dl', id="playlist")
         for prog_head in reversed(pl_root('dt', recursive=False)):
-            # Step 1 - Parse out program_play info
-            norm = self.map_program_play(pl_date, prog_head)
-            pp_rec = MusicLib.insert_program_play(playlist, norm)
-            if not pp_rec:
-                raise RuntimeError("Could not insert program_play")
-            playlist.parse_ctx['station_id']   = pp_rec['station_id']
-            playlist.parse_ctx['prog_play_id'] = pp_rec['id']
-            playlist.parse_ctx['play_id']      = None
-            pp_rec['plays'] = []
+            yield (pl_date, prog_head)
+        return
 
-            # Step 2 - Parse out play info
-            prog_body = prog_head.find_next_sibling('dd')
-            for play_head in reversed(prog_body.ul('li', recursive=False)):
-                norm = self.map_play(pp_rec, play_head)
-                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
-                if not play_rec:
-                    raise RuntimeError("Could not insert play")
-                playlist.parse_ctx['play_id'] = play_rec['id']
-                pp_rec['plays'].append(play_rec)
-
-                es_recs = MusicLib.insert_entity_strings(playlist, norm)
-
-                play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
-                # TODO: create separate hash sequence for top of each hour!!!
-                play_seq = playlist.hash_seq.add(play_name)
-                if play_seq:
-                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
-                else:
-                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
-
-        return pp_rec
-
-    def map_program_play(self, pl_date, prog_head):
+    def iter_plays(self, prog):
         """This is the implementation for MPR
 
-        raw data in: bs4 'dt' tag
+        :param prog: [tuple] yield value from iter_program_plays()
+        :yield: bs4 'li' tag
+        """
+        pl_date, prog_head = prog
+        prog_body = prog_head.find_next_sibling('dd')
+        for play_head in reversed(prog_body.ul('li', recursive=False)):
+            yield play_head
+        return
+
+    def map_program_play(self, prog_info):
+        """This is the implementation for MPR
+
+        raw data in: [tuple] (pl_date, bs4 'dt' tag)
         normalized data out: {
             'program': {},
             'program_play': {}
         }
         """
+        pl_date, prog_head = prog_info
         prog_name = prog_head.h2.string.strip()
         m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
         start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
@@ -543,13 +568,14 @@ class ParserMPR(Parser):
         return play_data
 
 class ParserC24(Parser):
-    def parse(self, playlist, dryrun = False, force = False):
-        """Parse playlist, write to musiclib if not dryrun
+    """Parser for C24 station
+
+    """
+    def iter_program_plays(self, playlist):
+        """This is the implementation for C24
 
         :param playlist: Playlist object
-        :param dryrun: don't write to database
-        :param force: overwrite program_play/play in databsae
-        :return: dict with parsed program_play/play info
+        :yield: [tuple] (pl_date, bs4 'div' tag, bs4 'p' tag)
         """
         log.debug("Parsing html for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
@@ -573,48 +599,33 @@ class ParserC24(Parser):
             prog_head = prog_div.find_next('p')
             if not prog_head:
                 break
-            norm = self.map_program_play(pl_date, prog_head)
-            pp_rec = MusicLib.insert_program_play(playlist, norm)
-            if not pp_rec:
-                raise RuntimeError("Could not insert program_play")
-            playlist.parse_ctx['station_id']   = pp_rec['station_id']
-            playlist.parse_ctx['prog_play_id'] = pp_rec['id']
-            playlist.parse_ctx['play_id']      = None
-            pp_rec['plays'] = []
+            yield (pl_date, prog_div, prog_head)
+        return
 
-            # Step 2 - Parse out play info
-            play_heads = prog_div.find_next_siblings(['table', 'div'])
-            for play_head in play_heads:
-                if play_head.name == 'div':
-                    break
-                norm = self.map_play(pp_rec, play_head)
-                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
-                if not play_rec:
-                    raise RuntimeError("Could not insert play")
-                playlist.parse_ctx['play_id'] = play_rec['id']
-                pp_rec['plays'].append(play_rec)
-
-                es_recs = MusicLib.insert_entity_strings(playlist, norm)
-
-                play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
-                # TODO: create separate hash sequence for top of each hour!!!
-                play_seq = playlist.hash_seq.add(play_name)
-                if play_seq:
-                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
-                else:
-                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
-
-        return pp_rec
-
-    def map_program_play(self, pl_date, prog_head):
+    def iter_plays(self, prog):
         """This is the implementation for C24
 
-        raw data in: bs4 'p' tag
+        :param prog: [tuple] yield value from iter_program_plays()
+        :yield: bs4 'table' tag
+        """
+        pl_date, prog_div, prog_head = prog
+        play_heads = prog_div.find_next_siblings(['table', 'div'])
+        for play_head in play_heads:
+            if play_head.name == 'div':
+                break
+            yield play_head
+        return
+
+    def map_program_play(self, prog_info):
+        """This is the implementation for C24
+
+        raw data in: [tuple] (pl_date, bs4 'div' tag, bs4 'p' tag)
         normalized data out: {
             'program': {},
             'program_play': {}
         }
         """
+        pl_date, prog_div, prog_head = prog_info
         prog_name = prog_head.string.strip()  # "MID -  1AM"
         prog_times = prog_name.replace('MID', '12AM').replace('12N', '12PM')
         m = re.match(r'(\d+(?:AM|PM)).+?(\d+(?:AM|PM))', prog_times)

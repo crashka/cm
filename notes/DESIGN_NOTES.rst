@@ -521,6 +521,7 @@ To Do - Features
 
 * consolidated tracking for all entity names (preparation for NER)--"entity cloud"
 * authoritative musiclib/ref data (e.g. from arkivmusic)
+* jupyter notebooks for data quality, and for play analysis
 * track **all** data fixups (whether manual or programmatic) so that they are re-applyable!!!
 * **music module integrity**
 * make logging (and printing for CLI commands) consistent
