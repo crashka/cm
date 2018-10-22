@@ -326,6 +326,7 @@ class RefData(object):
         """
         """
         PERSON_CAT = {'composers', 'conductors', 'performers'}
+        ml = MusicLib()
 
         for item in chunk.ul('li', recursive=False):
             name      = item.a.string.strip()
@@ -402,7 +403,7 @@ class RefData(object):
             if raw_name and ent_name == raw_name:
                 ent_data['is_raw'] = True
 
-            er_recs = MusicLib.insert_entity_ref(self, ent_data, alt_names, raw_name)
+            er_recs = ml.insert_entity_ref(self, ent_data, alt_names, raw_name)
 
 #####################
 # command line tool #

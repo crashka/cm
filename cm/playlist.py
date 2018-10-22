@@ -16,8 +16,7 @@ from bs4 import BeautifulSoup
 
 from core import cfg, env, log, dbg_hand, DFLT_HTML_PARSER
 
-from musiclib import (MusicLib, SKIP_ENS, ml_dict, parse_composer_str, parse_work_str,
-                      parse_conductor_str, parse_performer_str, parse_ensemble_str)
+from musiclib import MusicLib, SKIP_ENS, ml_dict
 from datasci import HashSeq
 from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
                    strtype, collecttype)
@@ -121,6 +120,7 @@ class Parser(object):
         self.station = sta
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
         log.debug("HTML parser: %s" % (self.html_parser))
+        self.ml = MusicLib()
 
     def iter_program_plays(self, playlist):
         """Iterator for program plays within a playlist, yield value is passed into
@@ -165,7 +165,7 @@ class Parser(object):
         for prog in self.iter_program_plays(playlist):
             # Step 1 - Parse out program_play info
             norm = self.map_program_play(prog)
-            pp_rec = MusicLib.insert_program_play(playlist, norm)
+            pp_rec = self.ml.insert_program_play(playlist, norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
             playlist.parse_ctx['station_id']   = pp_rec['station_id']
@@ -175,20 +175,45 @@ class Parser(object):
 
             # Step 2 - Parse out play info (if present)
             for play in self.iter_plays(prog):
-                norm = self.map_play(pp_rec, play)
-                play_rec = MusicLib.insert_play(playlist, pp_rec, norm)
+                play_info, rec_info, entity_str_data = self.map_play(pp_rec, play)
+
+                play_data = ml_dict({'play':       play_info,
+                                     'composer':   {},
+                                     'work':       {},
+                                     'conductor':  {},
+                                     'performers': [],
+                                     'ensembles':  [],
+                                     'recording':  rec_info,
+                                     'entity_str': entity_str_data})
+                for composer_str in entity_str_data['composer']:
+                    if composer_str:
+                        play_data.merge(self.ml.parse_composer_str(composer_str))
+                for work_str in entity_str_data['work']:
+                    if work_str:
+                        play_data.merge(self.ml.parse_work_str(work_str))
+                for conductor_str in entity_str_data['conductor']:
+                    if conductor_str:
+                        play_data.merge(self.ml.parse_conductor_str(conductor_str))
+                for performers_str in entity_str_data['performers']:
+                    if performers_str:
+                        play_data.merge(self.ml.parse_performer_str(performers_str))
+                for ensembles_str in entity_str_data['ensembles']:
+                    if ensembles_str:
+                        play_data.merge(self.ml.parse_ensemble_str(ensembles_str))
+
+                play_rec = self.ml.insert_play(playlist, pp_rec, play_data)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
 
-                es_recs = MusicLib.insert_entity_strings(playlist, norm)
+                es_recs = self.ml.insert_entity_strings(playlist, play_data)
 
-                play_name = "%s - %s" % (norm['composer']['name'], norm['work']['name'])
+                play_name = "%s - %s" % (play_data['composer']['name'], play_data['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
                 if play_seq:
-                    ps_recs = MusicLib.insert_play_seq(play_rec, play_seq, 1)
+                    ps_recs = self.ml.insert_play_seq(play_rec, play_seq, 1)
                 else:
                     log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
 
@@ -325,63 +350,24 @@ class ParserWWFM(Parser):
             play_info['end_time'] = None # TIMESTAMP(timezone=True)
             play_info['duration'] = None # Interval
 
-        # do the easy stuff first (don't worry about empty records...for now!)
-        composer_data   = {}
-        work_data       = {}
-        conductor_data  = {}
-        performers_data = []
-        ensembles_data  = []
-        recording_data  = {'label'     : raw_data.get('copyright'),
-                           'catalog_no': raw_data.get('catalogNumber'),
-                           'name'      : raw_data.get('collectionName')}
-        entity_str_data = {'composer'  : [],
-                           'work'      : [],
-                           'conductor' : [],
-                           'performers': [],
-                           'ensembles' : [],
-                           'recording' : [recording_data['name']],
-                           'label'     : [recording_data['label']]}
-
-        # normalized return structure (build from above elements)
-        play_data = ml_dict({'play':       play_info,
-                             'composer':   composer_data,
-                             'work':       work_data,
-                             'conductor':  conductor_data,
-                             'performers': performers_data,
-                             'ensembles':  ensembles_data,
-                             'recording':  recording_data,
-                             'entity_str': entity_str_data})
-
-        composer_str = raw_data.get('composerName')
-        if composer_str:
-            entity_str_data['composer'].append(composer_str)
-            play_data.merge(parse_composer_str(composer_str))
-
-        work_str = raw_data.get('trackName')
-        if work_str:
-            entity_str_data['work'].append(work_str)
-            play_data.merge(parse_work_str(work_str))
-
-        conductor_str = raw_data.get('conductor')
-        if conductor_str:
-            entity_str_data['conductor'].append(conductor_str)
-            play_data.merge(parse_conductor_str(conductor_str))
+        rec_info  = {'name'      : raw_data.get('collectionName'),
+                     'label'     : raw_data.get('copyright'),
+                     'catalog_no': raw_data.get('catalogNumber')}
 
         # FIX: artistName is used by different stations (and probably programs within
         # the same staion) to mean either ensembles or soloists; can probably mitigate
         # (somewhat) by mapping stations to different parsers, but ultimately need to
         # be able to parse all performer/ensemble information out of any field!!!
-        for perf_str in (raw_data.get('artistName'), raw_data.get('soloists')):
-            if perf_str:
-                entity_str_data['performers'].append(perf_str)
-                play_data.merge(parse_performer_str(perf_str))
+        entity_str_data = {'composer'  : [raw_data.get('composerName')],
+                           'work'      : [raw_data.get('trackName')],
+                           'conductor' : [raw_data.get('conductor')],
+                           'performers': [raw_data.get('artistName'),
+                                          raw_data.get('soloists')],
+                           'ensembles' : [raw_data.get('ensembles')],
+                           'recording' : [rec_info['name']],
+                           'label'     : [rec_info['label']]}
 
-        ensembles_str = raw_data.get('ensembles')
-        if ensembles_str:
-            entity_str_data['ensembles'].append(ensembles_str)
-            play_data.merge(parse_ensemble_str(ensembles_str))
-
-        return play_data
+        return (play_info, rec_info, entity_str_data)
 
 #+-----------+
 #| ParserMPR |
@@ -516,56 +502,18 @@ class ParserMPR(Parser):
         play_info['end_time']   = None # TIMESTAMP(timezone=True)
         play_info['duration']   = None # Interval
 
-        composer_data  =  {}
-        work_data      =  {}
-        conductor_data =  {}
-        performers_data = []
-        ensembles_data  = []
-        recording_data =  {'label'     : raw_data.get('label'),
-                           'catalog_no': raw_data.get('catalog_no')}
-        entity_str_data = {'composer'  : [],
-                           'work'      : [],
-                           'conductor' : [],
-                           'performers': [],
-                           'ensembles' : [],
-                           'label'     : [recording_data['label']]}
+        rec_info =  {'label'     : raw_data.get('label'),
+                     'catalog_no': raw_data.get('catalog_no')}
 
-        # normalized return structure (build from above elements)
-        play_data = ml_dict({'play':       play_info,
-                             'composer':   composer_data,
-                             'work':       work_data,
-                             'conductor':  conductor_data,
-                             'performers': performers_data,
-                             'ensembles':  ensembles_data,
-                             'recording':  recording_data,
-                             'entity_str': entity_str_data})
+        entity_str_data = {'composer'  : [raw_data.get('song-composer')],
+                           'work'      : [raw_data.get('song-title')],
+                           'conductor' : [raw_data.get('song-conductor')],
+                           'performers': [raw_data.get('song-soloist soloist-1')],
+                           'ensembles' : [raw_data.get('song-orch_ensemble')],
+                           'recording' : [],
+                           'label'     : [rec_info['label']]}
 
-        composer_str = raw_data.get('song-composer')
-        if composer_str:
-            entity_str_data['composer'].append(composer_str)
-            play_data.merge(parse_composer_str(composer_str))
-
-        work_str = raw_data.get('song-title')
-        if work_str:
-            entity_str_data['work'].append(work_str)
-            play_data.merge(parse_work_str(work_str))
-
-        conductor_str = raw_data.get('song-conductor')
-        if conductor_str:
-            entity_str_data['conductor'].append(conductor_str)
-            play_data.merge(parse_conductor_str(conductor_str))
-
-        perf_str = raw_data.get('song-soloist soloist-1')
-        if perf_str:
-            entity_str_data['performers'].append(perf_str)
-            play_data.merge(parse_performer_str(perf_str))
-
-        ensembles_str = raw_data.get('song-orch_ensemble')
-        if ensembles_str:
-            entity_str_data['ensembles'].append(ensembles_str)
-            play_data.merge(parse_ensemble_str(ensembles_str))
-
-        return play_data
+        return (play_info, rec_info, entity_str_data)
 
 class ParserC24(Parser):
     """Parser for C24 station
@@ -775,56 +723,18 @@ class ParserC24(Parser):
         play_info['end_time']   = None # TIMESTAMP(timezone=True)
         play_info['duration']   = None # Interval
 
-        composer_data   = {}
-        work_data       = {}
-        conductor_data  = {}
-        performers_data = []
-        ensembles_data  = []
-        recording_data  = {'label'     : raw_data.get('label'),
-                           'catalog_no': raw_data.get('catalog_no')}
-        entity_str_data = {'composer'  : [],
-                           'work'      : [],
-                           'conductor' : [],
-                           'performers': [],
-                           'ensembles' : [],
-                           'label'     : [recording_data['label']]}
+        rec_info  = {'label'     : raw_data.get('label'),
+                     'catalog_no': raw_data.get('catalog_no')}
 
-        # normalized return structure (build from above elements)
-        play_data = ml_dict({'play':       play_info,
-                             'composer':   composer_data,
-                             'work':       work_data,
-                             'conductor':  conductor_data,
-                             'performers': performers_data,
-                             'ensembles':  ensembles_data,
-                             'recording':  recording_data,
-                             'entity_str': entity_str_data})
+        entity_str_data = {'composer'  : [raw_data.get('composer')],
+                           'work'      : [raw_data.get('work')],
+                           'conductor' : [raw_data.get('conductor')],
+                           'performers': [raw_data.get('performer')],
+                           'ensembles' : [raw_data.get('ensemble')],
+                           'recording' : [],
+                           'label'     : [rec_info['label']]}
 
-        composer_str = raw_data.get('composer')
-        if composer_str:
-            entity_str_data['composer'].append(composer_str)
-            play_data.merge(parse_composer_str(composer_str))
-
-        work_str = raw_data.get('work')
-        if work_str:
-            entity_str_data['work'].append(work_str)
-            play_data.merge(parse_work_str(work_str))
-
-        conductor_str = raw_data.get('conductor')
-        if conductor_str:
-            entity_str_data['conductor'].append(conductor_str)
-            play_data.merge(parse_conductor_str(conductor_str))
-
-        perf_str = raw_data.get('performer')
-        if perf_str:
-            entity_str_data['performers'].append(perf_str)
-            play_data.merge(parse_performer_str(perf_str))
-
-        ensembles_str = raw_data.get('ensemble')
-        if ensembles_str:
-            entity_str_data['ensembles'].append(ensembles_str)
-            play_data.merge(parse_ensemble_str(ensembles_str))
-
-        return play_data
+        return (play_info, rec_info, entity_str_data)
 
 #####################
 # command line tool #

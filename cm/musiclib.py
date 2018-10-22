@@ -193,11 +193,7 @@ ParseFlag = LOV({'COMPOSER' : 0x0001,
                  'PERSON'   : 0x0007,
                  'TITLE'    : 0x0050})
 
-#+-----------------------+
-#| Internal Implemention |
-#+-----------------------+
-
-class ParseCtx(object):
+class StringCtx(object):
     """
     """
     def __init__(self, ent_str, flags = 0):
@@ -429,220 +425,6 @@ class ParseCtx(object):
             log.outlier("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
                         (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None}
-
-#+--------------------+
-#| External Functions |
-#+--------------------+
-
-def parse_composer_str(comp_str, flags = 0):
-    """
-    :param comp_str: raw string from playlist
-    :param flags: [int/bitfield] later
-    :return: ml_dict of parsed data
-    """
-    if not comp_str or not re.search(r'\w', comp_str):
-        return {}
-
-    ctx = ParseCtx(comp_str, flags | ParseFlag.COMPOSER)
-    ctx.parse_entity_str()
-
-    comp_data = ctx.mkcomp(ctx.ent_str)
-    ent_data = ml_dict({'composer': comp_data})
-    ctx.finalize(ent_data)
-    return ent_data
-
-def parse_work_str(work_str, flags = 0):
-    """
-    :param work_str: raw string from playlist
-    :param flags: [int/bitfield] later
-    :return: ml_dict of parsed data
-    """
-    if not work_str or not re.search(r'\w', work_str):
-        return {}
-
-    ctx = ParseCtx(work_str, flags | ParseFlag.WORK)
-    ctx.parse_entity_str()
-
-    work_data = ctx.mkwork(ctx.ent_str)
-    ent_data = ml_dict({'work': work_data})
-    ctx.finalize(ent_data)
-    return ent_data
-
-def parse_conductor_str(cond_str, flags = 0):
-    """
-    :param cond_str: raw string from playlist
-    :param flags: [int/bitfield] later
-    :return: ml_dict of parsed data
-    """
-    if not cond_str or not re.search(r'\w', cond_str):
-        return {}
-
-    ctx = ParseCtx(cond_str, flags | ParseFlag.CONDUCTOR)
-    ctx.parse_entity_str()
-
-    cond_data = ctx.mkcond(ctx.ent_str)
-    perf_data = [ctx.mkperf(ctx.ent_str, 'conductor')]
-    ent_data = ml_dict({'conductor': cond_data, 'performers': perf_data})
-    ctx.finalize(ent_data)
-    return ent_data
-
-def parse_performer_str(perf_str, flags = 0):
-    """
-    DESIGN NOTES (for future):
-      * context-sensitive application of individual parsing rules, either implicitly
-        (e.g. based on station), or explicitly through flags
-      * generic parsing using non-alphanum delimiters, entity lookups (refdata), and
-        logical entity relationships (either as replacement, or complement)
-      * for now, we return performer data only; LATER: need the ability to indicate
-        other entities extracted from perf_str!!!
-
-    :param perf_str:
-    :param flags: (not yet implemented)
-    :return: list of perf_data structures (see LATER above)
-    """
-    if not perf_str or not re.search(r'\w', perf_str):
-        return {}
-
-    ctx = ParseCtx(perf_str, flags | ParseFlag.PERFORMER)
-    ctx.parse_entity_str()
-
-    def parse_perf_item(perf_item, fld_delim = ','):
-        sub_perfs = []
-        sub_cond = None
-        if perf_item.count(fld_delim) % 2 == 1:
-            fields = perf_item.split(fld_delim)
-            while fields:
-                pers, role = (fields.pop(0), fields.pop(0))
-                # special case for "<ens>/<cond last, first>"
-                if pers.count('/') == 1:
-                    log.debug("PFS_RULE 6 - slash separating ens from cond_last \"%s\"" % (pers))
-                    ens_name, cond_last = pers.split('/')
-                    cond_name = "%s %s" % (role, cond_last)
-                    sub_perfs.append(ctx.mkperf(ens_name, 'ensemble'))
-                    sub_perfs.append(ctx.mkperf(cond_name, 'conductor'))
-                else:
-                    if role.strip().lower() in COND_STRS:
-                        # TODO: check for overwrite!!!
-                        sub_cond = ctx.mkcond(pers)
-                    sub_perfs.append(ctx.mkperf(pers, role))
-        else:
-            # TODO: if even number of field delimiters, need to look closer at item
-            # contents/format to figure out what to do!!!
-            sub_perfs.append(ctx.mkperf(perf_item, None))
-        return {'performers': sub_perfs, 'conductor': sub_cond} if sub_cond \
-               else {'performers': sub_perfs}
-
-    ens_data  = []
-    perf_data = []
-    ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
-    """
-    # TODO: should really move the quote processing as far upstream as possible (for
-    # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
-    m = re.fullmatch(r'"([^"]*)"', perf_str)
-    if m:
-        log.debug("PFS_RULE 1 - strip enclosing quotes \"%s\"" % (perf_str))
-        perf_str = m.group(1)  # note: could be empty string, handle downstream!
-    m = re.fullmatch(r'\((.*[^)])\)?', perf_str)
-    if m:
-        log.debug("PFS_RULE 2 - strip enclosing parens \"%s\"" % (perf_str))
-        perf_str = m.group(1)  # note: could be empty string, handle downstream!
-    """
-    # TODO: genericize performer/person/role stuff (note, ctx.ent_str not updated below)!!!
-    perf_str = ctx.ent_str
-
-    # special case for ugly record (WNED 2018-09-17)
-    m = re.match(r'(.+?)\r', perf_str)
-    if m:
-        log.debug("PFS_RULE 3 - ugly broken record for WNED \"%s\"" % (perf_str))
-        perf_str = m.group(1)
-        m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
-        if m:
-            perf_str = '; '.join(m.groups())
-
-    # pattern used by IPR, VPR, WIAA, WNED
-    if re.match(r'\/.+ \- ', perf_str):
-        log.debug("PFS_RULE 4 - leading slash for performer fields \"%s\"" % (perf_str))
-        for perf_item in perf_str.split('/'):
-            if perf_item:
-                ret_data.merge(parse_perf_item(perf_item, ' - '))
-    elif ';' in perf_str:
-        log.debug("PFS_RULE 5 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
-        for perf_item in perf_str.split(';'):
-            if perf_item:
-                ret_data.merge(parse_perf_item(perf_item))
-    elif perf_str:
-        ret_data.merge(parse_perf_item(perf_str))
-
-    ctx.finalize(ret_data)
-    return ret_data
-
-def parse_ensemble_str(ens_str, flags = 0):
-    """
-    :param ens_str:
-    :param flags: (not yet implemented)
-    :return: dict of ens_data/perf_data structures, indexed by type
-    """
-    if not ens_str or not re.search(r'\w', ens_str):
-        return {}
-
-    ctx = ParseCtx(ens_str, flags | ParseFlag.ENSEMBLE)
-    ctx.parse_entity_str()
-
-    def parse_ens_item(ens_item, fld_delim = ','):
-        sub_ens_data = []
-        sub_perf_data = []
-        if ens_item.count(fld_delim) % 2 == 1:
-            fields = ens_item.split(fld_delim)
-            while fields:
-                name, role = (fields.pop(0), fields.pop(0))
-                # TEMP: if role starts with a capital letter, assume the whole string
-                # is an ensemble (though in reality, it may be two--we'll deal with
-                # that later, when we have NER), otherwise treat as performer/role!!!
-                #if re.match(r'[A-Z]', role[0]):
-                if re.match(r'\p{Lu}', role[0]):
-                    sub_ens_data.append(ctx.mkens(name))
-                else:
-                    sub_perf_data.append(ctx.mkperf(name, role))
-        else:
-            # TODO: if even number of field delimiters, need to look closer at item
-            # contents/format to figure out what to do (i.e. NER)!!!
-            sub_ens_data.append(ctx.mkens(ens_item))
-        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
-
-    def parse_ens_fields(fields):
-        sub_ens_data = []
-        sub_perf_data = []
-        while fields:
-            if len(fields) == 1:
-                sub_ens_data.append(ctx.mkens(fields.pop(0)))
-                break  # same as continue
-            # more reliable to do this moving backward from the end (sez me)
-            if ' ' not in fields[-1]:
-                # REVISIT: we presume a single-word field to be a city/location (for now);
-                # as above, we should really look at field contents to properly parse!!!
-                ens = ','.join([fields.pop(-2), fields.pop(-1)])
-                sub_ens_data.append(ctx.mkens(ens))
-            else:
-                # yes, do this twice!
-                sub_ens_data.append(ctx.mkens(fields.pop(-1)))
-                sub_ens_data.append(ctx.mkens(fields.pop(-1)))
-        return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
-
-    ens_data  = []
-    perf_data = []
-    ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
-    if ';' in ens_str:
-        for ens_item in ens_str.split(';'):
-            if ens_item:
-                ret_data.merge(parse_ens_item(ens_item))
-    elif ',' in ens_str:
-        ens_fields = ens_str.split(',')
-        ret_data.merge(parse_ens_fields(ens_fields))
-    else:
-        # ens_data is implcitly part of ret_data
-        ens_data.append(ctx.mkens(ens_str))
-
-    return ret_data
 
 ###############################
 # String/entity normalization #
@@ -905,8 +687,12 @@ class MusicEnt(object):
 class MusicLib(object):
     """Helper class for writing playlist data into the database
     """
-    @staticmethod
-    def insert_program_play(playlist, data):
+    def __init__(self):
+        """
+        """
+        pass
+
+    def insert_program_play(self, playlist, data):
         """
         :param playlist: parent Playlist object
         :param data: normalized playlist key/value data (dict)
@@ -967,8 +753,7 @@ class MusicLib(object):
                 pass  # REVISIT: is this an internal error???
         return {k: v for k, v in pp_row.items()} if pp_row else None
 
-    @staticmethod
-    def insert_play(playlist, prog_play, data):
+    def insert_play(self, playlist, prog_play, data):
         """
         :param playlist: parent Playlist object
         :param prog_play: parent program_play fields (dict)
@@ -1206,8 +991,7 @@ class MusicLib(object):
 
         return {k: v for k, v in play_row.items()}
 
-    @staticmethod
-    def insert_play_seq(play_rec, play_seq, hash_type):
+    def insert_play_seq(self, play_rec, play_seq, hash_type):
         """
         :param play_rec:
         :param prog_seq:
@@ -1235,8 +1019,7 @@ class MusicLib(object):
 
         return ret
 
-    @staticmethod
-    def insert_entity_strings(playlist, data):
+    def insert_entity_strings(self, playlist, data):
         """
         :return: list of key-value dict comprehensions for inserted entity_string fields
         """
@@ -1265,8 +1048,7 @@ class MusicLib(object):
 
         return ret
 
-    @staticmethod
-    def insert_entity_ref(refdata, ent_data, ent_refs, raw_name = None):
+    def insert_entity_ref(self, refdata, ent_data, ent_refs, raw_name = None):
         """
         :return: key-value dict comprehension for inserted entity_ref fields
         """
@@ -1306,6 +1088,215 @@ class MusicLib(object):
 
         return ret
 
+    def parse_composer_str(self, comp_str, flags = 0):
+        """
+        :param comp_str: raw string from playlist
+        :param flags: [int/bitfield] later
+        :return: ml_dict of parsed data
+        """
+        if not comp_str or not re.search(r'\w', comp_str):
+            return {}
+
+        ctx = StringCtx(comp_str, flags | ParseFlag.COMPOSER)
+        ctx.parse_entity_str()
+
+        comp_data = ctx.mkcomp(ctx.ent_str)
+        ent_data = ml_dict({'composer': comp_data})
+        ctx.finalize(ent_data)
+        return ent_data
+
+    def parse_work_str(self, work_str, flags = 0):
+        """
+        :param work_str: raw string from playlist
+        :param flags: [int/bitfield] later
+        :return: ml_dict of parsed data
+        """
+        if not work_str or not re.search(r'\w', work_str):
+            return {}
+
+        ctx = StringCtx(work_str, flags | ParseFlag.WORK)
+        ctx.parse_entity_str()
+
+        work_data = ctx.mkwork(ctx.ent_str)
+        ent_data = ml_dict({'work': work_data})
+        ctx.finalize(ent_data)
+        return ent_data
+
+    def parse_conductor_str(self, cond_str, flags = 0):
+        """
+        :param cond_str: raw string from playlist
+        :param flags: [int/bitfield] later
+        :return: ml_dict of parsed data
+        """
+        if not cond_str or not re.search(r'\w', cond_str):
+            return {}
+
+        ctx = StringCtx(cond_str, flags | ParseFlag.CONDUCTOR)
+        ctx.parse_entity_str()
+
+        cond_data = ctx.mkcond(ctx.ent_str)
+        perf_data = [ctx.mkperf(ctx.ent_str, 'conductor')]
+        ent_data = ml_dict({'conductor': cond_data, 'performers': perf_data})
+        ctx.finalize(ent_data)
+        return ent_data
+
+    def parse_performer_str(self, perf_str, flags = 0):
+        """
+        DESIGN NOTES (for future):
+          * context-sensitive application of individual parsing rules, either implicitly
+            (e.g. based on station), or explicitly through flags
+          * generic parsing using non-alphanum delimiters, entity lookups (refdata), and
+            logical entity relationships (either as replacement, or complement)
+          * for now, we return performer data only; LATER: need the ability to indicate
+            other entities extracted from perf_str!!!
+
+        :param perf_str:
+        :param flags: (not yet implemented)
+        :return: list of perf_data structures (see LATER above)
+        """
+        if not perf_str or not re.search(r'\w', perf_str):
+            return {}
+
+        ctx = StringCtx(perf_str, flags | ParseFlag.PERFORMER)
+        ctx.parse_entity_str()
+
+        def parse_perf_item(perf_item, fld_delim = ','):
+            sub_perfs = []
+            sub_cond = None
+            if perf_item.count(fld_delim) % 2 == 1:
+                fields = perf_item.split(fld_delim)
+                while fields:
+                    pers, role = (fields.pop(0), fields.pop(0))
+                    # special case for "<ens>/<cond last, first>"
+                    if pers.count('/') == 1:
+                        log.debug("PFS_RULE 6 - slash separating ens from cond_last \"%s\"" % (pers))
+                        ens_name, cond_last = pers.split('/')
+                        cond_name = "%s %s" % (role, cond_last)
+                        sub_perfs.append(ctx.mkperf(ens_name, 'ensemble'))
+                        sub_perfs.append(ctx.mkperf(cond_name, 'conductor'))
+                    else:
+                        if role.strip().lower() in COND_STRS:
+                            # TODO: check for overwrite!!!
+                            sub_cond = ctx.mkcond(pers)
+                        sub_perfs.append(ctx.mkperf(pers, role))
+            else:
+                # TODO: if even number of field delimiters, need to look closer at item
+                # contents/format to figure out what to do!!!
+                sub_perfs.append(ctx.mkperf(perf_item, None))
+            return {'performers': sub_perfs, 'conductor': sub_cond} if sub_cond \
+                   else {'performers': sub_perfs}
+
+        ens_data  = []
+        perf_data = []
+        ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
+        """
+        # TODO: should really move the quote processing as far upstream as possible (for
+        # all fields); NOTE: also need to revisit normalize_* functions in musiclib!!!
+        m = re.fullmatch(r'"([^"]*)"', perf_str)
+        if m:
+            log.debug("PFS_RULE 1 - strip enclosing quotes \"%s\"" % (perf_str))
+            perf_str = m.group(1)  # note: could be empty string, handle downstream!
+        m = re.fullmatch(r'\((.*[^)])\)?', perf_str)
+        if m:
+            log.debug("PFS_RULE 2 - strip enclosing parens \"%s\"" % (perf_str))
+            perf_str = m.group(1)  # note: could be empty string, handle downstream!
+        """
+        # TODO: genericize performer/person/role stuff (note, ctx.ent_str not updated below)!!!
+        perf_str = ctx.ent_str
+
+        # special case for ugly record (WNED 2018-09-17)
+        m = re.match(r'(.+?)\r', perf_str)
+        if m:
+            log.debug("PFS_RULE 3 - ugly broken record for WNED \"%s\"" % (perf_str))
+            perf_str = m.group(1)
+            m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
+            if m:
+                perf_str = '; '.join(m.groups())
+
+        # pattern used by IPR, VPR, WIAA, WNED
+        if re.match(r'\/.+ \- ', perf_str):
+            log.debug("PFS_RULE 4 - leading slash for performer fields \"%s\"" % (perf_str))
+            for perf_item in perf_str.split('/'):
+                if perf_item:
+                    ret_data.merge(parse_perf_item(perf_item, ' - '))
+        elif ';' in perf_str:
+            log.debug("PFS_RULE 5 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
+            for perf_item in perf_str.split(';'):
+                if perf_item:
+                    ret_data.merge(parse_perf_item(perf_item))
+        elif perf_str:
+            ret_data.merge(parse_perf_item(perf_str))
+
+        ctx.finalize(ret_data)
+        return ret_data
+
+    def parse_ensemble_str(self, ens_str, flags = 0):
+        """
+        :param ens_str:
+        :param flags: (not yet implemented)
+        :return: dict of ens_data/perf_data structures, indexed by type
+        """
+        if not ens_str or not re.search(r'\w', ens_str):
+            return {}
+
+        ctx = StringCtx(ens_str, flags | ParseFlag.ENSEMBLE)
+        ctx.parse_entity_str()
+
+        def parse_ens_item(ens_item, fld_delim = ','):
+            sub_ens_data = []
+            sub_perf_data = []
+            if ens_item.count(fld_delim) % 2 == 1:
+                fields = ens_item.split(fld_delim)
+                while fields:
+                    name, role = (fields.pop(0), fields.pop(0))
+                    # TEMP: if role starts with a capital letter, assume the whole string
+                    # is an ensemble (though in reality, it may be two--we'll deal with
+                    # that later, when we have NER), otherwise treat as performer/role!!!
+                    #if re.match(r'[A-Z]', role[0]):
+                    if re.match(r'\p{Lu}', role[0]):
+                        sub_ens_data.append(ctx.mkens(name))
+                    else:
+                        sub_perf_data.append(ctx.mkperf(name, role))
+            else:
+                # TODO: if even number of field delimiters, need to look closer at item
+                # contents/format to figure out what to do (i.e. NER)!!!
+                sub_ens_data.append(ctx.mkens(ens_item))
+            return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
+
+        def parse_ens_fields(fields):
+            sub_ens_data = []
+            sub_perf_data = []
+            while fields:
+                if len(fields) == 1:
+                    sub_ens_data.append(ctx.mkens(fields.pop(0)))
+                    break  # same as continue
+                # more reliable to do this moving backward from the end (sez me)
+                if ' ' not in fields[-1]:
+                    # REVISIT: we presume a single-word field to be a city/location (for now);
+                    # as above, we should really look at field contents to properly parse!!!
+                    ens = ','.join([fields.pop(-2), fields.pop(-1)])
+                    sub_ens_data.append(ctx.mkens(ens))
+                else:
+                    # yes, do this twice!
+                    sub_ens_data.append(ctx.mkens(fields.pop(-1)))
+                    sub_ens_data.append(ctx.mkens(fields.pop(-1)))
+            return {'ensembles' : sub_ens_data, 'performers': sub_perf_data}
+
+        ens_data  = []
+        perf_data = []
+        ret_data  = ml_dict({'ensembles': ens_data, 'performers': perf_data})
+        if ';' in ens_str:
+            for ens_item in ens_str.split(';'):
+                if ens_item:
+                    ret_data.merge(parse_ens_item(ens_item))
+        elif ',' in ens_str:
+            ens_fields = ens_str.split(',')
+            ret_data.merge(parse_ens_fields(ens_fields))
+        else:
+            # ens_data is implcitly part of ret_data
+            ens_data.append(ctx.mkens(ens_str))
+
+        return ret_data
 #####################
 # command line tool #
 #####################
