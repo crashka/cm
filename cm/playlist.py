@@ -285,7 +285,9 @@ class ParserWWFM(Parser):
         tz = pytz.timezone(self.station.timezone)
 
         pp_data = {}
-        pp_data['prog_play_info']  = data
+        # TODO: appropriate fixup of data (e.g. NULL chars) for prog_play_info!!!
+        #pp_data['prog_play_info']  = data
+        pp_data['prog_play_info']  = {}
         pp_data['prog_play_date']  = str2date(sdate)
         pp_data['prog_play_start'] = str2time(stime)
         pp_data['prog_play_end']   = str2time(etime)
@@ -328,6 +330,14 @@ class ParserWWFM(Parser):
 
         dur_msecs = raw_data.get('_duration')
         tz = pytz.timezone(self.station.timezone)
+
+        # special fix-up for NULL characters in recording name (WXXI)
+        rec_name = raw_data.get('collectionName')
+        if rec_name and '\u0000' in rec_name:
+            raw_data['collectionName'] = rec_name.replace('\u0000', '') or None
+            # TEMP: also remove itunes link from 'buy' element, since it also contains NULL
+            if 'buy' in raw_data and 'itunes' in raw_data['buy']:
+                del raw_data['buy']['itunes']
 
         play_data = {}
         play_data['play_info']  = raw_data

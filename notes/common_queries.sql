@@ -382,3 +382,33 @@ select substr(p.name, 1, 60) as performer, pf.role, count(*) as plays,
  where pf.role is null
  group by 1, 2
  order by 3 desc, 1, 2
+
+-- compare station syndication, one day
+select pl.start_time, s.name, p.name, substr(c.name, 1, 20), substr(w.name, 1, 25),
+       ps1.seq_hash, ps2.seq_hash, ps3.seq_hash
+  from play pl
+       join station s on s.id = pl.station_id
+       join program_play pp on pp.id = pl.prog_play_id
+       join program p on p.id = pp.program_id
+       join work w on w.id = pl.work_id
+       join person c on c.id = w.composer_id
+       join play_seq ps1 on ps1.play_id = pl.id and ps1.hash_level = 1
+       left join play_seq ps2 on ps2.play_id = pl.id and ps2.hash_level = 2
+       left join play_seq ps3 on ps3.play_id = pl.id and ps3.hash_level = 3
+ where s.name in ('C24', 'WWFM', 'IPR', 'MPR', 'WWXI')
+   and pl.start_time between '2018-10-15' and '2018-10-16'
+ order by pl.start_time, s.synd_level desc
+
+-- find split plays (need to merge in code, and log the merges)
+select pl1.start_time, pl1.end_time, pl2.end_time, s.name, p.name, substr(c.name, 1, 20), substr(w.name, 1, 25)
+  from play pl1
+       join play pl2 on pl2.station_id = pl1.station_id
+                    and pl2.work_id = pl1.work_id
+                    and pl2.start_time = pl1.end_time
+       join station s on s.id = pl1.station_id
+       join program_play pp on pp.id = pl1.prog_play_id
+       join program p on p.id = pp.program_id
+       join work w on w.id = pl1.work_id
+       join person c on c.id = w.composer_id
+ order by 1, s.synd_level desc
+

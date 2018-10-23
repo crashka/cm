@@ -452,7 +452,9 @@ class Station(object):
         playlist_url = self.build_url(date)
         log.debug("Fetching from %s (headers: %s)" % (playlist_url, self.http_headers))
         r = self.sess.get(playlist_url, headers=self.http_headers)
-        playlist_content = r.text
+        # REVISIT: is this the right place to filter out NULL characters???...and should we
+        # log the fixup???
+        playlist_content = r.text.replace('\u0000', '')
 
         self.last_fetch = dt.datetime.utcnow()
         # TODO: this really needs to return metadata around the playlist, not

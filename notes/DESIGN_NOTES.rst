@@ -493,7 +493,10 @@ Playlist Parsing
 To Do - Immediate/Active
 ------------------------
 
-* resolve issue with "." as person/ensemble name (WNED)
+* filter out NULL characters ('\u0000') from playlists on fetch (log as warning[?])
+   * fixup of existing files with NULL characters (WXXI)
+   * also continue to detect in playlist parsing???
+* merge split plays (across date/hour boundaries), log fixups
 * abstract entity_string parsing
    * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
