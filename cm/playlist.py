@@ -164,8 +164,8 @@ class Parser(object):
         """
         for prog in self.iter_program_plays(playlist):
             # Step 1 - Parse out program_play info
-            norm = self.map_program_play(prog)
-            pp_rec = self.ml.insert_program_play(playlist, norm)
+            pp_norm = self.map_program_play(prog)
+            pp_rec = self.ml.insert_program_play(playlist, pp_norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
             playlist.parse_ctx['station_id']   = pp_rec['station_id']
@@ -175,41 +175,36 @@ class Parser(object):
 
             # Step 2 - Parse out play info (if present)
             for play in self.iter_plays(prog):
-                play_info, rec_info, entity_str_data = self.map_play(pp_rec, play)
-
-                play_data = ml_dict({'play':       play_info,
-                                     'composer':   {},
-                                     'work':       {},
-                                     'conductor':  {},
-                                     'performers': [],
-                                     'ensembles':  [],
-                                     'recording':  rec_info,
-                                     'entity_str': entity_str_data})
+                play_norm, entity_str_data = self.map_play(pp_rec, play)
+                # APOLOGY: perhaps this parsing of entity strings and merging into normalized
+                # play data really belongs in the subclasses, but just hate to see all of the
+                # exact replication of code--thus, we have this ugly, ill-defined interface,
+                # oh well... (just need to be careful here)
                 for composer_str in entity_str_data['composer']:
                     if composer_str:
-                        play_data.merge(self.ml.parse_composer_str(composer_str))
+                        play_norm.merge(self.ml.parse_composer_str(composer_str))
                 for work_str in entity_str_data['work']:
                     if work_str:
-                        play_data.merge(self.ml.parse_work_str(work_str))
+                        play_norm.merge(self.ml.parse_work_str(work_str))
                 for conductor_str in entity_str_data['conductor']:
                     if conductor_str:
-                        play_data.merge(self.ml.parse_conductor_str(conductor_str))
+                        play_norm.merge(self.ml.parse_conductor_str(conductor_str))
                 for performers_str in entity_str_data['performers']:
                     if performers_str:
-                        play_data.merge(self.ml.parse_performer_str(performers_str))
+                        play_norm.merge(self.ml.parse_performer_str(performers_str))
                 for ensembles_str in entity_str_data['ensembles']:
                     if ensembles_str:
-                        play_data.merge(self.ml.parse_ensemble_str(ensembles_str))
+                        play_norm.merge(self.ml.parse_ensemble_str(ensembles_str))
 
-                play_rec = self.ml.insert_play(playlist, pp_rec, play_data)
+                play_rec = self.ml.insert_play(playlist, pp_rec, play_norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
 
-                es_recs = self.ml.insert_entity_strings(playlist, play_data)
+                es_recs = self.ml.insert_entity_strings(playlist, entity_str_data)
 
-                play_name = "%s - %s" % (play_data['composer']['name'], play_data['work']['name'])
+                play_name = "%s - %s" % (play_norm['composer']['name'], play_norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
                 if play_seq:
@@ -334,23 +329,23 @@ class ParserWWFM(Parser):
         dur_msecs = raw_data.get('_duration')
         tz = pytz.timezone(self.station.timezone)
 
-        play_info = {}
-        play_info['play_info']  = raw_data
-        play_info['play_date']  = str2date(sdate, '%m-%d-%Y')
-        play_info['play_start'] = str2time(stime)
-        play_info['play_end']   = str2time(etime) if etime else None
-        play_info['play_dur']   = dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
-        play_info['notes']      = None # ARRAY(Text)
-        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
+        play_data = {}
+        play_data['play_info']  = raw_data
+        play_data['play_date']  = str2date(sdate, '%m-%d-%Y')
+        play_data['play_start'] = str2time(stime)
+        play_data['play_end']   = str2time(etime) if etime else None
+        play_data['play_dur']   = dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
+        play_data['notes']      = None # ARRAY(Text)
+        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], tz)
         if etime:
-            end_date = play_info['play_date'] if etime > stime else play_info['play_date'] + dt.timedelta(1)
-            play_info['end_time'] = datetimetz(end_date, play_info['play_end'], tz)
-            play_info['duration'] = play_info['end_time'] - play_info['start_time']
+            end_date = play_data['play_date'] if etime > stime else play_data['play_date'] + dt.timedelta(1)
+            play_data['end_time'] = datetimetz(end_date, play_data['play_end'], tz)
+            play_data['duration'] = play_data['end_time'] - play_data['start_time']
         else:
-            play_info['end_time'] = None # TIMESTAMP(timezone=True)
-            play_info['duration'] = None # Interval
+            play_data['end_time'] = None # TIMESTAMP(timezone=True)
+            play_data['duration'] = None # Interval
 
-        rec_info  = {'name'      : raw_data.get('collectionName'),
+        rec_data  = {'name'      : raw_data.get('collectionName'),
                      'label'     : raw_data.get('copyright'),
                      'catalog_no': raw_data.get('catalogNumber')}
 
@@ -364,10 +359,17 @@ class ParserWWFM(Parser):
                            'performers': [raw_data.get('artistName'),
                                           raw_data.get('soloists')],
                            'ensembles' : [raw_data.get('ensembles')],
-                           'recording' : [rec_info['name']],
-                           'label'     : [rec_info['label']]}
+                           'recording' : [rec_data['name']],
+                           'label'     : [rec_data['label']]}
 
-        return (play_info, rec_info, entity_str_data)
+        return (ml_dict({'play':       play_data,
+                         'composer':   {},
+                         'work':       {},
+                         'conductor':  {},
+                         'performers': [],
+                         'ensembles':  [],
+                         'recording':  rec_data}),
+                entity_str_data)
 
 #+-----------+
 #| ParserMPR |
@@ -490,19 +492,19 @@ class ParserMPR(Parser):
             field_value = play_field.string.strip()
             raw_data[field_name] = field_value or None
 
-        play_info = {}
+        play_data = {}
         # TODO: better conversion of play_head/play_body into dict for play_info!!!
-        play_info['play_info']  = raw_data
-        play_info['play_date']  = str2date(raw_data['start_date'])
-        play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M %p')
-        play_info['play_end']   = None # Time
-        play_info['play_dur']   = None # Interval
-        play_info['notes']      = None # ARRAY(Text)
-        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
-        play_info['end_time']   = None # TIMESTAMP(timezone=True)
-        play_info['duration']   = None # Interval
+        play_data['play_info']  = raw_data
+        play_data['play_date']  = str2date(raw_data['start_date'])
+        play_data['play_start'] = str2time(raw_data['start_time'], '%I:%M %p')
+        play_data['play_end']   = None # Time
+        play_data['play_dur']   = None # Interval
+        play_data['notes']      = None # ARRAY(Text)
+        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], tz)
+        play_data['end_time']   = None # TIMESTAMP(timezone=True)
+        play_data['duration']   = None # Interval
 
-        rec_info =  {'label'     : raw_data.get('label'),
+        rec_data =  {'label'     : raw_data.get('label'),
                      'catalog_no': raw_data.get('catalog_no')}
 
         entity_str_data = {'composer'  : [raw_data.get('song-composer')],
@@ -511,9 +513,16 @@ class ParserMPR(Parser):
                            'performers': [raw_data.get('song-soloist soloist-1')],
                            'ensembles' : [raw_data.get('song-orch_ensemble')],
                            'recording' : [],
-                           'label'     : [rec_info['label']]}
+                           'label'     : [rec_data['label']]}
 
-        return (play_info, rec_info, entity_str_data)
+        return (ml_dict({'play':       play_data,
+                         'composer':   {},
+                         'work':       {},
+                         'conductor':  {},
+                         'performers': [],
+                         'ensembles':  [],
+                         'recording':  rec_data}),
+                entity_str_data)
 
 class ParserC24(Parser):
     """Parser for C24 station
@@ -711,19 +720,19 @@ class ParserC24(Parser):
                                            (raw_data['ensemble'], field.string))
                     raw_data['ensemble'] = field.string
 
-        play_info = {}
+        play_data = {}
         # TODO: better conversion of play_head/play_body into dict for play_info!!!
-        play_info['play_info']  = raw_data
-        play_info['play_date']  = str2date(raw_data['start_date'])
-        play_info['play_start'] = str2time(raw_data['start_time'], '%I:%M%p')
-        play_info['play_end']   = None # Time
-        play_info['play_dur']   = None # Interval
-        play_info['notes']      = None # ARRAY(Text)
-        play_info['start_time'] = datetimetz(play_info['play_date'], play_info['play_start'], tz)
-        play_info['end_time']   = None # TIMESTAMP(timezone=True)
-        play_info['duration']   = None # Interval
+        play_data['play_info']  = raw_data
+        play_data['play_date']  = str2date(raw_data['start_date'])
+        play_data['play_start'] = str2time(raw_data['start_time'], '%I:%M%p')
+        play_data['play_end']   = None # Time
+        play_data['play_dur']   = None # Interval
+        play_data['notes']      = None # ARRAY(Text)
+        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], tz)
+        play_data['end_time']   = None # TIMESTAMP(timezone=True)
+        play_data['duration']   = None # Interval
 
-        rec_info  = {'label'     : raw_data.get('label'),
+        rec_data  = {'label'     : raw_data.get('label'),
                      'catalog_no': raw_data.get('catalog_no')}
 
         entity_str_data = {'composer'  : [raw_data.get('composer')],
@@ -732,9 +741,16 @@ class ParserC24(Parser):
                            'performers': [raw_data.get('performer')],
                            'ensembles' : [raw_data.get('ensemble')],
                            'recording' : [],
-                           'label'     : [rec_info['label']]}
+                           'label'     : [rec_data['label']]}
 
-        return (play_info, rec_info, entity_str_data)
+        return (ml_dict({'play':       play_data,
+                         'composer':   {},
+                         'work':       {},
+                         'conductor':  {},
+                         'performers': [],
+                         'ensembles':  [],
+                         'recording':  rec_data}),
+                entity_str_data)
 
 #####################
 # command line tool #

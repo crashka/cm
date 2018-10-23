@@ -1026,8 +1026,8 @@ class MusicLib(object):
         ctx = playlist.parse_ctx
         ret = []
         es = get_entity('entity_string')
-        for entity_src, src_data in data['entity_str'].items():
-            for entity_str in src_data:
+        for entity_src, src_strings in data.items():
+            for entity_str in src_strings:
                 if not (entity_str and re.search('\w', entity_str)):
                     continue
                 ent_str_data = {
