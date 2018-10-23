@@ -146,9 +146,9 @@ class Parser(object):
         """
         raise RuntimeError("abstract method map_program_play() must be subclassed")
 
-    def map_play(self, pp_rec, play):
+    def map_play(self, pp_data, play):
         """
-        :param pp_rec: [dict] parent program play record
+        :param pp_data: [dict] parent program play data (from map_program_play())
         :param play: yield value from iter_plays()
         :return: dict of normalized play information
         """
@@ -175,7 +175,7 @@ class Parser(object):
 
             # Step 2 - Parse out play info (if present)
             for play in self.iter_plays(prog):
-                play_norm, entity_str_data = self.map_play(pp_rec, play)
+                play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
                 # APOLOGY: perhaps this parsing of entity strings and merging into normalized
                 # play data really belongs in the subclasses, but just hate to see all of the
                 # exact replication of code--thus, we have this ugly, ill-defined interface,
@@ -297,7 +297,7 @@ class ParserWWFM(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_rec, raw_data):
+    def map_play(self, pp_data, raw_data):
         """This is the implementation for WWFM (and others)
 
         raw data in: 'playlist' item from WWFM playlist file
@@ -445,7 +445,7 @@ class ParserMPR(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_rec, play_head):
+    def map_play(self, pp_data, play_head):
         """This is the implementation for MPR
 
         raw data in: bs4 'li' tag
@@ -460,7 +460,7 @@ class ParserMPR(Parser):
         }
         """
         raw_data = {}
-        pp_start = pp_rec['prog_play_start']
+        pp_start = pp_data['prog_play_start']
         play_start = play_head.find('a', class_="song-time").time
         start_date = play_start['datetime']
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
@@ -610,7 +610,7 @@ class ParserC24(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_rec, play_head):
+    def map_play(self, pp_data, play_head):
         """This is the implementation for C24
 
         raw data in: bs4 'table' tag
@@ -633,7 +633,7 @@ class ParserC24(Parser):
         # REVISIT: kind of stupid, but we do this for consistency with MPR
         # (to make abstraction easier at some point); all of this really
         # needs to be cleaned up!!!
-        pp_date = pp_rec['prog_play_date']
+        pp_date = pp_data['prog_play_date']
         start_date = date2str(pp_date)
         start_time = play_start.string.strip()  # "12:01AM"
         raw_data['start_date'] = start_date  # %Y-%m-%d
