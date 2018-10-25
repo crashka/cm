@@ -265,6 +265,10 @@ class ParserWWFM(Parser):
         prog_info = data['program']
         prog_name = prog_info['name']
         prog_data = {'name': prog_name}
+        # INVESTIGATE (at some point): would like to record this, but it looks like
+        # this maps to a weekly program identifier, thus different from our current
+        # notion of a named program that might run daily!!!
+        #prog_data['ext_id'] = prog_info.get('program_id')
 
         data.get('date')        # 2018-09-19
         data.get('fullstart')   # 2018-09-19 12:00
@@ -296,6 +300,9 @@ class ParserWWFM(Parser):
         pp_data['start_time']      = datetimetz(sdate, stime, tz)
         pp_data['end_time']        = datetimetz(edate, etime, tz)
         pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
+
+        pp_data['ext_id']          = data.get('_id')
+        pp_data['ext_mstr_id']     = data.get('event_id')
 
         return {'program': prog_data, 'program_play': pp_data}
 
@@ -354,6 +361,9 @@ class ParserWWFM(Parser):
         else:
             play_data['end_time'] = None # TIMESTAMP(timezone=True)
             play_data['duration'] = None # Interval
+
+        play_data['ext_id']      = raw_data.get('_id')
+        play_data['ext_mstr_id'] = raw_data.get('_source_song_id')
 
         rec_data  = {'name'      : raw_data.get('collectionName'),
                      'label'     : raw_data.get('copyright'),

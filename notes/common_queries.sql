@@ -399,6 +399,21 @@ select pl.start_time, s.name, p.name, substr(c.name, 1, 20), substr(w.name, 1, 2
    and pl.start_time between '2018-10-15' and '2018-10-16'
  order by pl.start_time, s.synd_level desc
 
+-- find syndicated plays, one day
+select ps.seq_hash, substr(c.name, 1, 20), substr(w.name, 1, 25),
+       max(s.synd_level) as s_lev, array_agg(distinct s.name) as stations,
+       min(pl.start_time), max(pl.start_time), max(pl.start_time) - min(pl.start_time) as interval
+  from play_seq ps
+       join play pl on pl.id = ps.play_id
+       join station s on s.id = pl.station_id
+       join work w on w.id = pl.work_id
+       join person c on c.id = w.composer_id
+ where pl.start_time between '2018-10-15' and '2018-10-16'
+   and ps.hash_level = 1
+ group by 1, 2, 3
+having count(*) > 1
+ order by 6
+
 -- find split plays (need to merge in code, and log the merges)
 select pl1.start_time, pl1.end_time, pl2.end_time, s.name, p.name, substr(c.name, 1, 20), substr(w.name, 1, 25)
   from play pl1
@@ -412,3 +427,13 @@ select pl1.start_time, pl1.end_time, pl2.end_time, s.name, p.name, substr(c.name
        join person c on c.id = w.composer_id
  order by 1, s.synd_level desc
 
+-- unknown composers by station and program
+select s.name, p.name, count(*)
+  from play pl
+       join person c on  c.id = pl.composer_id
+       join station s on s.id = pl.station_id
+       join program_play pp on pp.id = pl.prog_play_id
+       join program p on p.id = pp.program_id
+ where not exists (select * from entity_ref where entity_ref = c.name)
+ group by 1, 2
+ order by 3 desc

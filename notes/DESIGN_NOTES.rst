@@ -500,7 +500,7 @@ To Do - Immediate/Active
 * abstract entity_string parsing
    * map "replacement character" (\ufffd for WRTI; \xef\xbf\xbd for WMHT) to wildcard for matching
 * rationalize use of "entity" (as either relational table or name/proper noun)!!!
-* investigate anomalies with play_seq matches
+* investigate anomalies with play_seq matches (interval > 5 minutes)
 * robustify play_seq (program-/hour-boundaries, carry-over between playlists, etc.)
 * rectify program based on play_seq matches
 * debug/fix work/play with composer/person '<none>' and work '<unknown>'

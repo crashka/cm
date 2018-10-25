@@ -62,7 +62,7 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_person_id',     Integer,     ForeignKey('person.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text),
+            Column('arkiv_uri',         Text),
 
             # constraints/indexes
             UniqueConstraint('name'),
@@ -91,7 +91,7 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_ensemble_id',   Integer,     ForeignKey('ensemble.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text),
+            Column('arkiv_uri',         Text),
 
             # constraints/indexes
             UniqueConstraint('name')
@@ -111,7 +111,7 @@ def load_schema(meta):
             # canonicality
             Column('is_canonical',      Boolean),
             Column('cnl_work_id',       Integer,     ForeignKey('work.id')),  # points to self, if canonical
-            Column('archiv_uri',        Text),
+            Column('arkiv_uri',         Text),
 
             # constraints/indexes
             UniqueConstraint('composer_id', 'name')
@@ -122,7 +122,7 @@ def load_schema(meta):
             Column('label',             Text),
             Column('catalog_no',        Text),
             Column('release_date',      Date),
-            Column('archiv_uri',        Text),
+            Column('arkiv_uri',         Text),
 
             # constraints/indexes
             # TODO: put a partial index on ('name', 'label')!!!
@@ -147,12 +147,16 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('name',              Text,        nullable=False),
             Column('timezone',          Text,        nullable=False),  # tzdata (Olson/IANA) format
-            Column('notes',             ARRAY(Text)),
 
             # the following are informational only
             Column('location',          Text),       # e.g. "<city>, <state>"
             Column('frequency',         Text),
             Column('website',           Text),
+
+            # misc/external information
+            Column('notes',             ARRAY(Text)),
+            Column('ext_id',            Text),
+            Column('ext_mstr_id',       Text),
 
             # canonicality/analytics metadata
             Column('synd_level',        Integer,     server_default=text('10')),  # 0-100 (default: 10)
@@ -166,12 +170,15 @@ def load_schema(meta):
             Column('host_name',         Text),
             Column('is_syndicated',     Boolean),
             Column('station_id',        Integer,     ForeignKey('station.id'), nullable=True),
+
+            # misc/external information
             Column('notes',             ARRAY(Text)),
+            Column('ext_id',            Text),
+            Column('ext_mstr_id',       Text),
 
             # canonicality/analytics metadata
             Column('synd_level',        Integer),    # inherit from station
-            Column('is_canonical',      Boolean),    # true if syndication master (synd_level = 100)
-            Column('cnl_program_id',    Integer,     ForeignKey('program.id')),  # points to self, if canonical
+            Column('mstr_program_id',   Integer,     ForeignKey('program.id')),  # not null if syndicated
             Column('website',           Text),
 
             # constraints/indexes
@@ -191,8 +198,10 @@ def load_schema(meta):
             Column('program_id',        Integer,     ForeignKey('program.id')),
             Column('mstr_prog_play_id', Integer,     ForeignKey('program_play.id')),  # not null if syndicated
 
-            # miscellaneous
+            # misc/external information
             Column('notes',             ARRAY(Text)),
+            Column('ext_id',            Text),
+            Column('ext_mstr_id',       Text),
 
             # technical
             Column('start_time',        TIMESTAMP(timezone=True)),
@@ -231,8 +240,10 @@ def load_schema(meta):
             Column('recording_id',      Integer,     ForeignKey('recording.id')),
             Column('mstr_play_id',      Integer,     ForeignKey('play.id')),  # not null if syndicated
 
-            # miscellaneous
+            # misc/external information
             Column('notes',             ARRAY(Text)),
+            Column('ext_id',            Text),
+            Column('ext_mstr_id',       Text),
 
             # technical
             Column('start_time',        TIMESTAMP(timezone=True)),
