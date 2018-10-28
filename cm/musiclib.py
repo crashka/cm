@@ -119,6 +119,8 @@ class ml_dict(UserDict):
     """
     @staticmethod
     def deep_replace(d, from_str, to_str):
+        """String replacement throughout structure
+        """
         for k, v in d.items():
             if mappingtype(v):
                 ml_dict.deep_replace(v, from_str, to_str)
@@ -165,7 +167,8 @@ COND_STRS = {'conductor',
 SKIP_ENS = {'ensemble',
             'soloists'}
 
-SUFFIX_TOKEN = '<<SUFFIX>>'
+SUFFIX_TOKEN = '{{SUFFIX}}'
+UNIDENT      = '{{UNIDENT}}'
 
 REPL_CHAR_16 = '\ufffd'
 REPL_CHAR_8  = '\xef\xbf\xbd'
@@ -203,6 +206,236 @@ class StringCtx(object):
         self.orig_str   = ent_str
         self.ctx_flags  = flags
         self.completion = []
+
+    @staticmethod
+    def examine_entity_str(ent_str, flags = 0):
+        """Implement as stand-alone static method for now, possibly integrate with instance
+        state and/or workflow later
+
+        1. charset (unicode) fixups (e.g. replacement character)
+        2. enclosing matched delimiters (quotes, parens, braces, etc.), entire string ("entity string")
+        3. enclosing matched delimiters, substring ("entity item")
+        4. incomplete matching delimiters (not terminated), for entire string (and items???)
+        5. leading delimiters, for entire string and items
+        6. item-separating delimiters
+           6.a. identify and track position
+           6.b. parse out individual fields
+           6.c. classification (NER) of fields
+           6.d. assemble entity items based on:
+              6.d.i. delimiter hierarchy/significance
+              6.d.ii logical field groupings
+        """
+        def get_entity_type(substr):
+            """
+            :param substr: item to lookup [string]
+            :return: type [string]
+            """
+            er = get_entity('entity_ref')
+            sel_res = er.select({'entity_ref': substr.strip()}, {'entity_strength': -1})
+            if sel_res.rowcount > 0:
+                er_row = sel_res.fetchone()
+                return er_row.entity_type
+            else:
+                return None
+
+        def examine_entity_fld(fid_str):
+            """Examine a "field", which is what is between major delimiters; note that
+            fields may contain one or more commas (typically not more than 2)
+
+            :param: field [string]
+            :return: pattern [string]
+            """
+            pass
+
+        orig_str = ent_str
+        log.debug("Examining entity string: \"%s\", flags: 0x%x" % (ent_str, flags))
+
+        # Pre-Proc 1. charset/unicode and whitespace fixups
+        repl8_count    = ent_str.count(REPL_CHAR_8)
+        repl16_count   = ent_str.count(REPL_CHAR_16)
+        dup_whitespace = bool(re.search(r'\s{2}', ent_str))
+        trail_astrisks = bool(re.search(r'\*$', ent_str))
+        if ent_str.count(REPL_CHAR_8):
+            log.debug("  Fix utf-8 replacement char for \"%s\"" % (ent_str))
+            ent_str = ent_str.replace(REPL_CHAR_8, REPL_CHAR_16)
+        if re.search(r'\s{2}', ent_str):
+            log.debug("  Collapse whitespace for \"%s\"" % (ent_str))
+        if re.search(r'\*$', ent_str):
+            log.debug("  Remove trailing astrisk(s) for \"%s\"" % (ent_str))
+            ent_str = ent_str.rstrip('*')
+
+        # Pre-Proc 2. enclosing matched delimiters (quotes, parens, braces, etc.) for entire
+        # entity string; ATTN: we currently only handle single character brackets!!!
+        brackets = []
+        while ent_str and  ent_str[0] in BRACKETS.keys():
+            open_char  = ent_str[0]
+            cls_char   = BRACKETS[open_char]
+            if open_char == cls_char:
+                count_char = ent_str.count(open_char)
+                count_open = count_char // 2 + count_char % 2
+                count_cls  = count_char // 2
+                is_matched = count_open == count_cls
+                is_encl    = ent_str[-1] == cls_char
+            else:
+                count_char = None
+                count_open = ent_str.count(open_char)
+                count_cls  = ent_str.count(cls_char)
+                is_matched = count_open == count_cls
+                is_encl    = ent_str[-1] == cls_char
+
+            brackets.append({'open_char' : open_char,
+                             'cls_char'  : cls_char,
+                             'count_char': count_char,
+                             'count_open': count_open,
+                             'count_cls' : count_cls,
+                             'is_matched': is_matched,
+                             'is_encl'   : is_encl})
+
+            if is_encl:
+                # always remove outer bracket chars
+                log.debug("  Remove enclosing bracket chars for \"%s\"" % (ent_str))
+                ent_str = ent_str[1:-1]
+            elif count_open - count_cls == 1:
+                # strip off leading bracket char
+                log.debug("  Strip leading bracket char for \"%s\"" % (ent_str))
+                ent_str = ent_str[1:]
+            else:
+                if not is_matched:
+                    log.debug("  EES_WARN - mismatched interior bracket char(s) for \"%s\"" % (ent_str))
+                break
+
+        if ent_str != orig_str:
+            log.debug("             cleaned-up: \"%s\"" % (ent_str))
+        ent_ptrn1 = None
+        ent_ptrn2 = None
+        ent_ptrn3 = None
+
+        # pass 1 - split using major delimiters '/', ';', ' - ', ' * ' (mandatory spaces as
+        # indicated, otherwise optional space both before and after)
+        DELIMS_PTRN = r'( ?\/ ?| ?\; ?| \- | \* | \& )'
+        ent_list  = []  # [(ent_fld, ent_start, delim_str, delim_end), ...]
+        ent_elems = []
+        unidents  = []
+        ent_start = 0
+        # add extra entry to pick up trailing entity
+        delim_matches = list(re.finditer(DELIMS_PTRN, ent_str)) + [None]
+        log.debug("  Pass 1 - delim matches: %d" % (len(delim_matches)))
+        for m in delim_matches:
+            if m:
+                ent_end   = m.start()  # a.k.a. delim_start
+                delim_end = m.end()
+                delim_str = m.group()
+            else:
+                ent_end   = None  # represents end of ent_str
+                delim_end = None
+                delim_str = ''
+            # note, leading delimiter yields ent_end == 0 and empty ent_fld
+            assert not ent_end or ent_start < ent_end
+            ent_fld = ent_str[ent_start:ent_end]
+            assert ent_fld == ent_fld.strip()
+            ent_list.append((ent_fld, ent_start, delim_str, delim_end))
+            log.debug("    Entity item %s" % (str(ent_list[-1])))
+            if ent_fld:
+                ent_type = get_entity_type(ent_fld)
+                if ent_type:
+                    ent_elems.append("{{%s}}" % (ent_type) + delim_str)
+                    log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+                else:
+                    unidents.append((ent_fld, ent_start, delim_str, delim_end))
+                    ent_elems.append(UNIDENT + delim_str)
+                    log.debug("      Appending unident %s" % (str(unidents[-1])))
+                    log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+            else:
+                ent_elems.append(delim_str)
+                log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+            ent_start = delim_end
+
+        ent_ptrn1 = ''.join(ent_elems)
+        log.debug("    Entity pattern 1 \"%s\"" % (ent_ptrn1))
+
+        # pass 2 - find entities among/across comma-deliminted expressions
+        if ent_str.count(',') > 0:
+            DELIMS_PTRN = r'( ?, ?)'
+            ents1 = []  # [(ent_fld, ent_start, delim_str, delim_end), ...]
+            ents2 = []
+            ents3 = []
+            ent_matches = []
+            unidents  = []
+            ent_start = 0
+            # add extra entry to pick up trailing entity
+            delim_matches = list(re.finditer(DELIMS_PTRN, ent_str)) + [None]
+            log.debug("  Pass 2 - delim matches: %d" % (len(delim_matches)))
+            for m in delim_matches:
+                if m:
+                    ent_end   = m.start()  # a.k.a. delim_start
+                    delim_end = m.end()
+                    delim_str = m.group()
+                else:
+                    ent_end   = 99999  # represents end of ent_str
+                    delim_end = 99999
+                    delim_str = ''
+                # note, leading delimiter yields ent_end == 0 and empty ent_fld
+                assert not ent_end or ent_start < ent_end
+                ent_fld = ent_str[ent_start:ent_end]
+                assert ent_fld == ent_fld.strip()
+
+                ents1.append((ent_fld, ent_start, delim_str, delim_end))
+                log.debug("    Entity item1 %s" % (str(ents1[-1])))
+                if len(ents1) > 1:
+                    ent_fld2 = ents1[-2][0] + ents1[-2][2] + ents1[-1][0]
+                    ents2.append((ent_fld2, ents1[-2][1], delim_str, delim_end))
+                    log.debug("    Entity item2 %s" % (str(ents2[-1])))
+                    if len(ents1) > 2:
+                        ent_fld3 = ents1[-3][0] + ents1[-3][2] + ents2[-1][0]
+                        ents3.append((ent_fld3, ents1[-3][1], delim_str, delim_end))
+                        log.debug("    Entity item3 %s" % (str(ents3[-1])))
+                ent_start = delim_end
+
+            # build list of matches
+            for ent_item in ents3 + ents2 + ents1:
+                ent_fld   = ent_item[0]
+                ent_start = ent_item[1]
+                delim_str = ent_item[2]
+                delim_end = ent_item[3]
+                if ent_fld:
+                    ent_type = get_entity_type(ent_fld)
+                    if ent_type:
+                        ent_matches.append((ent_item, "{{%s}}" % (ent_type) + delim_str))
+                        log.debug("    Entity match %s" % (str(ent_matches[-1])))
+                    else:
+                        unidents.append((ent_item, UNIDENT + delim_str))
+                        log.debug("    Entity match %s" % (str(unidents[-1])))
+                else:
+                    ent_matches.append((ent_item, delim_str))
+                    log.debug("    Entity match %s" % (str(ent_matches[-1])))
+
+            # one more pass to find best [sic] fit (just do brainless N x M iteration for now)
+            ptrn_elems = []  # [(ent_item, ent_substr), ...]
+            for ent_item, ent_substr in ent_matches + unidents:
+                conflict = False
+                for ptrn_item, ptrn_substr in ptrn_elems:
+                    if not (ent_item[3] <= ptrn_item[1] or ent_item[1] >= ptrn_item[3]):
+                        conflict = True
+                        break
+                if not conflict:
+                    ptrn_elems.append((ent_item, ent_substr))
+                    log.debug("    Pattern elem %s" % (str(ptrn_elems[-1])))
+            # sort by position, validate no gaps (TODO: also validate against delim_matches!!!)
+            ptrn_elems.sort(key=lambda elem: elem[0][1])
+            prev_end = 0
+            for elem in ptrn_elems:
+                elem_start = elem[0][1]
+                elem_end = elem[0][3]
+                assert elem_start == prev_end
+                prev_end = elem_end
+
+            ent_ptrn2 = ''.join([elem[1] for elem in ptrn_elems])
+            log.debug("    Entity pattern 2 \"%s\"" % (ent_ptrn2))
+
+            # TODO: look for bracketed/quoted entities within unidents; try and reconstruct
+            # pattern based on associations (e.g. instrument/role -> performer)!!!
+
+        return (ent_ptrn1, ent_ptrn2, ent_ptrn3)
 
     def parse_entity_str(self, flags = 0):
         """
@@ -592,9 +825,10 @@ class MusicEnt(object):
         self.last_upd = None
         self.last_del = None
 
-    def select(self, crit):
+    def select(self, crit, order_by = None):
         """
         :param crit: dict of query criteria
+        :param order_by: list of column names, or dict of names mapped to +/-1 (asc/desc)
         :return: SQLAlchemy ResultProxy
         """
         if not crit:
@@ -606,9 +840,17 @@ class MusicEnt(object):
         sel = self.tab.select()
         for col, val in crit.items():
             # NOTE: there was previously a problem (exception) with a timedelta (Interval) field in
-            # the query crit, not sure why--we don't currently need that any more, but the error may
-            # come up again in the future, so will need invested again then
+            # the query crit, not sure why--we don't currently need to special-case remove that from
+            # crit any more, but the error may come up again in the future, so may need investigate
+            # again if/when it does
             sel = sel.where(self.tab.c[col] == val)
+        if order_by:
+            if strtype(order_by):
+                order_by = {order_by: 1}
+            elif collecttype(order_by):
+                order_by = {c: 1 for c in order_by}
+            for col, dir in order_by.items():
+                sel = sel.order_by(self.tab.c[col] if dir >= 0 else self.tab.c[col].desc())
         with db.conn.begin() as trans:
             res = db.conn.execute(sel)
         self.last_sel = sel

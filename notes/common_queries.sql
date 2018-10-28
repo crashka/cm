@@ -437,3 +437,11 @@ select s.name, p.name, count(*)
  where not exists (select * from entity_ref where entity_ref = c.name)
  group by 1, 2
  order by 3 desc
+
+-- extract role/instrument from performer table (for use as entities)
+select role, count(*)
+  from performer
+ where role ~ '^[a-z]'
+ group by 1
+having count(*) > 1
+ order by 2 desc;

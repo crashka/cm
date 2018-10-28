@@ -16,7 +16,7 @@ from bs4 import BeautifulSoup
 
 from core import cfg, env, log, dbg_hand, DFLT_HTML_PARSER
 
-from musiclib import MusicLib, SKIP_ENS, ml_dict
+from musiclib import MusicLib, StringCtx, SKIP_ENS, ml_dict, UNIDENT
 from datasci import HashSeq
 from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
                    strtype, collecttype)
@@ -96,6 +96,15 @@ class Playlist(object):
         self.parsed_info = self.parser.parse(self, dryrun, force)
         self.status = PLStatus.PARSED
         return self.parsed_info
+
+    def analyze(self, dryrun = False, force = False):
+        """Analyze current playlist using underlying parser
+
+        :param dryrun: don't write to config file
+        :param force: overwrite playlist configuration, if exists
+        :return: void
+        """
+        self.parser.analyze(self, dryrun, force)
 
 #####################
 # Parser base class #
@@ -213,6 +222,34 @@ class Parser(object):
                     log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
 
         return pp_rec
+
+    def analyze(self, playlist, dryrun = False, force = False):
+        """Analyze playlist contents, build playlist string parser, write to parser config file if not dryrun
+
+        :param playlist: Playlist object
+        :param dryrun: don't write to config file
+        :param force: replace (rather than augment) config info
+        :return: void
+        """
+        for prog in self.iter_program_plays(playlist):
+            pp_norm = self.map_program_play(prog)
+            print("Analyzing program \"%s\":" % (pp_norm['program']['name']))
+
+            parse_patterns = {}
+            for play in self.iter_plays(prog):
+                play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
+                for performers_str in entity_str_data['performers']:
+                    if performers_str:
+                        for pattern in StringCtx.examine_entity_str(performers_str):
+                            if not pattern or pattern == UNIDENT:
+                                continue
+                            if pattern in parse_patterns:
+                                parse_patterns[pattern] += 1
+                            else:
+                                parse_patterns[pattern] = 1
+
+            print("Performer parse patterns for \"%s\":" % (pp_norm['program']['name']))
+            prettyprint(parse_patterns)
 
 ##########################
 # Parser adapter classes #
@@ -782,6 +819,7 @@ import station
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) playlists")
 @click.option('--parse',     'cmd', flag_value='parse', help="Parse out play information from playlist")
+@click.option('--analyze',   'cmd', flag_value='analyze', help="Analyze play information from playlist")
 @click.option('--validate',  'cmd', flag_value='validate', help="Validate playlist file contents")
 @click.option('--station',   'sta_name', help="Station (name) for playlist", required=True)
 #@click.option('--skip',      is_flag=True, help="Skip (rather than fail) if playlist does not exist")
@@ -815,6 +853,10 @@ def main(cmd, sta_name, force, dryrun, debug, playlists):
         for playlist_name in playlist_names:
             playlist = Playlist(sta, playlist_name)
             playlist.parse()
+    elif cmd == 'analyze':
+        for playlist_name in playlist_names:
+            playlist = Playlist(sta, playlist_name)
+            playlist.analyze()
     elif cmd == 'validate':
         raise RuntimeError("Not yet implemented")
 
