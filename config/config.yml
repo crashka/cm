@@ -6,9 +6,9 @@ default:
 
   stations:
     C24:
-      sample_url:   'http://classical24.publicradio.org/listings/listings.php?year=2018&month=09&day=06'
-      url_fmt:      'http://classical24.publicradio.org/listings/listings.php?<DATE_STR>'
-      date_fmt:     'year=%Y&month=%m&day=%d'
+      sample_url:   'https://classical24.publicradio.org/listings/listings.php?Month=12&Day=25&Year=2018'
+      url_fmt:      'https://classical24.publicradio.org/listings/listings.php?<DATE_STR>'
+      date_fmt:     'Month=%m&Day=%d&Year=%Y'
       timezone:     'America/Chicago'
       playlist_ext: 'html'
       parser_cls:   'ParserC24'
