@@ -6,12 +6,21 @@ default:
 
   stations:
     C24:
-      sample_url:   'https://classical24.publicradio.org/listings/listings.php?Month=12&Day=25&Year=2018'
-      url_fmt:      'https://classical24.publicradio.org/listings/listings.php?<DATE_STR>'
+      sample_url:   'https://www.classical24.org/?Month=01&Day=13&Year=2019'
+      url_fmt:      'https://www.classical24.org/?<DATE_STR>'
       date_fmt:     'Month=%m&Day=%d&Year=%Y'
       timezone:     'America/Chicago'
       playlist_ext: 'html'
       parser_cls:   'ParserC24'
+      synd_level:   100
+
+    C24A:
+      sample_url:   'https://www.classical24.org/api/playlist/2019-01-13'
+      url_fmt:      'https://www.classical24.org/api/playlist/<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/Chicago'
+      playlist_ext: 'json'
+      parser_cls:   'Parser'
       synd_level:   100
 
     CPR:
