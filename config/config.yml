@@ -5,12 +5,24 @@ default:
     fetch_interval: 2.0
 
   stations:
+    BEET:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/55913d0c8fa46b530f88384b/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '55913d0c8fa46b530f88384b'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2015-06-29'
+      parser_cls:   'ParserWWFM'
+      synd_level:   15
+
     C24:
       sample_url:   'https://www.classical24.org/?Month=01&Day=13&Year=2019'
       url_fmt:      'https://www.classical24.org/?<DATE_STR>'
       date_fmt:     'Month=%m&Day=%d&Year=%Y'
       timezone:     'America/Chicago'
       playlist_ext: 'html'
+      epoch:        '2014-09-15'
       parser_cls:   'ParserC24'
       synd_level:   100
 
@@ -20,6 +32,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/Chicago'
       playlist_ext: 'json'
+      epoch:        '2014-09-15'
       parser_cls:   'Parser'
       synd_level:   100
 
@@ -207,6 +220,15 @@ default:
       epoch:        '2013-12-24'
       parser_cls:   'ParserWWFM'
       synd_level:   20
+
+    WPR:
+      sample_url:   'https://wpr.net/guts/playlists/build_allclassicalcalendars_iframe.cfm?date=2019-01-15'
+      url_fmt:      'https://wpr.net/guts/playlists/build_allclassicalcalendars_iframe.cfm?date=<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/Chicago'
+      playlist_ext: 'html'
+      epoch:        '2010-05-12'
+      parser_cls:   'Parser'
 
     WQED:
       sample_url:   'https://www.wqed.org/fm/playlist?day=09/05/2018'
