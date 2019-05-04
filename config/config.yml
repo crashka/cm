@@ -102,6 +102,17 @@ default:
       parser_cls:   'ParserMPR'
       synd_level:   80
 
+    NWPR:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/5187c750e1c8c870fd6d9fbc/day?date=2019-05-01&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '5187c750e1c8c870fd6d9fbc'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/Los_Angeles'
+      playlist_ext: 'json'
+      epoch:        '2013-12-16'
+      parser_cls:   'ParserWWFM'
+      synd_level:   35
+
     VPR:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/518028fee1c810b152ff9766/day?date=2018-09-06&format=json'
       url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
@@ -232,6 +243,17 @@ default:
       epoch:        '2013-12-24'
       parser_cls:   'ParserWWFM'
       synd_level:   20
+
+    WOSU2:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/5182cf51e1c86c00f5732300/day?date=2019-05-01&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '5182cf51e1c86c00f5732300'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2013-07-31'
+      parser_cls:   'ParserWWFM'
+      synd_level:   25
 
     WPR:
       sample_url:   'https://wpr.net/guts/playlists/build_allclassicalcalendars_iframe.cfm?date=2019-01-15'
