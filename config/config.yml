@@ -133,6 +133,17 @@ default:
       epoch:        '2018-01-01'
       parser_cls:   'Parser'
 
+    WBAA:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/5187ee3ce1c868cbf096f78a/day?date=2018-09-06&format=json'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '5187ee3ce1c868cbf096f78a'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2013-04-26'
+      parser_cls:   'ParserWWFM'
+      synd_level:   39
+
     WCPE:
       # Note: date in URL is the Monday of the week (needs to be handled in date_func)
       sample_url:   'https://theclassicalstation.org/music/archive/2018-09-17/tuesday.shtml'
@@ -292,6 +303,17 @@ default:
       epoch:        '2014-05-01'
       parser_cls:   'ParserWWFM'
       synd_level:   10
+
+    WSHU:
+      sample_url:   'https://api.composer.nprstations.org/v1/widget/51c0a882e1c8a56086657e1e/day?format=json&date=2020-11-15&times=true'
+      url_fmt:      'https://api.composer.nprstations.org/v1/widget/<WIDGETKEY>/day?date=<DATE_STR>&format=json'
+      widgetkey:    '51c0a882e1c8a56086657e1e'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2013-05-01'
+      parser_cls:   'ParserWWFM'
+      synd_level:   70
 
     WWFM:
       sample_url:   'https://api.composer.nprstations.org/v1/widget/53a98e36e1c80647e855fc88/day?date=2018-09-06&format=json'
