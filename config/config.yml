@@ -183,8 +183,8 @@ default:
       parser_cls:   'Parser'
 
     WETA:
-      sample_url:   'https://weta.org/fm/playlists/2018-09-08'
-      url_fmt:      'https://weta.org/fm/playlists/<DATE_STR>'
+      sample_url:   'https://weta.org/fm/playlists?date=2018-09-08'
+      url_fmt:      'https://weta.org/fm/playlists?date=<DATE_STR>'
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/New_York'
       playlist_ext: 'html'
