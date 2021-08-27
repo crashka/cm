@@ -35,6 +35,7 @@ ConfigKey      = LOV(['URLS',
                       'COND',
                       'URL_FMT',
                       'DATE_FMT',
+                      'DATE_FMT2',
                       'DATE_FUNC',
                       'DATE_METH',
                       'TIMEZONE',
@@ -51,6 +52,7 @@ REQD_CFG_ATTRS = {ConfigKey.TIMEZONE,
 URL_ATTRS      = {ConfigKey.COND,
                   ConfigKey.URL_FMT,
                   ConfigKey.DATE_FMT,
+                  ConfigKey.DATE_FMT2,
                   ConfigKey.DATE_FUNC,
                   ConfigKey.DATE_METH}
 REQD_URL_ATTRS = {ConfigKey.COND,
@@ -254,10 +256,11 @@ class Station(object):
                 raise RuntimeError("Condition \"%s\" not recognized" % (cond))
 
             url_fmt   = url_info[ConfigKey.URL_FMT]
-            tokens    = re.findall(r'(\<[\p{Lu}_]+\>)', url_fmt)
+            tokens    = re.findall(r'(\<[\p{Lu}\d_]+\>)', url_fmt)
             if not tokens:
                 raise RuntimeError("No tokens in URL format string for cond \"%s\"" % (cond))
             date_fmt  = url_info.get(ConfigKey.DATE_FMT)
+            date_fmt2 = url_info.get(ConfigKey.DATE_FMT2)
             date_func = url_info.get(ConfigKey.DATE_FUNC)
             date_meth = url_info.get(ConfigKey.DATE_METH)
             break
@@ -274,6 +277,10 @@ class Station(object):
             date_str = globals()[date_func](date_str)
         elif date_meth:
             date_str = getattr(date_str, date_meth)()
+        # hack to support additional date string (tied to "date_fmt2", if specified), works as
+        # above, except without func/meth support (until we need it)
+        if date_fmt2:
+            date_str2 = date2str(date, date_fmt2)
 
         url = url_fmt
         for token in tokens:

@@ -126,8 +126,9 @@ default:
 
     WBJC:
       sample_url:   'http://www.wbjc.com/2018/playlists/playlist-sep-15-18/'
-      url_fmt:      'http://www.wbjc.com/2018/playlists/playlist-<DATE_STR>/'
+      url_fmt:      'http://www.wbjc.com/<DATE_STR2>/playlists/playlist-<DATE_STR>/'
       date_fmt:     '%b-%d-%y'
+      date_fmt2:    '%Y'
       timezone:     'America/New_York'
       playlist_ext: 'html'
       epoch:        '2018-01-01'
@@ -390,18 +391,18 @@ default:
       connect_str:  'postgresql+psycopg2://crash@/cmprod3'
 
   environment:
-    'delta:/home/crash/dev/cmdev':
-      envname:     'delta_dev'
+    'arrakis:/home/crash/dev/cmdev':
+      envname:     'arrakis_dev'
       database:    'local_dev'
 
-    'delta:/home/crash/dev/cmdev3':
-      envname:     'delta_dev3'
+    'arrakis:/home/crash/dev/cmdev3':
+      envname:     'arrakis_dev3'
       database:    'local_dev3'
       #html_parser: 'html5lib'  -- adds tbody, doesn't handle non-closing <a>
       #html_parser: 'lxml'      -- freaks out with C24/playlists/2018-09-17.html
 
-    'delta:/local/test/cmtest':
-      envname:     'delta_test'
+    'arrakis:/local/test/cmtest':
+      envname:     'arrakis_test'
       database:    'local_test'
 
     'caladan:/local/test/cmtest':

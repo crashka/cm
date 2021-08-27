@@ -58,7 +58,8 @@ class DatabaseCtx(object):
             dblog.setLevel(logging.INFO)
         self.eng  = create_engine(self.db_info['connect_str'])
         self.conn = self.eng.connect()
-        self.meta = MetaData(self.conn, reflect=True)
+        self.meta = MetaData(self.conn)
+        self.meta.reflect()
 
     def create_schema(self, tables = None, dryrun = False, force = False):
         if len(self.meta.tables) > 0:
