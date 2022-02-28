@@ -1,0 +1,6 @@
+refdata/
+stations/
+notes/*.html
+database/*dump*
+database/*.list
+*.out

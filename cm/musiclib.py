@@ -5,19 +5,15 @@
 
 import sys
 import regex as re
-import datetime as dt
 from collections import UserDict
+from collections.abc import Mapping, Iterable
 import warnings
 
-from sqlalchemy import bindparam
-from sqlalchemy.sql import func
-from sqlalchemy.ext.compiler import compiles
-from sqlalchemy.types import DateTime
 from sqlalchemy.exc import *
 
-from core import cfg, env, log, dbg_hand
-from database import DatabaseCtx
-from utils import LOV, prettyprint, strtype, collecttype, mappingtype, str_similarity
+from .utils import LOV, str_similarity
+from .core import env, log
+from .database import DatabaseCtx
 
 ##############################
 # common constants/functions #
@@ -122,13 +118,13 @@ class ml_dict(UserDict):
         """String replacement throughout structure
         """
         for k, v in d.items():
-            if mappingtype(v):
+            if isinstance(v, Mapping):
                 ml_dict.deep_replace(v, from_str, to_str)
-            elif collecttype(v):
+            elif isinstance(v, Iterable):
                 for m in v:
-                    if mappingtype(m):
+                    if isinstance(m, Mapping):
                         ml_dict.deep_replace(m, from_str, to_str)
-            elif strtype(v):
+            elif isinstance(v, str):
                 d[k] = v.replace(from_str, to_str)
 
     def merge(self, to_merge):
@@ -140,7 +136,7 @@ class ml_dict(UserDict):
         for k, v in to_merge.items():
             if k not in self:
                 self[k] = v
-            elif collecttype(self[k]):
+            elif isinstance(self[k], Iterable):
                 if v:
                     self[k].extend(v)
                 elif self[k]:  # i.e. non-empty list
@@ -256,12 +252,12 @@ class StringCtx(object):
         dup_whitespace = bool(re.search(r'\s{2}', ent_str))
         trail_astrisks = bool(re.search(r'\*$', ent_str))
         if ent_str.count(REPL_CHAR_8):
-            log.debug("  Fix utf-8 replacement char for \"%s\"" % (ent_str))
+            log.debug("  Fix utf-8 replacement char for \"%s\"" % ent_str)
             ent_str = ent_str.replace(REPL_CHAR_8, REPL_CHAR_16)
         if re.search(r'\s{2}', ent_str):
-            log.debug("  Collapse whitespace for \"%s\"" % (ent_str))
+            log.debug("  Collapse whitespace for \"%s\"" % ent_str)
         if re.search(r'\*$', ent_str):
-            log.debug("  Remove trailing astrisk(s) for \"%s\"" % (ent_str))
+            log.debug("  Remove trailing astrisk(s) for \"%s\"" % ent_str)
             ent_str = ent_str.rstrip('*')
 
         # Pre-Proc 2. enclosing matched delimiters (quotes, parens, braces, etc.) for entire
@@ -293,19 +289,19 @@ class StringCtx(object):
 
             if is_encl:
                 # always remove outer bracket chars
-                log.debug("  Remove enclosing bracket chars for \"%s\"" % (ent_str))
+                log.debug("  Remove enclosing bracket chars for \"%s\"" % ent_str)
                 ent_str = ent_str[1:-1]
             elif count_open - count_cls == 1:
                 # strip off leading bracket char
-                log.debug("  Strip leading bracket char for \"%s\"" % (ent_str))
+                log.debug("  Strip leading bracket char for \"%s\"" % ent_str)
                 ent_str = ent_str[1:]
             else:
                 if not is_matched:
-                    log.debug("  EES_WARN - mismatched interior bracket char(s) for \"%s\"" % (ent_str))
+                    log.debug("  EES_WARN - mismatched interior bracket char(s) for \"%s\"" % ent_str)
                 break
 
         if ent_str != orig_str:
-            log.debug("             cleaned-up: \"%s\"" % (ent_str))
+            log.debug("             cleaned-up: \"%s\"" % ent_str)
         ent_ptrn1 = None
         ent_ptrn2 = None
         ent_ptrn3 = None
@@ -338,20 +334,20 @@ class StringCtx(object):
             if ent_fld:
                 ent_type = get_entity_type(ent_fld)
                 if ent_type:
-                    ent_elems.append("{{%s}}" % (ent_type) + delim_str)
-                    log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+                    ent_elems.append("{{%s}}" % ent_type + delim_str)
+                    log.debug("      Appending ent_elem \"%s\"" % str(ent_elems[-1]))
                 else:
                     unidents.append((ent_fld, ent_start, delim_str, delim_end))
                     ent_elems.append(UNIDENT + delim_str)
-                    log.debug("      Appending unident %s" % (str(unidents[-1])))
-                    log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+                    log.debug("      Appending unident %s" % str(unidents[-1]))
+                    log.debug("      Appending ent_elem \"%s\"" % str(ent_elems[-1]))
             else:
                 ent_elems.append(delim_str)
-                log.debug("      Appending ent_elem \"%s\"" % (str(ent_elems[-1])))
+                log.debug("      Appending ent_elem \"%s\"" % str(ent_elems[-1]))
             ent_start = delim_end
 
         ent_ptrn1 = ''.join(ent_elems)
-        log.debug("    Entity pattern 1 \"%s\"" % (ent_ptrn1))
+        log.debug("    Entity pattern 1 \"%s\"" % ent_ptrn1)
 
         # pass 2 - find entities among/across comma-deliminted expressions
         if ent_str.count(',') > 0:
@@ -400,7 +396,7 @@ class StringCtx(object):
                 if ent_fld:
                     ent_type = get_entity_type(ent_fld)
                     if ent_type:
-                        ent_matches.append((ent_item, "{{%s}}" % (ent_type) + delim_str))
+                        ent_matches.append((ent_item, "{{%s}}" % ent_type + delim_str))
                         log.debug("    Entity match %s" % (str(ent_matches[-1])))
                     else:
                         unidents.append((ent_item, UNIDENT + delim_str))
@@ -430,12 +426,12 @@ class StringCtx(object):
                 prev_end = elem_end
 
             ent_ptrn2 = ''.join([elem[1] for elem in ptrn_elems])
-            log.debug("    Entity pattern 2 \"%s\"" % (ent_ptrn2))
+            log.debug("    Entity pattern 2 \"%s\"" % ent_ptrn2)
 
             # TODO: look for bracketed/quoted entities within unidents; try and reconstruct
             # pattern based on associations (e.g. instrument/role -> performer)!!!
 
-        return (ent_ptrn1, ent_ptrn2, ent_ptrn3)
+        return ent_ptrn1, ent_ptrn2, ent_ptrn3
 
     def parse_entity_str(self, flags = 0):
         """
@@ -458,10 +454,10 @@ class StringCtx(object):
 
         # Rule 1. charset/unicode and whitespace fixups
         if ent_str.count(REPL_CHAR_8):
-            log.debug("PES_RULE 1a - fix utf-8 replacement char for \"%s\"" % (ent_str))
+            log.debug("PES_RULE 1a - fix utf-8 replacement char for \"%s\"" % ent_str)
             ent_str = ent_str.replace(REPL_CHAR_8, REPL_CHAR_16)
         if re.search(r'\s{2}', ent_str):
-            log.debug("PES_RULE 1b - collapsing whitespace for \"%s\"" % (ent_str))
+            log.debug("PES_RULE 1b - collapsing whitespace for \"%s\"" % ent_str)
             ent_str = re.sub(r'\s{2,}', ' ', ent_str)
 
         # Rule 2. enclosing matched delimiters (quotes, parens, braces, etc.), entire string
@@ -483,15 +479,15 @@ class StringCtx(object):
 
             if is_encl:
                 # always remove outer bracket chars
-                log.debug("PES_RULE 2a - remove enclosing bracket chars for \"%s\"" % (ent_str))
+                log.debug("PES_RULE 2a - remove enclosing bracket chars for \"%s\"" % ent_str)
                 ent_str = ent_str[1:-1]
             elif count_open - count_cls == 1:
                 # strip off leading bracket char
-                log.debug("PES_RULE 2b - strip leading bracket char for \"%s\"" % (ent_str))
+                log.debug("PES_RULE 2b - strip leading bracket char for \"%s\"" % ent_str)
                 ent_str = ent_str[1:]
             else:
                 if not is_matched:
-                    log.debug("PES_WARN - mismatched interior bracket char(s) for \"%s\"" % (ent_str))
+                    log.debug("PES_WARN - mismatched interior bracket char(s) for \"%s\"" % ent_str)
                 break
 
         # Rule 3. enclosing matched delimiters, substring ("entity item")
@@ -551,7 +547,7 @@ class StringCtx(object):
         # coelescing spaces (might as well)
         m = re.fullmatch(r'([\w\ufffd<>-]+),((?:\s+[\w\ufffd-]+)+)', person_str)
         if m:
-            log.debug("PPS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % (person_str))
+            log.debug("PPS_RULE 4 - reverse \"Last, First [...]\" for \"%s\"" % person_str)
             person_str = "%s %s" % (re.sub(r'\s{2,}', ' ', m.group(2).lstrip()), m.group(1))
 
         # step 4 - handle non-comma-introduced suffixes (e.g. "II") and compound last names (e.g.
@@ -583,7 +579,7 @@ class StringCtx(object):
         # LATER: try with different biases, and determine best-formed result!!!)
         m = re.fullmatch(r'(.*)\'([^\']*)\'([^\']*)', title_str)
         while m:
-            log.debug("PTS_RULE 3 - convert single-quoted titles to double quotes \"%s\"" % (title_str))
+            log.debug("PTS_RULE 3 - convert single-quoted titles to double quotes \"%s\"" % title_str)
             title_str = "%s\"%s\"%s" % (m.group(1), m.group(2), m.group(3))
             m = re.fullmatch(r'(.*)\'([^\']*)\'([^\']*)', title_str)
 
@@ -592,6 +588,7 @@ class StringCtx(object):
     def finalize(self, ent_data, flags = 0):
         """
         :param ent_data: ml_dict to finalize (in-place)
+        :param flags: int
         :return: void
         """
         flags |= self.ctx_flags
@@ -603,33 +600,33 @@ class StringCtx(object):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.outlier("Empty composer name \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Empty composer name \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         elif not re.match(r'\w', name):
-            log.outlier("Bad leading character in composer \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Bad leading character in composer \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_composer': True}
 
     def mkwork(self, name, orig_str = None):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.outlier("Empty work name \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Empty work name \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         elif not re.match(r'\w', name):
-            log.outlier("Bad leading character in work \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Bad leading character in work \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None}
 
     def mkcond(self, name, orig_str = None):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.outlier("Empty conductor name \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Empty conductor name \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         elif not re.match(r'\w', name):
-            log.outlier("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Bad leading character in conductor \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None, 'is_conductor': True}
 
     def mkperf(self, name, role, orig_str = None):
@@ -638,11 +635,11 @@ class StringCtx(object):
         if role:
             role = role.strip()
         if not name:
-            log.outlier("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
-                        (name, role, orig_str))
+            log.notice("Empty performer name \"%s\" [%s], parsed from \"%s\"" %
+                       (name, role, orig_str))
         elif not re.match(r'\w', name):
-            log.outlier("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
-                        (name, role, orig_str))
+            log.notice("Bad leading character in performer \"%s\" [%s], parsed from \"%s\"" %
+                       (name, role, orig_str))
         perf_person = {'name': name, 'raw_name': orig_str if name != orig_str else None}
         if role not in COND_STRS:
             perf_person['is_performer'] = True
@@ -652,11 +649,11 @@ class StringCtx(object):
         orig_str = orig_str or self.orig_str
         name = name.strip()
         if not name:
-            log.outlier("Empty ensemble name \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Empty ensemble name \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         elif not re.match(r'\w', name):
-            log.outlier("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
-                        (name, orig_str))
+            log.notice("Bad leading character in ensemble \"%s\", parsed from \"%s\"" %
+                       (name, orig_str))
         return {'name': name, 'raw_name': orig_str if name != orig_str else None}
 
 ###############################
@@ -668,7 +665,7 @@ NormFlag = LOV({'INCL_SELF' : 0x0001})
 HONORIFICS = {'Frei', 'Sir', 'Count', 'Comtessa', 'Compte',
               'Sister', 'Dame', 'Capt.', 'Cpl.', 'Rev.', 'Dr.'}
 SUFFIXES   = {'Jr.', 'Sr.', 'Jr', 'Sr', 'II', 'III', 'IV'}
-CODEX_LIST = {'Codex','Tablature', 'Manuscript', 'Book', 'Breviary',
+CODEX_LIST = {'Codex', 'Tablature', 'Manuscript', 'Book', 'Breviary',
               'Hymnorum', 'Cordiforme', 'Nonnberg', 'Ottelio'}
 ANONYMOUS  = {'Anonymous', 'Unknown'}
 
@@ -678,7 +675,7 @@ def normalize_name(name, flags = 0):
     ATTENTION: currently expecting input to be "Last, First", though this handles variations
     on placement of honorifics and suffixes, as well as some common malformed inputs
 
-    :param name_str:
+    :param name:
     :param flags:
     :return: tuple of (normalized_name [str], aliases [set of str], raw_name [str])
     """
@@ -702,7 +699,7 @@ def normalize_name(name, flags = 0):
 
     parts = name.split(', ')
     # don't try and do too much here (i.e. single-comma case as well), instead handle
-    # outliers below (at the risk of unstreamlining)
+    # notices below (at the risk of unstreamlining)
     if len(parts) > 2:
         parts_set = set(parts)
         hnr = parts_set & HONORIFICS
@@ -715,7 +712,7 @@ def normalize_name(name, flags = 0):
             parts.remove(honor)
             aliases.add(', '.join(parts))
             if hnr:
-                log.outlier("Don't know how to handle multiple honorifics in \"%s\"" % (name))
+                log.notice("Don't know how to handle multiple honorifics in \"%s\"" % name)
         if sfx:
             suffix = sfx.pop()
             suffix_sep = ', '
@@ -723,17 +720,17 @@ def normalize_name(name, flags = 0):
             # PONDER: should we add this???
             #aliases.add(' '.join(parts))
             if sfx:
-                log.outlier("Don't know how to handle multiple suffixes in \"%s\"" % (name))
+                log.notice("Don't know how to handle multiple suffixes in \"%s\"" % name)
         if cdx:
             codex = cdx.pop()
             parts.remove(codex)
             if hnr:
-                log.outlier("Don't know how to handle multiple codexes in \"%s\"" % (name))
+                log.notice("Don't know how to handle multiple codexes in \"%s\"" % name)
         if ano:
             anon = ano.pop()
             parts.remove(anon)
             if ano:
-                log.outlier("Don't know how to handle multiple anons in \"%s\"" % (name))
+                log.notice("Don't know how to handle multiple anons in \"%s\"" % name)
     if not suffix:
         if parts[-1] in SUFFIXES:
             # special case for malformed input (e.g. "First Last, Jr.", where listing by
@@ -789,8 +786,8 @@ def normalize_name(name, flags = 0):
         if m.group(2) == '(':
             aliases.add("%s \"%s\" %s" % (m.group(1), m.group(3), m.group(4)))
     elif re.search(NAME_EXCL, normalized):
-        log.outlier("Non-standard char(s) in normalized name \"%s\" (raw: \"%s\")" %
-                    (normalized, name))
+        log.notice("Non-standard char(s) in normalized name \"%s\" (raw: \"%s\")" %
+                   (normalized, name))
 
     if not honor:
         pattern = r"(%s) (.+)" % ('|'.join(HONORIFICS))
@@ -806,7 +803,7 @@ def normalize_name(name, flags = 0):
     if normalized != name and flags & NormFlag.INCL_SELF:
         aliases.add(name)
 
-    return (normalized, aliases, name)
+    return normalized, aliases, name
 
 ##################
 # MusicEnt class #
@@ -845,12 +842,12 @@ class MusicEnt(object):
             # again if/when it does
             sel = sel.where(self.tab.c[col] == val)
         if order_by:
-            if strtype(order_by):
+            if isinstance(order_by, str):
                 order_by = {order_by: 1}
-            elif collecttype(order_by):
+            elif isinstance(order_by, Iterable):
                 order_by = {c: 1 for c in order_by}
-            for col, dir in order_by.items():
-                sel = sel.order_by(self.tab.c[col] if dir >= 0 else self.tab.c[col].desc())
+            for col, dir_ in order_by.items():
+                sel = sel.order_by(self.tab.c[col] if dir_ >= 0 else self.tab.c[col].desc())
         with db.conn.begin() as trans:
             res = db.conn.execute(sel)
         self.last_sel = sel
@@ -950,13 +947,13 @@ class MusicLib(object):
         if sel_res.rowcount == 1:
             sta_row = sel_res.fetchone()
         else:
-            log.trace("Inserting station \"%s\" into musiclib" % (station.name))
+            log.trace("Inserting station \"%s\" into musiclib" % station.name)
             ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
+                raise RuntimeError("Could not insert station \"%s\" into musiclib" % station.name)
             sta_row = sta.inserted_row(ins_res)
             if not sta_row:
-                raise RuntimeError("Station %s not in musiclib" % (station.name))
+                raise RuntimeError("Station %s not in musiclib" % station.name)
 
         prog_data = data['program']
         prog = get_entity('program')
@@ -966,13 +963,13 @@ class MusicLib(object):
         else:
             prog_name = prog_data['name']  # for convenience
             prog_label = "\"%s\"" % (prog_name)
-            log.trace("Inserting program %s into musiclib" % (prog_label))
+            log.trace("Inserting program %s into musiclib" % prog_label)
             ins_res = prog.insert(prog_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert program %s into musiclib" % (prog_label))
+                raise RuntimeError("Could not insert program %s into musiclib" % prog_label)
             prog_row = prog.inserted_row(ins_res)
             if not prog_row:
-                raise RuntimeError("Program %s not in musiclib" % (prog_label))
+                raise RuntimeError("Program %s not in musiclib" % prog_label)
 
         pp_row = None
         pp_data = data['program_play']
@@ -990,7 +987,7 @@ class MusicLib(object):
             sel_res = prog_play.select(key_data(pp_data, 'program_play'))
             if sel_res.rowcount == 1:
                 pp_row = sel_res.fetchone()
-                log.debug("Skipping insert of duplicate program_play record (ID %d)" % (pp_row.id))
+                log.debug("Skipping insert of duplicate program_play record (ID %d)" % pp_row.id)
             else:
                 pass  # REVISIT: is this an internal error???
         return {k: v for k, v in pp_row.items()} if pp_row else None
@@ -1016,13 +1013,13 @@ class MusicLib(object):
         else:
             # NOTE: should really never get here (select should not fail), since this
             # same code was executed when inserting the program_play
-            log.trace("Inserting station \"%s\" into musiclib" % (station.name))
+            log.trace("Inserting station \"%s\" into musiclib" % station.name)
             ins_res = sta.insert(sta_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert station \"%s\" into musiclib" % (station.name))
+                raise RuntimeError("Could not insert station \"%s\" into musiclib" % station.name)
             sta_row = sta.inserted_row(ins_res)
             if not sta_row:
-                raise RuntimeError("Station %s not in musiclib" % (station.name))
+                raise RuntimeError("Station %s not in musiclib" % station.name)
 
         comp_data = data['composer']
         # NOTE: we always make sure there is a composer record (even if NONE or UNKNOWN), since work depends
@@ -1037,13 +1034,13 @@ class MusicLib(object):
                 comp.update(comp_row, {'is_composer': True})
         else:
             comp_name = comp_data['name']  # for convenience
-            log.trace("Inserting composer \"%s\" into musiclib" % (comp_name))
+            log.trace("Inserting composer \"%s\" into musiclib" % comp_name)
             ins_res = comp.insert(comp_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert composer/person \"%s\" into musiclib" % (comp_name))
+                raise RuntimeError("Could not insert composer/person \"%s\" into musiclib" % comp_name)
             comp_row = comp.inserted_row(ins_res)
             if not comp_row:
-                raise RuntimeError("Composer/person \"%s\" not in musiclib" % (comp_name))
+                raise RuntimeError("Composer/person \"%s\" not in musiclib" % comp_name)
 
         work_data = data['work']
         if not work_data.get('name'):
@@ -1059,13 +1056,13 @@ class MusicLib(object):
             work_row = sel_res.fetchone()
         else:
             work_name = work_data['name']  # for convenience
-            log.trace("Inserting work \"%s\" into musiclib" % (work_name))
+            log.trace("Inserting work \"%s\" into musiclib" % work_name)
             ins_res = work.insert(work_data)
             if ins_res.rowcount == 0:
-                raise RuntimeError("Could not insert work/person \"%s\" into musiclib" % (work_name))
+                raise RuntimeError("Could not insert work/person \"%s\" into musiclib" % work_name)
             work_row = work.inserted_row(ins_res)
             if not work_row:
-                raise RuntimeError("Work/person \"%s\" not in musiclib" % (work_name))
+                raise RuntimeError("Work/person \"%s\" not in musiclib" % work_name)
 
         cond_row = None
         cond_data = data['conductor']
@@ -1078,13 +1075,13 @@ class MusicLib(object):
                     cond.update(cond_row, {'is_conductor': True})
             else:
                 cond_name = cond_data['name']  # for convenience
-                log.trace("Inserting conductor \"%s\" into musiclib" % (cond_name))
+                log.trace("Inserting conductor \"%s\" into musiclib" % cond_name)
                 ins_res = cond.insert(cond_data)
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert conductor/person \"%s\" into musiclib" % (cond_name))
+                    raise RuntimeError("Could not insert conductor/person \"%s\" into musiclib" % cond_name)
                 cond_row = cond.inserted_row(ins_res)
                 if not cond_row:
-                    raise RuntimeError("Conductor/person \"%s\" not in musiclib" % (cond_name))
+                    raise RuntimeError("Conductor/person \"%s\" not in musiclib" % cond_name)
 
         rec_row = None
         rec_data = data['recording']
@@ -1097,13 +1094,13 @@ class MusicLib(object):
                 rec_row = sel_res.fetchone()
             else:
                 rec_ident = "%s %s" % (rec_data['label'], rec_data['catalog_no'])  # for convenience
-                log.trace("Inserting recording \"%s\" into musiclib" % (rec_ident))
+                log.trace("Inserting recording \"%s\" into musiclib" % rec_ident)
                 ins_res = rec.insert(rec_data)
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_ident))
+                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % rec_ident)
                 rec_row = rec.inserted_row(ins_res)
                 if not rec_row:
-                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_ident))
+                    raise RuntimeError("Recording \"%s\" not in musiclib" % rec_ident)
         elif rec_data.get('name'):
             rec = get_entity('recording')
             sel_res = rec.select(key_data(rec_data, 'recording_alt'))
@@ -1114,13 +1111,13 @@ class MusicLib(object):
                 rec_row = sel_res.fetchone()
             else:
                 rec_name = rec_data['name']  # for convenience
-                log.trace("Inserting recording \"%s\" into musiclib" % (rec_name))
+                log.trace("Inserting recording \"%s\" into musiclib" % rec_name)
                 ins_res = rec.insert(rec_data)
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % (rec_name))
+                    raise RuntimeError("Could not insert recording \"%s\" into musiclib" % rec_name)
                 rec_row = rec.inserted_row(ins_res, 'recording_alt')
                 if not rec_row:
-                    raise RuntimeError("Recording \"%s\" not in musiclib" % (rec_name))
+                    raise RuntimeError("Recording \"%s\" not in musiclib" % rec_name)
 
         perf_rows = []
         for perf_data in data['performers']:
@@ -1133,13 +1130,13 @@ class MusicLib(object):
                     perf_person.update(perf_person_row, {'is_performer': True})
             else:
                 perf_name = perf_data['person']['name']  # for convenience
-                log.trace("Inserting performer/person \"%s\" into musiclib" % (perf_name))
+                log.trace("Inserting performer/person \"%s\" into musiclib" % perf_name)
                 ins_res = perf_person.insert(perf_data['person'])
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % (perf_name))
+                    raise RuntimeError("Could not insert performer/person \"%s\" into musiclib" % perf_name)
                 perf_person_row = perf_person.inserted_row(ins_res)
                 if not perf_person_row:
-                    raise RuntimeError("Performer/person \"%s\" not in musiclib" % (perf_name))
+                    raise RuntimeError("Performer/person \"%s\" not in musiclib" % perf_name)
             perf_data['person_id'] = perf_person_row.id
 
             # STEP 2 - now deal with performer record (since we have the person)
@@ -1151,13 +1148,13 @@ class MusicLib(object):
                 perf_name = perf_data['person']['name']  # for convenience
                 perf_role = perf_data['role']
                 perf_label = "\"%s\" [%s]" % (perf_name, perf_role)
-                log.trace("Inserting performer %s into musiclib" % (perf_label))
+                log.trace("Inserting performer %s into musiclib" % perf_label)
                 ins_res = perf.insert(entity_data(perf_data, 'performer'))
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert performer %s into musiclib" % (perf_label))
+                    raise RuntimeError("Could not insert performer %s into musiclib" % perf_label)
                 perf_row = perf.inserted_row(ins_res)
                 if not perf_row:
-                    raise RuntimeError("Performer %s not in musiclib" % (perf_label))
+                    raise RuntimeError("Performer %s not in musiclib" % perf_label)
             perf_rows.append(perf_row)
 
         ens_rows = []
@@ -1168,13 +1165,13 @@ class MusicLib(object):
                 ens_row = sel_res.fetchone()
             else:
                 ens_name = ens_data['name']  # for convenience
-                log.trace("Inserting ensemble \"%s\" into musiclib" % (ens_name))
+                log.trace("Inserting ensemble \"%s\" into musiclib" % ens_name)
                 ins_res = ens.insert(ens_data)
                 if ins_res.rowcount == 0:
-                    raise RuntimeError("Could not insert ensemble \"%s\" into musiclib" % (ens_name))
+                    raise RuntimeError("Could not insert ensemble \"%s\" into musiclib" % ens_name)
                 ens_row = ens.inserted_row(ins_res)
                 if not ens_row:
-                    raise RuntimeError("Ensemble \"%s\" not in musiclib" % (ens_name))
+                    raise RuntimeError("Ensemble \"%s\" not in musiclib" % ens_name)
             ens_rows.append(ens_row)
 
         play_new = False
@@ -1202,7 +1199,7 @@ class MusicLib(object):
                        play_row.play_date, play_row.play_start))
         except IntegrityError:
             # TODO: need to indicate duplicate to caller (currenty looks like an insert)!!!
-            log.debug("Skipping insert of duplicate play record:\n%s" % (play_data))
+            log.debug("Skipping insert of duplicate play record:\n%s" % play_data)
             sel_res = play.select(key_data(play_data, 'play'))
             if sel_res.rowcount == 1:
                 play_row = sel_res.fetchone()
@@ -1220,7 +1217,7 @@ class MusicLib(object):
                     ins_res = play_perf.insert(play_perf_data)
                     play_perf_rows.append(play_perf.inserted_row(ins_res))
                 except IntegrityError:
-                    log.trace("Skipping insert of duplicate play_performer record:\n%s" % (play_perf_data))
+                    log.trace("Skipping insert of duplicate play_performer record:\n%s" % play_perf_data)
 
             for ens_row in ens_rows:
                 play_ens_data = {'play_id': play_row.id, 'ensemble_id': ens_row.id}
@@ -1229,14 +1226,14 @@ class MusicLib(object):
                     ins_res = play_ens.insert(play_ens_data)
                     play_ens_rows.append(play_ens.inserted_row(ins_res))
                 except IntegrityError:
-                    log.trace("Skipping insert of duplicate play_ensemble record:\n%s" % (play_ens_data))
+                    log.trace("Skipping insert of duplicate play_ensemble record:\n%s" % play_ens_data)
 
         return {k: v for k, v in play_row.items()}
 
     def insert_play_seq(self, play_rec, play_seq, hash_type):
         """
         :param play_rec:
-        :param prog_seq:
+        :param play_seq:
         :param hash_type:
         :return: list of key-value dict comprehensions for inserted play_seq fields
         """
@@ -1257,7 +1254,7 @@ class MusicLib(object):
                 ps_row = ps.inserted_row(ins_res)
                 ret.append({k: v for k, v in ps_row.items()})
             except IntegrityError:
-                log.debug("Could not insert play_seq %s into musiclib" % (data))
+                log.debug("Could not insert play_seq %s into musiclib" % data)
 
         return ret
 
@@ -1270,7 +1267,7 @@ class MusicLib(object):
         es = get_entity('entity_string')
         for entity_src, src_strings in data.items():
             for entity_str in src_strings:
-                if not (entity_str and re.search('\w', entity_str)):
+                if not (entity_str and re.search(r'\w', entity_str)):
                     continue
                 ent_str_data = {
                     'entity_str'  : entity_str,
@@ -1411,7 +1408,7 @@ class MusicLib(object):
                     pers, role = (fields.pop(0), fields.pop(0))
                     # special case for "<ens>/<cond last, first>"
                     if pers.count('/') == 1:
-                        log.debug("PFS_RULE 6 - slash separating ens from cond_last \"%s\"" % (pers))
+                        log.debug("PFS_RULE 6 - slash separating ens from cond_last \"%s\"" % pers)
                         ens_name, cond_last = pers.split('/')
                         cond_name = "%s %s" % (role, cond_last)
                         sub_perfs.append(ctx.mkperf(ens_name, 'ensemble'))
@@ -1449,7 +1446,7 @@ class MusicLib(object):
         # special case for ugly record (WNED 2018-09-17)
         m = re.match(r'(.+?)\r', perf_str)
         if m:
-            log.debug("PFS_RULE 3 - ugly broken record for WNED \"%s\"" % (perf_str))
+            log.debug("PFS_RULE 3 - ugly broken record for WNED \"%s\"" % perf_str)
             perf_str = m.group(1)
             m = re.match(r'(.+)\[(.+)\],(.+)', perf_str)
             if m:
@@ -1457,12 +1454,12 @@ class MusicLib(object):
 
         # pattern used by IPR, VPR, WIAA, WNED
         if re.match(r'\/.+ \- ', perf_str):
-            log.debug("PFS_RULE 4 - leading slash for performer fields \"%s\"" % (perf_str))
+            log.debug("PFS_RULE 4 - leading slash for performer fields \"%s\"" % perf_str)
             for perf_item in perf_str.split('/'):
                 if perf_item:
                     ret_data.merge(parse_perf_item(perf_item, ' - '))
         elif ';' in perf_str:
-            log.debug("PFS_RULE 5 - semi-colon-deliminted performer fields \"%s\"" % (perf_str))
+            log.debug("PFS_RULE 5 - semi-colon-deliminted performer fields \"%s\"" % perf_str)
             for perf_item in perf_str.split(';'):
                 if perf_item:
                     ret_data.merge(parse_perf_item(perf_item))
@@ -1539,6 +1536,7 @@ class MusicLib(object):
             ens_data.append(ctx.mkens(ens_str))
 
         return ret_data
+
 #####################
 # command line tool #
 #####################
@@ -1554,7 +1552,7 @@ if __name__ == '__main__':
         (key, val) = cond.split('=')
         data[key] = int(val) if val.isdigit() else val
     res = meth(data)
-    print("Rowcount: %d" % (res.rowcount))
+    print("Rowcount: %d" % res.rowcount)
     if res.returns_rows:
         print(res.fetchall())
     else:

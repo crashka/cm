@@ -10,6 +10,7 @@ in context/situ)
 """
 
 import os.path
+from collections.abc import Iterable
 import regex as re
 import json
 import glob
@@ -20,9 +21,9 @@ import logging
 from bs4 import BeautifulSoup
 import requests
 
-from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER
-from utils import LOV, prettyprint, strtype, collecttype
-from musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
+from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER
+from .utils import LOV, prettyprint
+from .musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
 
 #####################
 # core/config stuff #
@@ -44,13 +45,13 @@ REQUIRED_ATTRS = {ConfigKey.URL_FMT,
                   ConfigKey.CATEGORIES}
 
 # the following correspond to hardwired RefData member variables
-INFO_KEYS      = {'name',
+INFO_KEYS      = ('name',
                   'status',
                   'config',
                   'state',
-                  'categories'}
+                  'categories')
 # if any of the info keys should not be dumped to log file
-NOPRINT_KEYS   = {'categories'}
+NOPRINT_KEYS   = ('categories', )
 
 # local module LOVs
 Status         = LOV(['NEW',
@@ -78,14 +79,14 @@ class RefData(object):
         :return: sorted list of refdata sources (same as directory names)
         """
         dirs = glob.glob(os.path.join(BASE_DIR, 'refdata', '*'))
-        return sorted([os.path.basename(dir) for dir in dirs])
+        return sorted([os.path.basename(dir_) for dir_ in dirs])
 
     def __init__(self, name):
         """Sets status field locally (but not written back to info file)
         """
         if name not in REFDATA:
-            raise RuntimeError("RefData \"%s\" not known" % (name))
-        log.debug("Instantiating RefData(%s)" % (name))
+            raise RuntimeError("RefData \"%s\" not known" % name)
+        log.debug("Instantiating RefData(%s)" % name)
         self.name = name
         self.status = Status.NEW
         self.config = REFDATA_BASE.copy()
@@ -97,7 +98,7 @@ class RefData(object):
         # extract tokens in url_fmt upfront
         self.tokens = re.findall(r'(\<[A-Z_]+\>)', self.url_fmt)
         if not self.tokens:
-            raise RuntimeError("No tokens in URL format string for \"%s\"" % (name))
+            raise RuntimeError("No tokens in URL format string for \"%s\"" % name)
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
         self.charset = self.config.get(ConfigKey.CHARSET)
         log.debug("HTML parser: %s, charset: %s" % (self.html_parser, self.charset))
@@ -130,9 +131,9 @@ class RefData(object):
         """Return refdata info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not collecttype(keys):
+        if not isinstance(keys, Iterable):
             keys = [keys]
-        if collecttype(exclude):
+        if isinstance(exclude, Iterable):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
@@ -141,7 +142,8 @@ class RefData(object):
         """
         with open(self.refdata_info_file, 'w') as f:
             json.dump(self.refdata_info(), f, indent=2)
-        log.debug("Storing state for %s\n%s" % (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
+        log.debug("Storing state for %s\n%s" %
+                  (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def load_state(self, force = False):
         """Loads refdata info (canonical fields) from refdata_info.json file
@@ -154,7 +156,8 @@ class RefData(object):
                     refdata_info = json.load(f)
                 self.state.update(refdata_info.get('state', {}))
                 self.categories.update(refdata_info.get('categories', {}))
-        log.debug("Loading state for %s\n%s" % (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
+        log.debug("Loading state for %s\n%s" %
+                  (self.name, prettyprint(self.refdata_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def build_url(self, cat, key):
         """Builds category data URL based on url_fmt, which is a required attribute in the refdata info
@@ -198,7 +201,7 @@ class RefData(object):
         """Create refdata (raise exception if it already exists)
         """
         if self.check():
-            raise RuntimeError("RefData \"%s\" already exists" % (self.name))
+            raise RuntimeError("RefData \"%s\" already exists" % self.name)
         self.state = {}
         self.categories = {cat: {} for cat in self.category_dirs.keys()}
         if not dryrun:
@@ -225,17 +228,17 @@ class RefData(object):
         """
         # TEMP: for now, only fetch for explicit cat(s) and key(s)
         if not cat or not key:
-            log.debug("Both category(ies) and key(s) must be specified to fetch for %s", (self.name))
+            log.debug("Both category(ies) and key(s) must be specified to fetch for %s" % self.name)
             return  # nothing to do
-        cats = [cat] if not collecttype(cat) else cat
-        if strtype(key):
+        cats = [cat] if not isinstance(cat, Iterable) else cat
+        if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
                 keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]
             else:
                 keys = [key]
         else:
-            keys = [key] if not collecttype(key) else key
+            keys = [key] if not isinstance(key, Iterable) else key
 
         log.debug("Fetching refdata for categories %s and keys %s" % (cats, keys))
         for cat in cats:
@@ -244,7 +247,7 @@ class RefData(object):
                 catdata_file = self.catdata_file(cat, key)
                 if os.path.exists(catdata_file) and os.path.getsize(catdata_file) > 0:
                     if not force:
-                        log.info("Skipping fetch for \"%s\", file exists" % (catdata_name))
+                        log.info("Skipping fetch for \"%s\", file exists" % catdata_name)
                         continue
                     else:
                         # STUPID to call getsize() again, but keeps things cleaner above!!!
@@ -271,7 +274,7 @@ class RefData(object):
         elapsed = dt.datetime.utcnow() - self.last_fetch
         if elapsed < self.fetch_delta:
             sleep_delta = self.fetch_delta - elapsed
-            sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
+            sleep(sleep_delta.seconds + sleep_delta.microseconds / 1000000.0)
 
         catdata_url = self.build_url(cat, key)
         log.debug("Fetching from %s (headers: %s)" % (catdata_url, self.http_headers))
@@ -286,15 +289,15 @@ class RefData(object):
     def parse(self, cat, key, dryrun, force):
         """
         """
-        cats = [cat] if not collecttype(cat) else cat
-        if strtype(key):
+        cats = [cat] if not isinstance(cat, Iterable) else cat
+        if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
                 keys = [chr(charcode) for charcode in range(ord(m.group(1)), ord(m.group(2)) + 1)]
             else:
                 keys = [key]
         else:
-            keys = [key] if not collecttype(key) else key
+            keys = [key] if not isinstance(key, Iterable) else key
 
         log.debug("Parsing refdata for categories \"%s\" and keys \"%s\"" % (cats, keys))
         for cat in cats:
@@ -381,13 +384,13 @@ class RefData(object):
 
             log.debug("REFLIB: %s \"%s\" [%s]" % (cat, name, href))
             if ent_name:
-                log.debug("        entity name: %s" % (ent_name))
+                log.debug("        entity name: %s" % ent_name)
             if alt_names:
-                log.debug("        alt names: %s" % (alt_names))
+                log.debug("        alt names: %s" % alt_names)
             if addl_ref:
-                log.debug("        addl ref: %s" % (addl_ref))
+                log.debug("        addl ref: %s" % addl_ref)
             if recs:
-                log.debug("        recordings: %d" % (recs))
+                log.debug("        recordings: %d" % recs)
 
             ent_data = {'entity_ref'      : ent_name,
                         'entity_type'     : ent_type,

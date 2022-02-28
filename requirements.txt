@@ -1,11 +1,10 @@
-pytz
+regex
 pyyaml
-click
 requests
-psycopg2-binary
-sqlalchemy
-beautifulsoup4
 #lxml
 #html5lib
-regex
-python-Levenshtein
+beautifulsoup4
+psycopg2-binary
+sqlalchemy
+levenshtein
+click

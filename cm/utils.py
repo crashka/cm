@@ -2,7 +2,8 @@
 """
 """
 
-from collections import Mapping, Collection
+from typing import Any
+from collections.abc import Mapping, Iterable
 import regex as re
 import json
 import datetime as dt
@@ -22,7 +23,7 @@ class Config(object):
     """
     cfg_profiles = dict()  # {config_file: {profile_name: {section_name: ...}}}
 
-    def __init__(self, path):
+    def __init__(self, path: str):
         """
         :param path: path to YAML config file
         """
@@ -30,7 +31,7 @@ class Config(object):
         if Config.cfg_profiles.get(self.path) is None:
             Config.cfg_profiles[self.path] = {}
 
-    def config(self, section, profile = None):
+    def config(self, section: str, profile: str = None) -> dict:
         """Get config section for specified profile
 
         :param section: section within profile (or 'default')
@@ -62,18 +63,18 @@ class LOV(object):
     only names are provided, corresponding values will be generated based on the names
     (either a straight copy, or with the specified string method applied)
     """
-    def __init__(self, values, strmeth = None):
+    def __init__(self, values: Mapping | Iterable, strmeth: str = None):
         """
         :param values: either list/set/tuple of names, or dict (for specified values)
         :param strmeth: name of a string method to apply to LOV values (e.g. 'lower')
         """
-        if collecttype(values):
-            if strmeth:
-                self._mydict = {m: getattr(m, strmeth)() for m in values if strtype(m)}
-            else:
-                self._mydict = {m: m for m in values if strtype(m)}
-        elif mappingtype(values):
+        if isinstance(values, Mapping):
             self._mydict = values
+        elif isinstance(values, Iterable):
+            if strmeth:
+                self._mydict = {m: getattr(m, strmeth)() for m in values if isinstance(m, str)}
+            else:
+                self._mydict = {m: m for m in values if isinstance(m, str)}
         else:
             self._mydict = {}
 
@@ -83,13 +84,13 @@ class LOV(object):
         except KeyError:
             raise AttributeError()
 
-    def members(self):
+    def members(self) -> set:
         """
         :return: set of all member (attribute) names
         """
         return set(self._mydict.keys())
 
-    def values(self):
+    def values(self) -> set:
         """
         :return: set of all values
         """
@@ -105,7 +106,7 @@ STD_DATE_FMT  = '%Y-%m-%d'
 STD_TIME_FMT  = '%H:%M:%S'
 STD_TIME_FMT2 = '%H:%M'
 
-def str2date(datestr, fmt = STD_DATE_FMT):
+def str2date(datestr: str, fmt: str = STD_DATE_FMT) -> dt.date:
     """
     :param datestr: string
     :param fmt: [optional] defaults to Y-m-d
@@ -113,7 +114,7 @@ def str2date(datestr, fmt = STD_DATE_FMT):
     """
     return dt.datetime.strptime(datestr, fmt).date()
 
-def date2str(date, fmt = STD_DATE_FMT):
+def date2str(date: dt.date, fmt: str = STD_DATE_FMT) -> str:
     """
     :param date: dt.date object
     :param fmt: [optional] defaults to Y-m-d
@@ -121,7 +122,7 @@ def date2str(date, fmt = STD_DATE_FMT):
     """
     return date.strftime(fmt)
 
-def str2time(timestr, fmt = STD_TIME_FMT):
+def str2time(timestr: str, fmt: str = STD_TIME_FMT) -> dt.time:
     """
     :param timestr: string
     :param fmt: [optional] defaults to H:M:S
@@ -131,7 +132,7 @@ def str2time(timestr, fmt = STD_TIME_FMT):
         fmt = STD_TIME_FMT2
     return dt.datetime.strptime(timestr, fmt).time()
 
-def time2str(time, fmt = STD_TIME_FMT):
+def time2str(time: dt.time, fmt: str = STD_TIME_FMT) -> str:
     """
     :param time: dt.time object
     :param fmt: [optional] defaults to H:M:S
@@ -139,61 +140,39 @@ def time2str(time, fmt = STD_TIME_FMT):
     """
     return time.strftime(fmt)
 
-def datetimetz(date, time, tz):
+def datetimetz(date: dt.date | str, time: dt.time | str, tz: dt.tzinfo) -> dt.datetime:
     """
     :param date: either string or dt.date
     :param time: either string or dt.time
     :param tz: pytz tzinfo
     :return: dt.datetime (with tzinfo)
     """
-    if strtype(date):
+    if isinstance(date, str):
         date = str2date(date)
-    if strtype(time):
+    if isinstance(time, str):
         time = str2time(time)
-    return tz.localize(dt.datetime.combine(date, time))
+    return dt.datetime.combine(date, time, tz)
 
-def strtype(val):
-    """
-    :param val:
-    :return: bool
-    """
-    return isinstance(val, str)
-
-def collecttype(val):
-    """
-    :param val:
-    :return: bool
-    """
-    # geez, what's the ABC for this?
-    return isinstance(val, (set, list, tuple))
-
-def mappingtype(val):
-    """
-    :param val:
-    :return: bool
-    """
-    return isinstance(val, Mapping)
-
-def unixtime(tz = None):
+def unixtime(tz: dt.tzinfo = None) -> int:
     """
     :param tz: [optional] tzinfo
     :return: int
     """
     return int(dt.datetime.now(tz).strftime('%s'))
 
-def truthy(val):
-    if isinstance(val, str) and val.lower() in ['0', 'false', 'no', 'off']:
+FALSEHOOD = {'0', 'false', 'f', 'no', 'n', 'off'}
+
+def truthy(val: Any) -> bool:
+    if isinstance(val, str) and val.lower() in FALSEHOOD:
         return False
     else:
         return bool(val)
 
-def str_similarity(a, b):
+def str_similarity(a: str, b: str) -> float:
     """
     :return: float (ratio) in the range [0, 1]
     """
     return Levenshtein.ratio(a, b)
-    #return SequenceMatcher(None, a, b).ratio()
-    #return SequenceMatcher(None, a, b).quick_ratio()
 
 def prettyprint(data, indent=4, noprint=False):
     """Nicer version of pprint (which is actually kind of ugly)
@@ -216,25 +195,25 @@ def prettyprint(data, indent=4, noprint=False):
 import logging
 
 TRACE = logging.DEBUG - 5
-OUTLIER = logging.WARNING + 5  # perhaps rename to "NOTICE"
+NOTICE = logging.WARNING + 5
 
 class MyLogger(logging.getLoggerClass()):
     def __init__(self, name, level=logging.NOTSET):
         super().__init__(name, level)
 
         logging.addLevelName(TRACE, "TRACE")
-        logging.addLevelName(OUTLIER, "OUTLIER")
+        logging.addLevelName(NOTICE, "NOTICE")
 
     def trace(self, msg, *args, **kwargs):
         if self.isEnabledFor(TRACE):
             self._log(TRACE, msg, args, **kwargs)
 
-    def outlier(self, msg, *args, **kwargs):
+    def notice(self, msg, *args, **kwargs):
         """Currently just write to default logging channel, later perhaps write to separate
         channel, or store in database
         """
-        if self.isEnabledFor(OUTLIER):
+        if self.isEnabledFor(NOTICE):
             #kwargs['stack_info'] = True
-            self._log(OUTLIER, msg, args, **kwargs)
+            self._log(NOTICE, msg, args, **kwargs)
 
 logging.setLoggerClass(MyLogger)

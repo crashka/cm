@@ -5,33 +5,32 @@
 """
 
 import os.path
+from collections.abc import Iterable
 import logging
 import json
 import regex as re
 import datetime as dt
+from zoneinfo import ZoneInfo
 from urllib.parse import urlsplit, parse_qs
 
-import pytz
 from bs4 import BeautifulSoup
 
-from core import cfg, env, log, dbg_hand, DFLT_HTML_PARSER
-
-from musiclib import MusicLib, StringCtx, SKIP_ENS, ml_dict, UNIDENT
-from datasci import HashSeq
-from utils import (LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz,
-                   strtype, collecttype)
+from .utils import LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz
+from .core import env, log, dbg_hand, DFLT_HTML_PARSER
+from .musiclib import MusicLib, StringCtx, SKIP_ENS, ml_dict, UNIDENT
+from .datasci import HashSeq
 
 ##############################
 # common constants/functions #
 ##############################
 
-INFO_KEYS    = {'sta_name',
+INFO_KEYS    = ('sta_name',
                 'datestr',
                 'name',
                 'status',
                 'file',
-                'parsed_info'}
-NOPRINT_KEYS = {'parsed_info'}
+                'parsed_info')
+NOPRINT_KEYS = ('parsed_info', )
 
 # Lists of Values
 PLStatus = LOV(['NEW',
@@ -62,7 +61,7 @@ class Playlist(object):
         self.station     = sta
         self.sta_name    = sta.name
         self.parser      = sta.parser
-        self.date        = str2date(date) if strtype(date) else date
+        self.date        = str2date(date) if isinstance(date, str) else date
         self.datestr     = date2str(self.date)
         log.debug("Instantiating Playlist(%s, %s)" % (sta.name, self.datestr))
         self.name        = sta.playlist_name(self.date)
@@ -77,9 +76,9 @@ class Playlist(object):
     def playlist_info(self, keys = INFO_KEYS, exclude = None):
         """Return playlist info (canonical fields) as a dict comprehension
         """
-        if not collecttype(keys):
+        if not isinstance(keys, Iterable):
             keys = [keys]
-        if collecttype(exclude):
+        if isinstance(exclude, Iterable):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
@@ -128,7 +127,7 @@ class Parser(object):
         """
         self.station = sta
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
-        log.debug("HTML parser: %s" % (self.html_parser))
+        log.debug("HTML parser: %s" % self.html_parser)
         self.ml = MusicLib()
 
     def iter_program_plays(self, playlist):
@@ -219,7 +218,7 @@ class Parser(object):
                 if play_seq:
                     ps_recs = self.ml.insert_play_seq(play_rec, play_seq, 1)
                 else:
-                    log.debug("Skipping hash_seq for duplicate play:\n%s" % (play_rec))
+                    log.debug("Skipping hash_seq for duplicate play:\n%s" % play_rec)
 
         return pp_rec
 
@@ -323,7 +322,7 @@ class ParserWWFM(Parser):
             log.debug("Start time mismatch %s != %s" % (stime, data['start_time']))
         if etime != data['end_time']:
             log.debug("End time mismatch %s != %s" % (etime, data['end_time']))
-        tz = pytz.timezone(self.station.timezone)
+        tz = ZoneInfo(self.station.timezone)
 
         pp_data = {}
         # TODO: appropriate fixup of data (e.g. NULL chars) for prog_play_info!!!
@@ -373,7 +372,7 @@ class ParserWWFM(Parser):
         #    log.debug("End time mismatch %s != %s" % (etime, raw_data['end_time']))
 
         dur_msecs = raw_data.get('_duration')
-        tz = pytz.timezone(self.station.timezone)
+        tz = ZoneInfo(self.station.timezone)
 
         # special fix-up for NULL characters in recording name (WXXI)
         rec_name = raw_data.get('collectionName')
@@ -448,12 +447,12 @@ class ParserMPR(Parser):
         title = soup.title.string.strip()
         m = re.match(r'Playlist for (\w+ \d+, \d+)', title)
         if not m:
-            raise RuntimeError("Could not parse title \"%s\"" % (title))
+            raise RuntimeError("Could not parse title \"%s\"" % title)
         pl_date = dt.datetime.strptime(m.group(1), '%B %d, %Y').date()
 
         pl_root = soup.find('dl', id="playlist")
         for prog_head in reversed(pl_root('dt', recursive=False)):
-            yield (pl_date, prog_head)
+            yield pl_date, prog_head
         return
 
     def iter_plays(self, prog):
@@ -484,7 +483,7 @@ class ParserMPR(Parser):
         end_time   = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
         start_date = pl_date
         end_date   = pl_date if end_time > start_time else pl_date + dt.timedelta(1)
-        tz         = pytz.timezone(self.station.timezone)
+        tz         = ZoneInfo(self.station.timezone)
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
@@ -523,10 +522,10 @@ class ParserMPR(Parser):
         start_time = play_start.string + ' ' + time2str(pp_start, '%p')
         raw_data['start_date'] = start_date  # %Y-%m-%d
         raw_data['start_time'] = start_time  # %I:%M %p (12-hour format)
-        tz = pytz.timezone(self.station.timezone)
+        tz = ZoneInfo(self.station.timezone)
 
         buy_button = play_head.find('a', class_="buy-button", href=True)
-        if (buy_button):
+        if buy_button:
             res = urlsplit(buy_button['href'])
             url_fields = parse_qs(res.query, keep_blank_values=True)
             label = url_fields['label'][0] if url_fields.get('label') else None
@@ -604,7 +603,7 @@ class ParserC24(Parser):
         datestr = title.find_next_sibling('i').string  # "Monday, September 17, 2018 Central Time"
         m = re.match(r'(\w+), (\w+ {1,2}\d+, \d+) (.+)', datestr)
         if not m:
-            raise RuntimeError("Could not parse datestr \"%s\"" % (datestr))
+            raise RuntimeError("Could not parse datestr \"%s\"" % datestr)
         pl_date = dt.datetime.strptime(m.group(2), '%B %d, %Y').date()
 
         prog_divs = [rule.parent for rule in pl_body.select('div > hr')]
@@ -613,7 +612,7 @@ class ParserC24(Parser):
             prog_head = prog_div.find_next('p')
             if not prog_head:
                 break
-            yield (pl_date, prog_div, prog_head)
+            yield pl_date, prog_div, prog_head
         return
 
     def iter_plays(self, prog):
@@ -644,12 +643,12 @@ class ParserC24(Parser):
         prog_times = prog_name.replace('MID', '12AM').replace('12N', '12PM')
         m = re.match(r'(\d+(?:AM|PM)).+?(\d+(?:AM|PM))', prog_times)
         if not m:
-            raise RuntimeError("Could not parse prog_times \"%s\"" % (prog_times))
+            raise RuntimeError("Could not parse prog_times \"%s\"" % prog_times)
         start_time = dt.datetime.strptime(m.group(1), '%I%p').time()
         end_time   = dt.datetime.strptime(m.group(2), '%I%p').time()
         start_date = pl_date
         end_date   = pl_date if end_time > start_time else pl_date + dt.timedelta(1)
-        tz         = pytz.timezone(self.station.timezone)
+        tz         = ZoneInfo(self.station.timezone)
         # TODO: lookup host name from refdata!!!
         prog_data = {'name': prog_name}
 
@@ -695,7 +694,7 @@ class ParserC24(Parser):
         start_time = play_start.string.strip()  # "12:01AM"
         raw_data['start_date'] = start_date  # %Y-%m-%d
         raw_data['start_time'] = start_time  # %I:%M%p (12-hour format)
-        tz = pytz.timezone(self.station.timezone)
+        tz = ZoneInfo(self.station.timezone)
 
         # Step 2a - try and find label information (<i>...</i> - <a href=...>)
         rec_center = play_body.find(string=re.compile(r'\s+\-\s+$'))
@@ -736,7 +735,7 @@ class ParserC24(Parser):
                 raw_data['catalog_no'] = catalog_no
                 processed.add(url_rec)
         else:
-            raise RuntimeError("Expected <a>, got <%s> instead" % (rec_buy_url.name))
+            raise RuntimeError("Expected <a>, got <%s> instead" % rec_buy_url.name)
 
         # Step 2c - now parse the individual text fields, skipping and/or validating
         #           stuff we've already parsed out (absent meta-metadata)
@@ -814,7 +813,7 @@ class ParserC24(Parser):
 #####################
 
 import click
-import station
+from . import station
 
 @click.command()
 @click.option('--list',      'cmd', flag_value='list', default=True, help="List all (or specified) playlists")

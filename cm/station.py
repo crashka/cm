@@ -5,20 +5,21 @@
 """
 
 import os.path
+from typing import Iterable
 import regex as re
 import json
 import glob
 import datetime as dt
+from zoneinfo import ZoneInfo
 from time import sleep
 import base64
 import logging
 
-import pytz
 import requests
 
-from core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT
-from playlist import Parser
-from utils import Config, LOV, prettyprint, str2date, date2str, strtype, collecttype
+from .utils import LOV, prettyprint, str2date, date2str
+from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT
+from .playlist import Parser
 
 ################
 # config stuff #
@@ -62,10 +63,10 @@ REQD_URL_ATTRS = {ConfigKey.COND,
 DEFAULT_COND   = 'default'
 
 # the following correspond to hardwired Station member variables
-INFO_KEYS      = {'name',
+INFO_KEYS      = ('name',
                   'status',
                   'config',
-                  'state'}
+                  'state')
 # if any of the info keys should not be dumped to log file
 NOPRINT_KEYS   = set()
 
@@ -132,14 +133,14 @@ class Station(object):
         :return: sorted list of station names (same as directory names)
         """
         dirs = glob.glob(os.path.join(BASE_DIR, 'stations', '*'))
-        return sorted([os.path.basename(dir) for dir in dirs])
+        return sorted([os.path.basename(dir_) for dir_ in dirs])
 
     def __init__(self, name):
         """Sets status field locally (but not written back to info file)
         """
         if name not in STATIONS:
-            raise RuntimeError("Station \"%s\" not known" % (name))
-        log.debug("Instantiating Station(%s)" % (name))
+            raise RuntimeError("Station \"%s\" not known" % name)
+        log.debug("Instantiating Station(%s)" % name)
         self.name = name
         self.status = Status.NEW
         self.config = STATION_BASE.copy()
@@ -189,13 +190,13 @@ class Station(object):
         except KeyError:
             raise AttributeError()
 
-    def station_info(self, keys = INFO_KEYS, exclude = None):
+    def station_info(self, keys: Iterable | str = INFO_KEYS, exclude: Iterable = None) -> dict:
         """Return station info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not collecttype(keys):
+        if not isinstance(keys, Iterable):
             keys = [keys]
-        if collecttype(exclude):
+        if isinstance(exclude, Iterable):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
@@ -206,7 +207,8 @@ class Station(object):
             json.dump(self.station_info(), f, indent=2)
         with open(self.playlists_file, 'w') as f:
             json.dump(self.playlists, f, indent=2)
-        log.debug("Storing state for %s\n%s" % (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
+        log.debug("Storing state for %s\n%s" %
+                  (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
 
     def load_state(self, force = False):
         """Loads station info (canonical fields) from station_info.json file
@@ -217,7 +219,8 @@ class Station(object):
                 with open(self.station_info_file) as f:
                     station_info = json.load(f)
                 self.state.update(station_info.get('state', {}))
-        log.debug("Loading state for %s\n%s" % (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
+        log.debug("Loading state for %s\n%s" %
+                  (self.name, prettyprint(self.station_info(exclude=NOPRINT_KEYS), noprint=True)))
 
         if self.playlists is None or force:
             self.playlists = {}
@@ -225,7 +228,7 @@ class Station(object):
                 with open(self.playlists_file) as f:
                     playlists = json.load(f)
                 self.playlists.update(playlists)
-        log.debug("Loading playlists for %s" % (self.name))
+        log.debug("Loading playlists for %s" % self.name)
 
     def build_url(self, date):
         """Builds playlist URL based on url_fmt, which is a required attribute in the station info
@@ -238,7 +241,7 @@ class Station(object):
         date_func = None
         date_meth = None
 
-        tz = pytz.timezone(self.timezone)
+        tz = ZoneInfo(self.timezone)
         today = dt.datetime.now(tz).date()
 
         for url_info in self.urls:
@@ -253,12 +256,12 @@ class Station(object):
                 if url_info is not self.urls[-1]:
                     raise RuntimeError("Default condition must be specified last")
             else:
-                raise RuntimeError("Condition \"%s\" not recognized" % (cond))
+                raise RuntimeError("Condition \"%s\" not recognized" % cond)
 
             url_fmt   = url_info[ConfigKey.URL_FMT]
             tokens    = re.findall(r'(\<[\p{Lu}\d_]+\>)', url_fmt)
             if not tokens:
-                raise RuntimeError("No tokens in URL format string for cond \"%s\"" % (cond))
+                raise RuntimeError("No tokens in URL format string for cond \"%s\"" % cond)
             date_fmt  = url_info.get(ConfigKey.DATE_FMT)
             date_fmt2 = url_info.get(ConfigKey.DATE_FMT2)
             date_func = url_info.get(ConfigKey.DATE_FUNC)
@@ -293,7 +296,7 @@ class Station(object):
 
         return url
 
-    def check(self, validate = False):
+    def check(self, validate: bool = False):
         """Return True if station exists (and passes validation test, if requested)
         """
         created = os.path.exists(self.station_dir) and os.path.isdir(self.station_dir)
@@ -313,7 +316,7 @@ class Station(object):
         """Create station (raise exception if it already exists)
         """
         if self.check():
-            raise RuntimeError("Station \"%s\" already exists" % (self.name))
+            raise RuntimeError("Station \"%s\" already exists" % self.name)
         self.state = {}
         self.playlists = {}
         if not dryrun:
@@ -357,7 +360,7 @@ class Station(object):
         min_date = str2date(min(fs_playlists))
         max_date = str2date(max(fs_playlists))
         ord_list = range(min_date.toordinal(), max_date.toordinal())
-        all_dates = {date2str(dt.date.fromordinal(ord)) for ord in ord_list}
+        all_dates = {date2str(dt.date.fromordinal(ord_)) for ord_ in ord_list}
         missing = all_dates.difference(fs_playlists)
         if len(missing) > 0:
             raise RuntimeError("Missing playlists for: " + str(sorted(missing)))
@@ -373,7 +376,7 @@ class Station(object):
             StateAttr.MISSING  : None,
             StateAttr.INVALID  : None
         }
-        log.debug("Validating playlist info for %s" % (self.name))
+        log.debug("Validating playlist info for %s" % self.name)
 
         if not dryrun:
             self.store_state()
@@ -381,12 +384,12 @@ class Station(object):
     def fetch_playlists(self, start_date, num = 1, dryrun = False, force = False):
         """Write specified playlists to filesystem
         """
-        if strtype(start_date):
+        if isinstance(start_date, str):
             try:
                 if start_date == FetchTarg.CATCHUP:
                     self.validate_playlists(dryrun=True)  # no need to store state yet
                     start_date = str2date(self.state.get(StateAttr.LATEST)) + dt.timedelta(1)
-                    tz = pytz.timezone(self.timezone)
+                    tz = ZoneInfo(self.timezone)
                     today = dt.datetime.now(tz).date()
                     num = (today - start_date).days
                     if num < 0:
@@ -401,7 +404,7 @@ class Station(object):
                 raise RuntimeError("Invalid date to fetch")
 
         if num == 0:
-            log.debug("No playlists to fetch for %s", (self.name))
+            log.debug("No playlists to fetch for %s", self.name)
             return  # nothing to do
 
         # do this using ordinals instead of timedelta, since the math syntax is more native
@@ -410,14 +413,14 @@ class Station(object):
         end_ord   = start_ord + num
         ord_step  = (1, -1)[num < 0]
         log.debug("Fetching %d playlist(s) starting with %s" % (num, date2str(start_date)))
-        for ord in range(start_ord, end_ord, ord_step):
-            date = dt.date.fromordinal(ord)
+        for ord_ in range(start_ord, end_ord, ord_step):
+            date = dt.date.fromordinal(ord_)
             # TODO: should really create a Playlist here and encapsulate all of the fetch stuff!!!
             playlist_name = self.playlist_name(date)
             playlist_file = self.playlist_file(date)
             if os.path.exists(playlist_file) and os.path.getsize(playlist_file) > 0:
                 if not force:
-                    log.info("Skipping fetch for \"%s\", file exists" % (playlist_name))
+                    log.info("Skipping fetch for \"%s\", file exists" % playlist_name)
                     continue
                 else:
                     # STUPID to call getsize() again, but keeps things cleaner above!!!
@@ -438,7 +441,8 @@ class Station(object):
                     f.write(playlist_text)
                 status = PlaylistStatus.OK
                 if self.playlist_min and len(playlist_text) < self.playlist_min:
-                    log.info("Playlist \"%s\" content length %d below min" % (playlist_name, len(playlist_text)))
+                    log.info("Playlist \"%s\" content length %d below min" %
+                             (playlist_name, len(playlist_text)))
                     status = PlaylistStatus.NOTOK
                 self.playlists[playlist_name] = {
                     PlaylistAttr.FILE   : os.path.relpath(playlist_file, self.station_dir),
@@ -454,7 +458,7 @@ class Station(object):
         elapsed = dt.datetime.utcnow() - self.last_fetch
         if elapsed < self.fetch_delta:
             sleep_delta = self.fetch_delta - elapsed
-            sleep((sleep_delta).seconds + (sleep_delta).microseconds / 1000000.0)
+            sleep(sleep_delta.seconds + sleep_delta.microseconds / 1000000.0)
 
         playlist_url = self.build_url(date)
         log.debug("Fetching from %s (headers: %s)" % (playlist_url, self.http_headers))

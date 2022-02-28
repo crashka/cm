@@ -5,12 +5,11 @@
 
 from os import environ
 import os.path
-import datetime as dt
 from socket import gethostname
 import logging
 import logging.handlers
 
-from utils import Config, MyLogger
+from .utils import Config
 
 ############################
 # config/environment stuff #

@@ -12,9 +12,9 @@ from sqlalchemy.schema import CreateColumn
 from sqlalchemy.sql import expression
 from sqlalchemy.ext.compiler import compiles
 
-from core import cfg, env, log, dflt_hand, dbg_hand
-from utils import truthy
-import schema
+from .utils import truthy
+from .core import cfg, env, log, dflt_hand, dbg_hand
+from . import schema
 
 ################
 # config stuff #
@@ -52,7 +52,7 @@ def use_identity(element, compiler, **kw):
 class DatabaseCtx(object):
     def __init__(self, dbname):
         if dbname not in DATABASE:
-            raise RuntimeError("Database name \"%s\" not known" % (dbname))
+            raise RuntimeError("Database name \"%s\" not known" % dbname)
         self.db_info = DATABASE[dbname]
         if truthy(self.db_info.get('sql_tracing')):
             dblog.setLevel(logging.INFO)
