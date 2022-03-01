@@ -11,6 +11,13 @@ import logging.handlers
 
 from .utils import Config
 
+#########
+# types #
+#########
+
+# collection of unindexed items (i.e. Collection minus str and dict)
+Assemblage = set | list | tuple
+
 ############################
 # config/environment stuff #
 ############################
@@ -57,6 +64,5 @@ log.addHandler(dflt_hand)
 ############
 
 # kindly internet fetch interval (TODO: move to config file!!!)
-DFLT_FETCH_INT = 2.0
-
+DFLT_FETCH_INT   = 1.0
 DFLT_HTML_PARSER = 'html.parser'

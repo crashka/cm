@@ -5,7 +5,6 @@
 """
 
 import os.path
-from typing import Iterable
 import regex as re
 import json
 import glob
@@ -18,7 +17,7 @@ import logging
 import requests
 
 from .utils import LOV, prettyprint, str2date, date2str
-from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT
+from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT, Assemblage
 from .playlist import Parser
 
 ################
@@ -190,13 +189,13 @@ class Station(object):
         except KeyError:
             raise AttributeError()
 
-    def station_info(self, keys: Iterable | str = INFO_KEYS, exclude: Iterable = None) -> dict:
+    def station_info(self, keys: Assemblage | str = INFO_KEYS, exclude: Assemblage = None) -> dict:
         """Return station info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not isinstance(keys, Iterable):
+        if not isinstance(keys, Assemblage):
             keys = [keys]
-        if isinstance(exclude, Iterable):
+        if isinstance(exclude, Assemblage):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 

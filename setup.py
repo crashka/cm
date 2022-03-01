@@ -24,7 +24,7 @@ setup(
         'console_scripts': [
             'station  = cm.station:main',
             'playlist = cm.playlist:main',
-            'ref_data = cm.ref_data:main',
+            'refdata = cm.refdata:main',
             'database = cm.database:main'
         ],
     }

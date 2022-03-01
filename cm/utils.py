@@ -71,6 +71,7 @@ class LOV(object):
         if isinstance(values, Mapping):
             self._mydict = values
         elif isinstance(values, Iterable):
+            assert not isinstance(values, str)
             if strmeth:
                 self._mydict = {m: getattr(m, strmeth)() for m in values if isinstance(m, str)}
             else:

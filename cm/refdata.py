@@ -10,7 +10,6 @@ in context/situ)
 """
 
 import os.path
-from collections.abc import Iterable
 import regex as re
 import json
 import glob
@@ -21,7 +20,7 @@ import logging
 from bs4 import BeautifulSoup
 import requests
 
-from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER
+from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER, Assemblage
 from .utils import LOV, prettyprint
 from .musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
 
@@ -131,9 +130,9 @@ class RefData(object):
         """Return refdata info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not isinstance(keys, Iterable):
+        if not isinstance(keys, Assemblage):
             keys = [keys]
-        if isinstance(exclude, Iterable):
+        if isinstance(exclude, Assemblage):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
@@ -230,7 +229,7 @@ class RefData(object):
         if not cat or not key:
             log.debug("Both category(ies) and key(s) must be specified to fetch for %s" % self.name)
             return  # nothing to do
-        cats = [cat] if not isinstance(cat, Iterable) else cat
+        cats = [cat] if not isinstance(cat, Assemblage) else cat
         if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
@@ -238,7 +237,7 @@ class RefData(object):
             else:
                 keys = [key]
         else:
-            keys = [key] if not isinstance(key, Iterable) else key
+            keys = [key] if not isinstance(key, Assemblage) else key
 
         log.debug("Fetching refdata for categories %s and keys %s" % (cats, keys))
         for cat in cats:
@@ -279,17 +278,17 @@ class RefData(object):
         catdata_url = self.build_url(cat, key)
         log.debug("Fetching from %s (headers: %s)" % (catdata_url, self.http_headers))
         r = self.sess.get(catdata_url, headers=self.http_headers)
-        catdata_content = r.content
+        catdata_text = r.text
 
         self.last_fetch = dt.datetime.utcnow()
         # TODO: this really needs to return metadata around the catdata, not
         # just the contents!!!
-        return catdata_content
+        return catdata_text
 
     def parse(self, cat, key, dryrun, force):
         """
         """
-        cats = [cat] if not isinstance(cat, Iterable) else cat
+        cats = [cat] if not isinstance(cat, Assemblage) else cat
         if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
@@ -297,7 +296,7 @@ class RefData(object):
             else:
                 keys = [key]
         else:
-            keys = [key] if not isinstance(key, Iterable) else key
+            keys = [key] if not isinstance(key, Assemblage) else key
 
         log.debug("Parsing refdata for categories \"%s\" and keys \"%s\"" % (cats, keys))
         for cat in cats:

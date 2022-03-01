@@ -6,13 +6,13 @@
 import sys
 import regex as re
 from collections import UserDict
-from collections.abc import Mapping, Iterable
+from collections.abc import Mapping
 import warnings
 
 from sqlalchemy.exc import *
 
 from .utils import LOV, str_similarity
-from .core import env, log
+from .core import env, log, Assemblage
 from .database import DatabaseCtx
 
 ##############################
@@ -120,12 +120,12 @@ class ml_dict(UserDict):
         for k, v in d.items():
             if isinstance(v, Mapping):
                 ml_dict.deep_replace(v, from_str, to_str)
-            elif isinstance(v, Iterable):
+            elif isinstance(v, str):
+                d[k] = v.replace(from_str, to_str)
+            elif isinstance(v, Assemblage):
                 for m in v:
                     if isinstance(m, Mapping):
                         ml_dict.deep_replace(m, from_str, to_str)
-            elif isinstance(v, str):
-                d[k] = v.replace(from_str, to_str)
 
     def merge(self, to_merge):
         """Modifies current structure in place (no return value)
@@ -136,7 +136,7 @@ class ml_dict(UserDict):
         for k, v in to_merge.items():
             if k not in self:
                 self[k] = v
-            elif isinstance(self[k], Iterable):
+            elif isinstance(self[k], Assemblage):
                 if v:
                     self[k].extend(v)
                 elif self[k]:  # i.e. non-empty list
@@ -844,7 +844,7 @@ class MusicEnt(object):
         if order_by:
             if isinstance(order_by, str):
                 order_by = {order_by: 1}
-            elif isinstance(order_by, Iterable):
+            elif isinstance(order_by, Assemblage):
                 order_by = {c: 1 for c in order_by}
             for col, dir_ in order_by.items():
                 sel = sel.order_by(self.tab.c[col] if dir_ >= 0 else self.tab.c[col].desc())

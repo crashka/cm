@@ -2,7 +2,7 @@
 default:
   station_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
-    fetch_interval: 2.0
+    fetch_interval: 1.0
 
   stations:
     BEET:
@@ -19,6 +19,16 @@ default:
     C24A:
       sample_url:   'https://www.classical24.org/api/playlist/2019-01-13'
       url_fmt:      'https://www.classical24.org/api/playlist/<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/Chicago'
+      playlist_ext: 'json'
+      epoch:        '2014-09-15'
+      parser_cls:   'Parser'
+      synd_level:   100
+
+    C24B:
+      sample_url:   'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/schedule/classical-24/2019-09-16.json'
+      url_fmt:      'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/schedule/classical-24/<DATE_STR>.json'
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/Chicago'
       playlist_ext: 'json'
@@ -99,7 +109,18 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/Chicago'
       playlist_ext: 'html'
+      epoch:        '2006-01-27'
       parser_cls:   'ParserMPR'
+      synd_level:   80
+
+    MPR2:
+      sample_url:   'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/playlist/classical-mpr/2022-02-22.json'
+      url_fmt:      'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/playlist/classical-mpr/<DATE_STR>.json'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/Chicago'
+      playlist_ext: 'json'
+      epoch:        '2006-01-27'
+      parser_cls:   'Parser'
       synd_level:   80
 
     NWPR:
@@ -181,6 +202,7 @@ default:
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/New_York'
       playlist_ext: 'html'
+      epoch:        '2006-03-06'
       parser_cls:   'Parser'
 
     WETA:
@@ -342,7 +364,7 @@ default:
   refdata_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
     catdata_ext:   'html'
-    fetch_interval: 2.0
+    fetch_interval: 1.0
 
   refdata:
     arkivmusic:
