@@ -15,7 +15,7 @@ from urllib.parse import urlsplit, parse_qs
 from bs4 import BeautifulSoup
 
 from .utils import LOV, prettyprint, str2date, date2str, str2time, time2str, datetimetz
-from .core import env, log, dbg_hand, DFLT_HTML_PARSER, Assemblage
+from .core import env, log, dbg_hand, DFLT_HTML_PARSER, ObjCollect
 from .musiclib import MusicLib, StringCtx, SKIP_ENS, ml_dict, UNIDENT
 from .datasci import HashSeq
 
@@ -75,9 +75,9 @@ class Playlist(object):
     def playlist_info(self, keys = INFO_KEYS, exclude = None):
         """Return playlist info (canonical fields) as a dict comprehension
         """
-        if not isinstance(keys, Assemblage):
+        if not isinstance(keys, ObjCollect):
             keys = [keys]
-        if isinstance(exclude, Assemblage):
+        if isinstance(exclude, ObjCollect):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 

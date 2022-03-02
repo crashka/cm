@@ -15,8 +15,8 @@ from .utils import Config
 # types #
 #########
 
-# collection of unindexed items (i.e. Collection minus str and dict)
-Assemblage = set | list | tuple
+# collection of unmapped objects (i.e. `Collection` minus str-like and dict-like)
+ObjCollect = set | list | tuple
 
 ############################
 # config/environment stuff #

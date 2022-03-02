@@ -53,6 +53,7 @@ def load_schema(meta):
             Column('last_name',         Text),
             Column('suffix',            Text),
             Column('full_name',         Text),       # assembled from normalized name components
+            Column('tags',              ARRAY(Text)),
 
             # denormalized flags
             Column('is_composer',       Boolean),
@@ -87,6 +88,7 @@ def load_schema(meta):
             Column('ens_type',          Text),
             Column('ens_name',          Text),
             Column('ens_location',      Text),       # informational
+            Column('tags',              ARRAY(Text)),
 
             # canonicality
             Column('is_canonical',      Boolean),
@@ -107,6 +109,7 @@ def load_schema(meta):
             Column('work_name',         Text),
             Column('work_key',          Text),
             Column('catalog_no',        Text),       # i.e. op., K., BWV, etc.
+            Column('tags',              ARRAY(Text)),
 
             # canonicality
             Column('is_canonical',      Boolean),
@@ -154,6 +157,7 @@ def load_schema(meta):
             Column('website',           Text),
 
             # misc/external information
+            Column('tags',              ARRAY(Text)),
             Column('notes',             ARRAY(Text)),
             Column('ext_id',            Text),
             Column('ext_mstr_id',       Text),
@@ -172,6 +176,7 @@ def load_schema(meta):
             Column('station_id',        Integer,     ForeignKey('station.id'), nullable=True),
 
             # misc/external information
+            Column('tags',              ARRAY(Text)),
             Column('notes',             ARRAY(Text)),
             Column('ext_id',            Text),
             Column('ext_mstr_id',       Text),
@@ -199,6 +204,7 @@ def load_schema(meta):
             Column('mstr_prog_play_id', Integer,     ForeignKey('program_play.id')),  # not null if syndicated
 
             # misc/external information
+            Column('tags',              ARRAY(Text)),
             Column('notes',             ARRAY(Text)),
             Column('ext_id',            Text),
             Column('ext_mstr_id',       Text),
@@ -241,6 +247,7 @@ def load_schema(meta):
             Column('mstr_play_id',      Integer,     ForeignKey('play.id')),  # not null if syndicated
 
             # misc/external information
+            Column('tags',              ARRAY(Text)),
             Column('notes',             ARRAY(Text)),
             Column('ext_id',            Text),
             Column('ext_mstr_id',       Text),

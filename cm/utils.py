@@ -77,6 +77,7 @@ class LOV(object):
             else:
                 self._mydict = {m: m for m in values if isinstance(m, str)}
         else:
+            # REVISIT: shouldn't really ignore `values`!!!
             self._mydict = {}
 
     def __getattr__(self, key):

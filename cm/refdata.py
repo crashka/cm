@@ -20,7 +20,7 @@ import logging
 from bs4 import BeautifulSoup
 import requests
 
-from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER, Assemblage
+from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER, ObjCollect
 from .utils import LOV, prettyprint
 from .musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
 
@@ -130,9 +130,9 @@ class RefData(object):
         """Return refdata info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not isinstance(keys, Assemblage):
+        if not isinstance(keys, ObjCollect):
             keys = [keys]
-        if isinstance(exclude, Assemblage):
+        if isinstance(exclude, ObjCollect):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
@@ -229,7 +229,7 @@ class RefData(object):
         if not cat or not key:
             log.debug("Both category(ies) and key(s) must be specified to fetch for %s" % self.name)
             return  # nothing to do
-        cats = [cat] if not isinstance(cat, Assemblage) else cat
+        cats = [cat] if not isinstance(cat, ObjCollect) else cat
         if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
@@ -237,7 +237,7 @@ class RefData(object):
             else:
                 keys = [key]
         else:
-            keys = [key] if not isinstance(key, Assemblage) else key
+            keys = [key] if not isinstance(key, ObjCollect) else key
 
         log.debug("Fetching refdata for categories %s and keys %s" % (cats, keys))
         for cat in cats:
@@ -288,7 +288,7 @@ class RefData(object):
     def parse(self, cat, key, dryrun, force):
         """
         """
-        cats = [cat] if not isinstance(cat, Assemblage) else cat
+        cats = [cat] if not isinstance(cat, ObjCollect) else cat
         if isinstance(key, str):
             m = re.fullmatch(r'([a-z])-([a-z])', key.lower())
             if m and ord(m.group(1)) <= ord(m.group(2)):
@@ -296,7 +296,7 @@ class RefData(object):
             else:
                 keys = [key]
         else:
-            keys = [key] if not isinstance(key, Assemblage) else key
+            keys = [key] if not isinstance(key, ObjCollect) else key
 
         log.debug("Parsing refdata for categories \"%s\" and keys \"%s\"" % (cats, keys))
         for cat in cats:

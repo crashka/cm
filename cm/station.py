@@ -17,7 +17,7 @@ import logging
 import requests
 
 from .utils import LOV, prettyprint, str2date, date2str
-from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT, Assemblage
+from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT, ObjCollect
 from .playlist import Parser
 
 ################
@@ -189,13 +189,13 @@ class Station(object):
         except KeyError:
             raise AttributeError()
 
-    def station_info(self, keys: Assemblage | str = INFO_KEYS, exclude: Assemblage = None) -> dict:
+    def station_info(self, keys: ObjCollect | str = INFO_KEYS, exclude: ObjCollect = None) -> dict:
         """Return station info (canonical fields) as a dict comprehension
         """
         stat = str(self.status)
-        if not isinstance(keys, Assemblage):
+        if not isinstance(keys, ObjCollect):
             keys = [keys]
-        if isinstance(exclude, Assemblage):
+        if isinstance(exclude, ObjCollect):
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
