@@ -1,5 +1,6 @@
 refdata/
 stations/
+stations.*/
 notes/*.html
 database/*dump*
 database/*.list

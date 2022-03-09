@@ -124,7 +124,7 @@ default:
       timezone:     'America/Chicago'
       playlist_ext: 'json'
       epoch:        '2006-01-27'
-      parser_cls:   'ParserMPR2'
+      parser_cls:   'ParserC24B'
       synd_level:   80
 
     NWPR:

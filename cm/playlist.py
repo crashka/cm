@@ -43,13 +43,14 @@ class Playlist(object):
     """Represents a playlist for a station
     """
     @staticmethod
-    def list(sta):
+    def list(sta, ptrn: str = None) -> list:
         """List playlists for a station
 
         :param sta: station object
+        :param ptrn: glob pattern to match (optional trailing '*')
         :return: sorted list of playlist names (same as date)
         """
-        return sorted(sta.get_playlists())
+        return sorted(sta.get_playlists(ptrn))
 
     def __init__(self, sta, date):
         """Sets status field locally (but not written back to info file)
@@ -424,6 +425,131 @@ class ParserWWFM(Parser):
                          'performers': [],
                          'ensembles':  [],
                          'recording':  rec_data}),
+                entity_str_data)
+
+class ParserC24B(Parser):
+    def iter_program_plays(self, playlist: Playlist) -> dict:
+        """This is the implementation for C24B and MPR2 (json)
+
+        :param playlist: Playlist object
+        :yield: dict representing individual programs
+        """
+        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        with open(playlist.file) as f:
+            pl_info = json.load(f)
+        pl_params = pl_info['pageProps']
+        pl_data   = pl_params['data']
+        pl_hosts  = pl_data['hosts']
+        for prog in pl_hosts:
+            yield prog
+
+    def iter_plays(self, prog: dict) -> dict:
+        """This is the implementation for C24B and MPR2 (json)
+
+        :param prog: dict yield value from iter_program_plays()
+        :yield: dict 'songs' item from C24B/MPR2 playlist file
+        """
+        plays = prog.get('songs') or []
+        for play in plays:
+            yield play
+
+    def map_program_play(self, prog: dict):
+        """This is the implementation for C24B and MPR2 (json)
+
+        raw data in: [list of dicts] 'hosts' item from C24B/MPR2 playlist file
+        normalized data out: {
+            'program': {},
+            'program_play': {}
+        }
+        """
+        host_name = prog['hostName']
+        show_name = prog['showName']
+        prog_data = {'name': f"{show_name} with {host_name}"}
+
+        prog.get('showLink')   # "http://minnesota.publicradio.org/radio/services/cms/"
+        prog.get('startTime')  # "2022-03-02T00:00:00-06:00"
+        prog.get('endTime')    # "2022-03-02T06:00:00-06:00"
+        prog.get('id')         # 702873
+
+        start_dt = dt.datetime.fromisoformat(prog['startTime'])
+        end_dt = dt.datetime.fromisoformat(prog['endTime'])
+
+        pp_data = {}
+        pp_data['prog_play_info']  = prog
+        pp_data['prog_play_date']  = start_dt.date()
+        pp_data['prog_play_start'] = start_dt.time()
+        pp_data['prog_play_end']   = end_dt.time()
+        pp_data['prog_play_dur']   = None # Interval, if listed
+        pp_data['notes']           = None # ARRAY(Text)
+        pp_data['start_time']      = start_dt
+        pp_data['end_time']        = end_dt
+        pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
+
+        pp_data['ext_id']          = prog.get('id')
+        pp_data['ext_mstr_id']     = None
+
+        return {'program': prog_data, 'program_play': pp_data}
+
+    def map_play(self, pp_data, raw_data):
+        """This is the implementation for WWFM (and others)
+
+        raw data in: 'playlist' item from WWFM playlist file
+        normalized data out: {
+            'composer'  : {},
+            'work'      : {},
+            'conductor' : {},
+            'performers': [{}, ...],
+            'ensembles' : [{}, ...],
+            'recording' : {},
+            'play'      : {}
+        }
+        """
+        start_dt = dt.datetime.fromisoformat(raw_data['played_at'])
+        end_dt = dt.datetime.fromisoformat(raw_data['ended_at'])
+        if dur_str := raw_data.get('duration'):
+            min_str, sec_str = dur_str.split(':')
+            play_dur = dt.timedelta(minutes=int(min_str), seconds=int(sec_str))
+        else:
+            play_dur = None
+
+        tz = ZoneInfo(self.station.timezone)
+
+        play_data = {}
+        play_data['play_info']   = raw_data
+        play_data['play_date']   = start_dt.date()
+        play_data['play_start']  = start_dt.time()
+        play_data['play_end']    = end_dt.time()
+        play_data['play_dur']    = play_dur
+        play_data['notes']       = None # ARRAY(Text)
+        play_data['start_time']  = start_dt
+        play_data['end_time']    = end_dt
+        play_data['duration']    = play_data['end_time'] - play_data['start_time']
+
+        play_data['ext_id']      = raw_data.get('play_id')
+        play_data['ext_mstr_id'] = raw_data.get('song_id')
+
+        rec_data = {'name'      : raw_data.get('album'),
+                    'label'     : raw_data.get('record_co'),
+                    'catalog_no': raw_data.get('record_id')}
+
+        perf_keys = (f"soloist_{n}" for n in range(1, 7))
+        perf_iter = filter(None, (raw_data.get(k) for k in perf_keys))
+
+        entity_str_data = {'composer'  : [raw_data.get('composer')],
+                           'work'      : [raw_data.get('title')],
+                           'conductor' : [raw_data.get('conductor')],
+                           'performers': list(perf_iter),
+                           'ensembles' : [raw_data.get('orch_ensemble')],
+                           'recording' : [rec_data['name']],
+                           'label'     : [rec_data['label']]}
+
+        return (ml_dict({'play'      : play_data,
+                         'composer'  : {},
+                         'work'      : {},
+                         'conductor' : {},
+                         'performers': [],
+                         'ensembles' : [],
+                         'recording' : rec_data}),
                 entity_str_data)
 
 #+-----------+
@@ -828,9 +954,8 @@ from . import station
 def main(cmd, sta_name, force, dryrun, debug, playlists):
     """Manage playlist information for playlists within a station
 
-    Currently, playlist date (or 'all') is specified.
-
-    Later, be able to parse out range of playlists.
+    Playlists may be specified as comma-separated list of dates, glob pattern (with
+    optional trailing '*'), or 'all'.
     """
     if debug > 0:
         log.setLevel(logging.DEBUG)
@@ -840,8 +965,10 @@ def main(cmd, sta_name, force, dryrun, debug, playlists):
 
     if playlists == 'all':
         playlist_names = Playlist.list(sta)
-    else:
+    elif ',' in playlists:
         playlist_names = playlists.split(',')
+    else:
+        playlist_names = Playlist.list(sta, playlists)
 
     if cmd == 'list':
         for playlist_name in playlist_names:

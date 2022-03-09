@@ -336,12 +336,15 @@ class Station(object):
         filename = self.playlist_name(date) + '.' + self.playlist_ext
         return os.path.join(self.playlist_dir, filename)
 
-    def get_playlists(self):
+    def get_playlists(self, ptrn: str = None) -> set:
         """Return names of playlists (from playlists directory)
 
+        :param ptrn: glob pattern to match (optional trailing '*')
         :return: set iterator
         """
-        files = glob.glob(os.path.join(self.playlist_dir, '*'))
+        if ptrn and ptrn[-1] != '*':
+            ptrn += '*'
+        files = glob.glob(os.path.join(self.playlist_dir, ptrn or '*'))
         return {os.path.splitext(os.path.basename(file))[0] for file in files}
 
     def validate_playlists(self, dryrun = False):
