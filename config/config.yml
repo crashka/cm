@@ -26,16 +26,14 @@ default:
       parser_cls:   'Parser'
       synd_level:   100
 
-    C24B:
-      sample_url:   'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/schedule/classical-24/2019-09-16.json'
-      url_fmt:      'https://www.yourclassical.org/_next/data/<WIDGETKEY>/schedule/classical-24/<DATE_STR>.json'
-      #widgetkey:    'yrnoxhNmCTzrBhQRurpi-'  # 2202-02
-      widgetkey:    'lgYVyvcmAcb1eiMXe5h4Z'  # 2202-03
+    C24C:
+      sample_url:   'https://www.yourclassical.org/schedule/classical-24/2022-03-24'
+      url_fmt:      'https://www.yourclassical.org/schedule/classical-24/<DATE_STR>'
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/Chicago'
       playlist_ext: 'json'
       epoch:        '2014-09-15'
-      parser_cls:   'ParserC24B'
+      parser_cls:   'ParserC24C'
       synd_level:   100
 
     CPR:
@@ -112,19 +110,17 @@ default:
       timezone:     'America/Chicago'
       playlist_ext: 'html'
       epoch:        '2006-01-27'
-      parser_cls:   'ParserMPR'
+      parser_cls:   'Parser'
       synd_level:   80
 
-    MPR2:
-      sample_url:   'https://www.yourclassical.org/_next/data/yrnoxhNmCTzrBhQRurpi-/schedule/classical-mpr/2022-02-22.json'
-      url_fmt:      'https://www.yourclassical.org/_next/data/<WIDGETKEY>/schedule/classical-mpr/<DATE_STR>.json'
-      #widgetkey:    'yrnoxhNmCTzrBhQRurpi-'  # 2202-02
-      widgetkey:    'lgYVyvcmAcb1eiMXe5h4Z'  # 2202-03
+    MPR3:
+      sample_url:   'https://www.yourclassical.org/schedule/classical-mpr/2022-03-24'
+      url_fmt:      'https://www.yourclassical.org/schedule/classical-mpr/<DATE_STR>'
       date_fmt:     '%Y-%m-%d'
       timezone:     'America/Chicago'
       playlist_ext: 'json'
       epoch:        '2006-01-27'
-      parser_cls:   'ParserC24B'
+      parser_cls:   'ParserC24C'
       synd_level:   80
 
     NWPR:
