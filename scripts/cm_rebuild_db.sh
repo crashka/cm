@@ -6,5 +6,5 @@ scriptdir="$(dirname $(readlink -f $0))"
 cd $scriptdir/..
 source venv/bin/activate
 
-python cm/database.py --drop --force --debug=1
-python cm/database.py --create --debug=1
+python -m cm.database --drop --force --debug=1
+python -m cm.database --create --debug=1

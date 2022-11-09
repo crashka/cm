@@ -6,4 +6,4 @@ scriptdir="$(dirname $(readlink -f $0))"
 cd $scriptdir/..
 source venv/bin/activate
 
-python cm/station.py "$@"
+python -m cm.station "$@"

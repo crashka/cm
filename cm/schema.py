@@ -192,7 +192,7 @@ def load_schema(meta):
         Entity.PROGRAM_PLAY: Table('program_play', meta,
             Column('id',                Integer,     primary_key=True),
             Column('station_id',        Integer,     ForeignKey('station.id'), nullable=False),
-            Column('prog_play_info',    JSONB,       nullable=False),  # nornalized information
+            Column('prog_play_info',    JSONB,       nullable=False),  # normalized information
             Column('prog_play_date',    Date,        nullable=False),  # listed local date
             Column('prog_play_start',   Time,        nullable=False),  # listed local time
             Column('prog_play_end',     Time),       # if listed
@@ -221,7 +221,7 @@ def load_schema(meta):
             Column('id',                Integer,     primary_key=True),
             Column('station_id',        Integer,     ForeignKey('station.id'), nullable=False),
             Column('prog_play_id',      Integer,     ForeignKey('program_play.id'), nullable=True),
-            Column('play_info',         JSONB,       nullable=False),  # nornalized information
+            Column('play_info',         JSONB,       nullable=False),  # normalized information
             Column('play_date',         Date,        nullable=False),  # listed local date
             Column('play_start',        Time,        nullable=False),  # listed local time
             Column('play_end',          Time),       # if listed

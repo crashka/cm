@@ -101,7 +101,7 @@ default:
       timezone:     'America/Los_Angeles'
       playlist_ext: 'html'
       epoch:        '2013-01-06'
-      parser_cls:   'Parser'
+      parser_cls:   'ParserKUSC'
 
     MPR:
       sample_url:   'https://www.classicalmpr.org/playlist/classical-mpr/2018-09-12'
@@ -363,7 +363,7 @@ default:
 
   refdata_base:
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
-    catdata_ext:   'html'
+    catdata_ext:    'html'
     fetch_interval: 1.0
 
   refdata:

@@ -4,7 +4,7 @@
 """Playlist module
 """
 
-import os.path
+from os.path import relpath
 import logging
 import json
 import regex as re
@@ -180,9 +180,11 @@ class Parser(object):
         :param force: overwrite program_play/play in databsae
         :return: dict with parsed program_play/play info
         """
-        for prog in self.iter_program_plays(playlist):
+        parsed_info = []
+
+        for prog_play in self.iter_program_plays(playlist):
             # Step 1 - Parse out program_play info
-            pp_norm = self.map_program_play(prog)
+            pp_norm = self.map_program_play(prog_play)
             pp_rec = self.ml.insert_program_play(playlist, pp_norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
@@ -192,7 +194,7 @@ class Parser(object):
             pp_rec['plays'] = []
 
             # Step 2 - Parse out play info (if present)
-            for play in self.iter_plays(prog):
+            for play in self.iter_plays(prog_play):
                 play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
                 # APOLOGY: perhaps this parsing of entity strings and merging into normalized
                 # play data really belongs in the subclasses, but just hate to see all of the
@@ -230,7 +232,10 @@ class Parser(object):
                 else:
                     log.debug("Skipping hash_seq for duplicate play:\n%s" % play_rec)
 
-        return pp_rec
+            # for prog_plays (after adding plays)...
+            parsed_info.append(pp_rec)
+
+        return parsed_info
 
     def analyze(self, playlist, dryrun = False, force = False):
         """Analyze playlist contents, build playlist string parser, write to parser config file if not dryrun
@@ -240,13 +245,30 @@ class Parser(object):
         :param force: replace (rather than augment) config info
         :return: void
         """
-        for prog in self.iter_program_plays(playlist):
-            pp_norm = self.map_program_play(prog)
+        for prog_play in self.iter_program_plays(playlist):
+            pp_norm = self.map_program_play(prog_play)
             print("Analyzing program \"%s\":" % (pp_norm['program']['name']))
 
             parse_patterns = {}
-            for play in self.iter_plays(prog):
+            for play in self.iter_plays(prog_play):
                 play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
+                # see APOLOGY in `parse()` above
+                for composer_str in entity_str_data['composer']:
+                    if composer_str:
+                        play_norm.merge(self.ml.parse_composer_str(composer_str))
+                for work_str in entity_str_data['work']:
+                    if work_str:
+                        play_norm.merge(self.ml.parse_work_str(work_str))
+                for conductor_str in entity_str_data['conductor']:
+                    if conductor_str:
+                        play_norm.merge(self.ml.parse_conductor_str(conductor_str))
+                for performers_str in entity_str_data['performers']:
+                    if performers_str:
+                        play_norm.merge(self.ml.parse_performer_str(performers_str))
+                for ensembles_str in entity_str_data['ensembles']:
+                    if ensembles_str:
+                        play_norm.merge(self.ml.parse_ensemble_str(ensembles_str))
+
                 for performers_str in entity_str_data['performers']:
                     if performers_str:
                         for pattern in StringCtx.examine_entity_str(performers_str):
@@ -279,22 +301,22 @@ class ParserWWFM(Parser):
         :param playlist: Playlist object
         :yield: [list of dicts] 'onToday' item from WWFM playlist file
         """
-        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        log.debug("Parsing json for %s", relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
             pl_info = json.load(f)
         pl_params = pl_info['params']
         pl_progs = pl_info['onToday']
-        for prog in pl_progs:
-            yield prog
+        for prog_play in pl_progs:
+            yield prog_play
         return
 
-    def iter_plays(self, prog):
+    def iter_plays(self, prog_play):
         """This is the implementation for WWFM (and others)
 
-        :param prog: [list of dicts] yield value from iter_program_plays()
+        :param prog_play: [list of dicts] yield value from iter_program_plays()
         :yield: 'playlist' item from WWFM playlist file
         """
-        plays = prog.get('playlist') or []
+        plays = prog_play.get('playlist') or []
         for play in plays:
             yield play
         return
@@ -458,7 +480,7 @@ class ParserC24C(Parser):
         :param playlist: Playlist object
         :yield: dict representing individual programs
         """
-        log.debug("Parsing json for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        log.debug("Parsing json for %s", relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
             pl_info = json.load(f)
         # there may or may not be a 'props' wrapper around 'pageProps', depending on whether
@@ -470,16 +492,16 @@ class ParserC24C(Parser):
         pl_params = pl_info['pageProps']
         pl_data   = pl_params['data']
         pl_hosts  = pl_data['hosts']
-        for prog in pl_hosts:
-            yield prog
+        for prog_play in pl_hosts:
+            yield prog_play
 
-    def iter_plays(self, prog: dict) -> dict:
+    def iter_plays(self, prog_play: dict) -> dict:
         """This is the implementation for C24C and MPR3 (json)
 
-        :param prog: dict yield value from iter_program_plays()
+        :param prog_play: dict yield value from iter_program_plays()
         :yield: dict 'songs' item from C24C/MPR3 playlist file
         """
-        plays = prog.get('songs') or []
+        plays = prog_play.get('songs') or []
         for play in plays:
             yield play
 
@@ -505,7 +527,7 @@ class ParserC24C(Parser):
         end_dt = dt.datetime.fromisoformat(prog['endTime'])
 
         pp_data = {}
-        pp_data['prog_play_info']  = prog
+        pp_data['prog_play_info']  = {k: v for k, v in prog.items() if k != 'songs'}
         pp_data['prog_play_date']  = start_dt.date()
         pp_data['prog_play_start'] = start_dt.time()
         pp_data['prog_play_end']   = end_dt.time()
@@ -521,7 +543,7 @@ class ParserC24C(Parser):
         return {'program': prog_data, 'program_play': pp_data}
 
     def map_play(self, pp_data, raw_data):
-        """This is the implementation for WWFM (and others)
+        """This is the implementation for C24C and MPR3 (json)
 
         raw data in: 'playlist' item from WWFM playlist file
         normalized data out: {
@@ -541,8 +563,6 @@ class ParserC24C(Parser):
             play_dur = dt.timedelta(minutes=int(min_str), seconds=int(sec_str))
         else:
             play_dur = None
-
-        tz = ZoneInfo(self.station.timezone)
 
         play_data = {}
         play_data['play_info']   = raw_data
@@ -590,76 +610,104 @@ class ParserKUSC(Parser):
     """Parser for KUSC station
     """
     def iter_program_plays(self, playlist):
-        """This is the implementation for MPR
+        """This is the implementation for KUSC
 
         :param playlist: Playlist object
-        :yield: [tuple] (pl_date, bs4 'dt' tag)
+        :yield: [tuple] (pl_date, bs4 'div' tag)
         """
-        log.debug("Parsing html for %s", os.path.relpath(playlist.file, playlist.station.station_dir))
+        def norm_date(s: str) -> str:
+            """Normalize date string by cardinalizing the day of month and
+            removing redundant day of week ("Wednesday March 2nd 2022" ->
+            "March 2 2022")
+            """
+            card = re.sub(r'(\d)(st|nd|rd|th)', r'\1', s)
+            return card.split(' ', 1)[1]
+
+        log.debug("Parsing html for %s", relpath(playlist.file, playlist.station.station_dir))
         with open(playlist.file) as f:
             soup = BeautifulSoup(f, self.html_parser)
 
-        title = soup.title.string.strip()
-        m = re.match(r'Playlist for (\w+ \d+, \d+)', title)
-        if not m:
-            raise RuntimeError("Could not parse title \"%s\"" % title)
-        pl_date = dt.datetime.strptime(m.group(1), '%B %d, %Y').date()
+        pl = soup.find('div', class_="accordion")
+        pl_hdr = pl.find('div', class_="accordion-top")
+        datestr = next(pl_hdr.h3.stripped_strings)
+        datestr_norm = norm_date(datestr)
+        pl_date = dt.datetime.strptime(datestr_norm, "%B %d %Y").date()
 
-        pl_root = soup.find('dl', id="playlist")
-        for prog_head in reversed(pl_root('dt', recursive=False)):
-            yield pl_date, prog_head
+        pl_root = pl.find('div', id="accordion-playlist-wrapper")
+        for prog_wrapper in pl_root('div', class_="accordion-section", recursive=False):
+            yield pl_date, prog_wrapper
         return
 
-    def iter_plays(self, prog):
-        """This is the implementation for MPR
+    def iter_plays(self, prog_play):
+        """This is the implementation for KUSC
 
-        :param prog: [tuple] yield value from iter_program_plays()
-        :yield: bs4 'li' tag
+        :param prog_play: [tuple] yield value from iter_program_plays()
+        :yield: bs4 'tr' tag
         """
-        pl_date, prog_head = prog
-        prog_body = prog_head.find_next_sibling('dd')
-        for play_head in reversed(prog_body.ul('li', recursive=False)):
+        pl_date, prog_wrapper = prog_play
+        prog_body = prog_wrapper.find('div', class_="accordion-body")
+
+        for play_head in prog_body.table.tbody('tr', recursive=False):
+            # missing `th` indicates empty play item, but there may be some annotation
+            # inside the `tr` (e.g. "Song data not yet available for this segment"), so
+            # let's log what we can find
+            if play_head.th is None:
+                notes = ' | '.join(play_head.stripped_strings)
+                log.notice(f"Skipping empty play item for {pl_date.strftime('%Y-%m-%d')} "
+                           f"'{notes}', full html...\n{str(prog_wrapper)}")
+                continue
             yield play_head
         return
 
-    def map_program_play(self, prog_info):
-        """This is the implementation for MPR
+    def map_program_play(self, prog):
+        """This is the implementation for KUSC
 
-        raw data in: [tuple] (pl_date, bs4 'dt' tag)
+        raw data in: [tuple] (pl_date, bs4 'div' tag)
         normalized data out: {
             'program': {},
             'program_play': {}
         }
         """
-        pl_date, prog_head = prog_info
-        prog_name = prog_head.h2.string.strip()
-        m = re.match(r'(\d+:\d+ (?:AM|PM)).+?(\d+:\d+ (?:AM|PM))', prog_name)
-        start_time = dt.datetime.strptime(m.group(1), '%I:%M %p').time()
-        end_time   = dt.datetime.strptime(m.group(2), '%I:%M %p').time()
-        start_date = pl_date
-        end_date   = pl_date if end_time > start_time else pl_date + dt.timedelta(1)
-        tz         = ZoneInfo(self.station.timezone)
-        # TODO: lookup host name from refdata!!!
+        tz = ZoneInfo(self.station.timezone)
+
+        pl_date, prog_wrapper = prog
+        prog_head = prog_wrapper.find('div', class_="accordion-content")
+
+        prog_name = ' '.join(prog_head.h3.stripped_strings)
         prog_data = {'name': prog_name}
+
+        start, end = prog_head.h4('span', class_="actual-utime")
+        # ATTENTION: the following two lines do not work, since these unixtime values
+        # are not correct (representing the right time, but a fixed date in the week),
+        # so we need to construct `start_dt` and `end_dt` using `pl_date`!!!
+        #start_dt = dt.datetime.fromtimestamp(int(start['data-unixtime']), tz=tz)
+        #end_dt = dt.datetime.fromtimestamp(int(end['data-unixtime']), tz=tz)
+        start_time = dt.datetime.strptime(start.string, "%I%p")
+        end_time   = dt.datetime.strptime(end.string, "%I%p")
+        start_dt   = dt.datetime.combine(pl_date, start_time.time(), tz)
+        end_dt     = dt.datetime.combine(pl_date, end_time.time(), tz)
 
         pp_data = {}
         # TODO: convert prog_head into dict for prog_play_info!!!
-        pp_data['prog_play_info']  = {}
-        pp_data['prog_play_date']  = start_date
-        pp_data['prog_play_start'] = start_time
-        pp_data['prog_play_end']   = end_time
+        pp_data['prog_play_info']  = {'html': str(prog)}
+        pp_data['prog_play_date']  = start_dt.date()
+        pp_data['prog_play_start'] = start_dt.time()
+        pp_data['prog_play_end']   = end_dt.time()
         pp_data['prog_play_dur']   = None # Interval, if listed
         pp_data['notes']           = None # ARRAY(Text)
-        pp_data['start_time']      = datetimetz(start_date, start_time, tz)
-        pp_data['end_time']        = datetimetz(end_date, end_time, tz)
+        pp_data['start_time']      = start_dt
+        pp_data['end_time']        = end_dt
         pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
+
+        pp_data['ext_id']          = None
+        pp_data['ext_mstr_id']     = None
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data, play_head):
-        """This is the implementation for MPR
+    def map_play(self, pp_data, play):
+        """This is the implementation for KUSC
 
-        raw data in: bs4 'li' tag
+        raw data in: bs4 'tr' tag
         normalized data out: {
             'composer'  : {},
             'work'      : {},
@@ -670,69 +718,130 @@ class ParserKUSC(Parser):
             'play'      : {}
         }
         """
-        raw_data = {}
-        pp_start = pp_data['prog_play_start']
-        play_start = play_head.find('a', class_="song-time").time
-        start_date = play_start['datetime']
-        start_time = play_start.string + ' ' + time2str(pp_start, '%p')
-        raw_data['start_date'] = start_date  # %Y-%m-%d
-        raw_data['start_time'] = start_time  # %I:%M %p (12-hour format)
         tz = ZoneInfo(self.station.timezone)
 
-        buy_button = play_head.find('a', class_="buy-button", href=True)
-        if buy_button:
-            res = urlsplit(buy_button['href'])
-            url_fields = parse_qs(res.query, keep_blank_values=True)
-            label = url_fields['label'][0] if url_fields.get('label') else None
-            catalog_no = url_fields['catalog'][0] if url_fields.get('catalog') else None
-            raw_data['label'] = label
-            raw_data['catalog_no'] = catalog_no
+        # TODO: compute end_ts based on next play (or previous play, depending on
+        # which order we process the items)!!!
+        start_ts = int(play.th['data-unixtime'])
+        start_dt = dt.datetime.fromtimestamp(start_ts, tz=tz)
+        start_time = play.th.string.strip()  # redundant info, can ignore
 
-        play_body = play_head.find('div', class_="song-info")
-        for play_field in play_body(['h3', 'h4'], recusive=False):
+        fields = play('td')
+        # LATER: validate fields against columns names in the program play header,
+        # i.e. `prog_body.table.thead.('th')`!!!
+        #   title_td      - fields[0]
+        #   composer_td   - fields[1]
+        #   performers_td - fields[2]
+        #   record_td     - fields[3]
+        #   buy_cd_td     - fields[4]
+
+        # title and composer fields seem to always be simple strings, but let's check
+        # for anything different, so we know how to treat the complex case properly
+        if len(fields[0].contents) == 1:
+            title = fields[0].string.strip()
+        else:
+            title = ' '.join(fields[0].stripped_strings)
+            log.notice(f"Complex value found for title: '{fields[0]}'")
+
+        if len(fields[1].contents) == 1:
+            composer = fields[1].string.strip()
+        else:
+            composer = ' '.join(fields[1].stripped_strings)
+            log.notice(f"Complex value found for composer: '{fields[1]}'")
+
+        # performers field seems to be one or two navigable strings, but we'll handle
+        # the case of N > 2 also.  ASSUMPTION: if there are multiple strings, the last
+        # one will always contain the "conductor / orchestra" pattern!!!  Note that we
+        # are fine if this isn't the case, but good to validate, just so we know.
+        #
+        # String patterns (within navigable strings):
+        #   - Soloist, Instrument
+        #   - Soloist, Instrument; Soloist, Instument; ...
+        #   - Conductor / Orchestra
+        #   - Ensemble
+        def is_suffix(ent_str: str) -> bool:
+            """Quick and dirty determination whether the given entity string is actually
+            actually a name suffix ("Jr", "Sr", others???)
+
+            TEMP: this should be replaced by more generic name/string processing, shared
+            with the MusicLib module (see `parse_person_str()` over there)!!!
             """
-            song-title: Prelude
-            song-composer: Walter Piston
-            song-conductor: Carlos Kalmar
-            song-orch_ensemble: Grant Park Orchestra
-            song-soloist soloist-1: David Schrader, organ
-            """
-            field_name = play_field['class']
-            if isinstance(field_name, list):
-                field_name = ' '.join(field_name)
-            field_value = play_field.string.strip()
-            raw_data[field_name] = field_value or None
+            # don't do `fullmatch` just in case there is some random noise (for now...)
+            if m := re.match(r'((?:Jr|Sr)\.?)(?:\W|$)', ent_str.strip(), flags=re.I):
+                suffix = m.group(1)  # for debugging
+            return bool(m)
+
+        perf_list = []
+        cond_list = []
+        ens_list  = []
+
+        lines = 0
+        for perf_line in fields[2].stripped_strings:
+            lines += 1
+            for perf_item in (x.strip() for x in perf_line.split(';')):
+                # check for "Conductor / Orchestra"
+                item_segs = perf_item.split(' / ')
+                if len(item_segs) > 1:
+                    if len(item_segs) > 2:
+                        log.debug(f"UNEXPECTED: multiple slash delimiters in '{perf_item}'")
+                        item_segs = perf_item.split(' / ', 1)  # resplit with limit
+                    cond_list.append(item_segs[0])
+                    ens_list.append(item_segs[1])
+                    continue
+
+                # check for "Soloist, Instrument" - need to make sure that commas are not
+                # being used for other purposes (e.g. name suffixes)
+                item_segs = perf_item.rsplit(',', 1)
+                if len(item_segs) > 1 and not is_suffix(item_segs[1]):
+                    perf_list.append(perf_item)
+                    # TODO: need to find a way to push this downstream, since this is an
+                    # accurate parsing!!!
+                    soloist, instr = item_segs
+                    continue
+
+                # treat all other cases as an ensemble name
+                ens_list.append(perf_item)
+        # finally...
+        if lines > 2:
+            log.debug(f"UNEXPECTED: more than 2 lines in performer string '{str(fields[2])}'")
+
+        # recording information is composed of separate strings for label and catalog number,
+        # with the latter being optional
+        rec_info = fields[3].stripped_strings
 
         play_data = {}
-        # TODO: better conversion of play_head/play_body into dict for play_info!!!
-        play_data['play_info']  = raw_data
-        play_data['play_date']  = str2date(raw_data['start_date'])
-        play_data['play_start'] = str2time(raw_data['start_time'], '%I:%M %p')
-        play_data['play_end']   = None # Time
-        play_data['play_dur']   = None # Interval
-        play_data['notes']      = None # ARRAY(Text)
-        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], tz)
-        play_data['end_time']   = None # TIMESTAMP(timezone=True)
-        play_data['duration']   = None # Interval
+        play_data['play_info']   = {'html': str(play)}
+        play_data['play_date']   = start_dt.date()
+        play_data['play_start']  = start_dt.time()
+        play_data['play_end']    = None
+        play_data['play_dur']    = None
+        play_data['notes']       = None # ARRAY(Text)
+        play_data['start_time']  = start_dt
+        play_data['end_time']    = None
+        play_data['duration']    = None
 
-        rec_data =  {'label'     : raw_data.get('label'),
-                     'catalog_no': raw_data.get('catalog_no')}
+        play_data['ext_id']      = None
+        play_data['ext_mstr_id'] = None
 
-        entity_str_data = {'composer'  : [raw_data.get('song-composer')],
-                           'work'      : [raw_data.get('song-title')],
-                           'conductor' : [raw_data.get('song-conductor')],
-                           'performers': [raw_data.get('song-soloist soloist-1')],
-                           'ensembles' : [raw_data.get('song-orch_ensemble')],
-                           'recording' : [],
+        rec_data = {'name'      : None,
+                    'label'     : next(rec_info, None),
+                    'catalog_no': next(rec_info, None)}
+
+        entity_str_data = {'composer'  : [composer],
+                           'work'      : [title],
+                           'conductor' : cond_list,
+                           'performers': perf_list,
+                           'ensembles' : ens_list,
+                           'recording' : [rec_data['name']],
                            'label'     : [rec_data['label']]}
 
-        return (ml_dict({'play':       play_data,
-                         'composer':   {},
-                         'work':       {},
-                         'conductor':  {},
+        return (ml_dict({'play'      : play_data,
+                         'composer'  : {},
+                         'work'      : {},
+                         'conductor' : {},
                          'performers': [],
-                         'ensembles':  [],
-                         'recording':  rec_data}),
+                         'ensembles' : [],
+                         'recording' : rec_data}),
                 entity_str_data)
 
 #####################
