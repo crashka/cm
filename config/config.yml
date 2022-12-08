@@ -73,7 +73,7 @@ default:
       timezone:     'America/Los_Angeles'
       playlist_ext: 'html'
       epoch:        '2013-06-30'
-      parser_cls:   'Parser'
+      parser_cls:   'ParserKUSC'
 
     KING:
       sample_url:   'https://www.king.org/music-schedule/?npDate=01012018'
@@ -203,7 +203,7 @@ default:
       timezone:     'America/New_York'
       playlist_ext: 'html'
       epoch:        '2006-03-06'
-      parser_cls:   'Parser'
+      parser_cls:   'ParserWDAV'
 
     WETA:
       sample_url:   'https://weta.org/fm/playlists?date=2018-09-08'
@@ -216,6 +216,7 @@ default:
 
     WFMT:
       sample_url:   'https://www.wfmt.com/schedule/?pldate=08/05/2018'
+      sample_url2:  'https://www.wfmt.com/wp-json/custom/v2/url?url=/schedule/&pldate=10/19/2022'
       url_fmt:      'https://www.wfmt.com/schedule/?pldate=<DATE_STR>'
       date_fmt:     '%m/%d/%Y'
       timezone:     'America/Chicago'
@@ -420,8 +421,9 @@ default:
     'arrakis:/home/crash/dev/cmdev3':
       envname:     'arrakis_dev3'
       database:    'local_dev3'
-      #html_parser: 'html5lib'  -- adds tbody, doesn't handle non-closing <a>
-      #html_parser: 'lxml'      -- freaks out with C24/playlists/2018-09-17.html
+      #html_parser: 'lxml'        # used to freak out with C24/playlists/2018-09-17.html (now irrelevant)
+      #html_parser: 'html5lib'    # adds tbody, doesn't handle non-closing <a>
+      #html_parser: 'html.parser' # sometimes treats <br /> as an opening tag--WRONG!!!
 
     'arrakis:/local/test/cmtest':
       envname:     'arrakis_test'

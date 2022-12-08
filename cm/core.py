@@ -65,4 +65,5 @@ log.addHandler(dflt_hand)
 
 # kindly internet fetch interval (TODO: move to config file!!!)
 DFLT_FETCH_INT   = 1.0
-DFLT_HTML_PARSER = 'html.parser'
+DFLT_HTML_PARSER = 'lxml'
+#DFLT_HTML_PARSER = 'html.parser'  # sometimes treats <br /> as an opening tag--WRONG!!!

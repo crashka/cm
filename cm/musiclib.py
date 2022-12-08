@@ -6,7 +6,7 @@
 import sys
 import regex as re
 from collections import UserDict
-from collections.abc import Mapping
+from collections.abc import Mapping, Callable
 import warnings
 
 from sqlalchemy.exc import *
@@ -527,6 +527,13 @@ class StringCtx(object):
         orig_str = person_str
         flags |= self.ctx_flags
 
+        def sfx_completion(suffix: str) -> Callable[[ml_dict], None]:
+            """Return completion function to restore specified suffix
+            """
+            def restore_sfx(ent_data: ml_dict) -> None:
+                ml_dict.deep_replace(ent_data, SUFFIX_TOKEN, suffix.title())
+            return restore_sfx
+
         # step 2 - preserve suffixes introduced by commas (e.g. "Jr.", "Sr.", etc.) (factor out
         # from regular comma processing)
         m = re.search(r'(,? (?:Jr|Sr)\.?)(?:\W|$)', person_str, flags=re.I)
@@ -534,14 +541,7 @@ class StringCtx(object):
             suffix = m.group(1)
             log.debug("PPS_RULE 6 - preserve suffix \"%s\" for \"%s\"" % (suffix, person_str))
             person_str = person_str.replace(suffix, SUFFIX_TOKEN, 1)
-
-            def restore_sfx(ent_data):
-                """
-                :param ent_data:
-                :return: void (or should this return a new data structure???)
-                """
-                ml_dict.deep_replace(ent_data, SUFFIX_TOKEN, suffix.title())
-            self.completion.append(restore_sfx)
+            self.completion.append(sfx_completion(suffix))
 
         # step 3 - fix "Last, First" (handle "Last, First Middle ..."); note, we are also
         # coelescing spaces (might as well)
