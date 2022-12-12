@@ -18,7 +18,7 @@ import requests
 
 from .utils import LOV, prettyprint, str2date, date2str
 from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT, ObjCollect
-from .playlist import Parser
+from .parser import Parser
 
 ################
 # config stuff #
@@ -122,11 +122,11 @@ def wcpe_special(datestr):
 # Station class #
 #################
 
-class Station(object):
+class Station:
     """Represents a station defined in config.yml
     """
     @staticmethod
-    def list():
+    def list() -> list[str]:
         """List stations that have been created
 
         :return: sorted list of station names (same as directory names)
@@ -134,7 +134,7 @@ class Station(object):
         dirs = glob.glob(os.path.join(BASE_DIR, 'stations', '*'))
         return sorted([os.path.basename(dir_) for dir_ in dirs])
 
-    def __init__(self, name):
+    def __init__(self, name: str):
         """Sets status field locally (but not written back to info file)
         """
         if name not in STATIONS:
@@ -164,7 +164,7 @@ class Station(object):
         self.station_info_file = os.path.join(self.station_dir, 'station_info.json')
         self.playlists_file    = os.path.join(self.station_dir, 'playlists.json')
         self.playlist_dir      = os.path.join(self.station_dir, 'playlists')
-        self.parser            = Parser.get(self)
+        self.parser            = Parser(self)
         # UGLY: it's not great that we are treating these attributes differently than REQD_CFG_ATTRS
         # (which are accessed implicitly through __getattr__()), but leave it this way for now!!!
         self.epoch             = self.config.get(ConfigKey.EPOCH)
@@ -183,7 +183,7 @@ class Station(object):
 
         self.last_fetch = dt.datetime.utcnow() - self.fetch_delta
 
-    def __getattr__(self, key):
+    def __getattr__(self, key: str):
         try:
             return self.config[key]
         except KeyError:

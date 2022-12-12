@@ -1,6 +1,7 @@
 ---
 default:
   station_base:
+    parser_pkg:     'cm.parser'
     http_headers:   {'User-Agent': 'Mozilla/5.0'}
     fetch_interval: 1.0
 

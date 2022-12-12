@@ -18,7 +18,7 @@
 
 ## To Do - Immediate/Active ##
 
-- filter out NULL characters ('\u0000') from playlists on fetch (log as warning[?])
+- filter out NULL characters (`'\u0000'`) from playlists on fetch (log as warning[?])
     - fixup of existing files with NULL characters (WXXI)
     - also continue to detect in playlist parsing???
 - merge split plays (across date/hour boundaries), log fixups
