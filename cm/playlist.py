@@ -4,6 +4,7 @@
 """Playlist module
 """
 
+from os.path import relpath
 import logging
 
 from .utils import LOV, prettyprint, str2date, date2str
@@ -57,6 +58,7 @@ class Playlist:
         log.debug("Instantiating Playlist(%s, %s)" % (sta.name, self.datestr))
         self.name        = sta.playlist_name(self.date)
         self.file        = sta.playlist_file(self.date)
+        self.rel_path    = relpath(self.file, self.station.station_dir)
         self.status      = PLStatus.NEW
         # TODO: preload trailing hash sequence from previous playlist (or add
         # task to fill the gap as to_do_list item)!!!

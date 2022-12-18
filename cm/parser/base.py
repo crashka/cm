@@ -4,17 +4,20 @@
 and functions
 """
 
+from typing import NewType, Any
 from importlib import import_module
+from zoneinfo import ZoneInfo
 
 import regex as re
 
 from ..utils import prettyprint
 from ..core import env, log, DFLT_HTML_PARSER, ConfigError
-from ..musiclib import MusicLib, StringCtx, UNIDENT
+from ..playlist import Playlist
+from ..musiclib import ml_dict, MusicLib, StringCtx, UNIDENT
 
-##############################
-# common constants/functions #
-##############################
+#######################
+# Constants/Functions #
+#######################
 
 def is_name_suffix(ent_str: str) -> bool:
     """Quick and dirty determination whether the given entity string is actually
@@ -32,9 +35,17 @@ def is_name_suffix(ent_str: str) -> bool:
 # Parser base class #
 #####################
 
+ProgPlay = NewType('ProgPlay', Any)
+Play     = NewType('Play', Any)
+
 class Parser:
     """Helper class for Playlist, proper subclass is associated through station config
     """
+    station:     'Station'
+    tz:          ZoneInfo
+    html_parser: str
+    ml:          MusicLib
+
     @classmethod
     def get_class(cls, sta: 'Station') -> type:
         """Return the parser subclass configured for the specified station
@@ -49,7 +60,7 @@ class Parser:
             raise ConfigError(f"`{parser_class.__name__}` not subclass of `{cls.__name__}`")
         return parser_class
 
-    def __new__(cls, sta: 'Station'):
+    def __new__(cls, sta: 'Station') -> 'Parser':
         parser_class = cls.get_class(sta)
         return super().__new__(parser_class)
 
@@ -58,8 +69,10 @@ class Parser:
         directives), so constructor doesn't really do anything
         """
         self.station = sta
+        self.tz = ZoneInfo(self.station.timezone)
+
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
-        log.debug("HTML parser: %s" % self.html_parser)
+        log.debug(f"HTML parser: {self.html_parser}")
         self.ml = MusicLib()
 
     def proc_playlist(self, contents: str) -> str:
@@ -72,7 +85,7 @@ class Parser:
         # we'll just do it generically for now)
         return contents.replace('\u0000', '')
 
-    def iter_program_plays(self, playlist):
+    def iter_program_plays(self, playlist: Playlist) -> ProgPlay:
         """Iterator for program plays within a playlist, yield value is passed into
         map_program_play() and iter_plays())
 
@@ -81,7 +94,7 @@ class Parser:
         """
         raise RuntimeError("abstract method iter_program_plays() must be subclassed")
 
-    def iter_plays(self, prog_play):
+    def iter_plays(self, prog_play: ProgPlay) -> Play:
         """Iterator for plays within a program play, yield value is passed into map_play()
 
         :param prog_play: yield value from iter_program_plays()
@@ -89,22 +102,22 @@ class Parser:
         """
         raise RuntimeError("abstract method iter_plays() must be subclassed")
 
-    def map_program_play(self, prog_play):
+    def map_program_play(self, prog_play: ProgPlay) -> dict:
         """
         :param prog_play: yield value from iter_program_plays()
         :return: dict of normalized program play information
         """
         raise RuntimeError("abstract method map_program_play() must be subclassed")
 
-    def map_play(self, pp_data, play):
+    def map_play(self, pp_data: dict, play: Play) -> tuple[ml_dict, dict]:
         """
         :param pp_data: [dict] parent program play data (from map_program_play())
         :param play: yield value from iter_plays()
-        :return: dict of normalized play information
+        :return: tuple of normalized play information and entity strings
         """
         raise RuntimeError("abstract method map_play() must be subclassed")
 
-    def parse(self, playlist, dryrun = False, force = False):
+    def parse(self, playlist: Playlist, dryrun: bool = False, force: bool = False) -> dict:
         """Parse playlist, write to musiclib if not dryrun
 
         :param playlist: Playlist object
@@ -171,7 +184,7 @@ class Parser:
 
         return parsed_info
 
-    def analyze(self, playlist, dryrun = False, force = False):
+    def analyze(self, playlist: Playlist, dryrun: bool = False, force: bool = False) -> None:
         """Analyze playlist contents, build playlist string parser, write to parser config file if not dryrun
 
         :param playlist: Playlist object

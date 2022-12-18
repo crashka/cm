@@ -3,7 +3,6 @@
 """ParserKUSC subclass implementation
 """
 
-from os.path import relpath
 import regex as re
 import datetime as dt
 from zoneinfo import ZoneInfo
@@ -35,7 +34,7 @@ class ParserKUSC(Parser):
             card = re.sub(r'(\d)(st|nd|rd|th)', r'\1', s)
             return card.split(' ', 1)[1]
 
-        log.debug("Parsing html for %s", relpath(playlist.file, playlist.station.station_dir))
+        log.debug(f"Parsing html for {playlist.rel_path}")
         with open(playlist.file) as f:
             soup = BeautifulSoup(f, self.html_parser)
 

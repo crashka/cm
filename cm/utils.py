@@ -142,6 +142,39 @@ def time2str(time: dt.time, fmt: str = STD_TIME_FMT) -> str:
     """
     return time.strftime(fmt)
 
+def str2dur(durstr: str, delim: str = ':', decimal: str = '.') -> dt.timedelta | None:
+    """Parse duration string, assuming format of [hours:]minutes:seconds[.fractional], `None`
+    is returned if input string is malformed
+
+    Note that fractional part is truncated to microseconds
+    """
+    hours = 0
+    mins  = 0
+    secs  = 0
+    usecs = 0
+
+    dur_segs = durstr.split(delim)
+    match len(dur_segs):
+        case 2:
+            mins = int(dur_segs[0])
+        case 3:
+            hours = int(dur_segs[0])
+            mins = int(dur_segs[1])
+        case _:
+            return None
+
+    sec_segs = dur_segs[-1].split(decimal)
+    match len(sec_segs):
+        case 1:
+            secs = int(sec_segs[0])
+        case 2:
+            secs = int(sec_segs[0])
+            usecs = int(sec_segs[1][:6].ljust(6, '0'))  # truncate or pad out to 6 digits
+        case _:
+            return None
+
+    return dt.timedelta(hours=hours, minutes=mins, seconds=secs, microseconds=usecs)
+
 def datetimetz(date: dt.date | str, time: dt.time | str, tz: dt.tzinfo) -> dt.datetime:
     """
     :param date: either string or dt.date

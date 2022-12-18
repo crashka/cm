@@ -248,7 +248,7 @@ def load_schema(meta):
 
             # misc/external information
             Column('tags',              ARRAY(Text)),
-            Column('notes',             ARRAY(Text)),
+            Column('notes',             ARRAY(Text)),  # movement(s), arrangement info, etc.
             Column('ext_id',            Text),
             Column('ext_mstr_id',       Text),
 

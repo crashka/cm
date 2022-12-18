@@ -3,10 +3,9 @@
 """ParserWDAV subclass implementation
 """
 
-from os.path import relpath
 import regex as re
 import datetime as dt
-from zoneinfo import ZoneInfo
+from typing import NewType
 
 from bs4 import BeautifulSoup, Tag
 
@@ -19,6 +18,9 @@ from ..musiclib import ml_dict
 # ParserWDAV #
 ##############
 
+ProgPlay = NewType('ProgPlay', tuple[dt.datetime, Tag])
+Play     = NewType('Play', tuple[Tag, Tag])
+
 class ParserWDAV(Parser):
     """Parser for WDAV station
 
@@ -27,9 +29,6 @@ class ParserWDAV(Parser):
         so we will skip it for now (probably not worth revisting even)
     """
     DFLT_PROG_NAME = "Classical Music"
-
-    ProgPlay = tuple[dt.datetime, Tag]
-    Play     = tuple[Tag, Tag]
 
     def iter_program_plays(self, playlist: Playlist) -> ProgPlay:
         """Iterator for program plays within a playlist, yield value is passed into
@@ -45,12 +44,12 @@ class ParserWDAV(Parser):
                 </div>
               </div>
             </section>
-      - Playlist starts with `<section id="nowplaying">`
+        - Playlist starts with `<section id="nowplaying">`
 
         :param playlist: Playlist object
         :yield: subclass-specific program play representation
         """
-        log.debug("Parsing html for %s", relpath(playlist.file, playlist.station.station_dir))
+        log.debug(f"Parsing html for {playlist.rel_path}")
         with open(playlist.file) as f:
             soup = BeautifulSoup(f, self.html_parser)
 
@@ -87,14 +86,12 @@ class ParserWDAV(Parser):
         :param prog_play: yield value from iter_program_plays()
         :return: dict of normalized program play information
         """
-        tz = ZoneInfo(self.station.timezone)
-
         pl_date, prog_wrapper = prog_play
 
         prog_name = self.DFLT_PROG_NAME
         prog_data = {'name': prog_name}
 
-        start_dt = dt.datetime.combine(pl_date, dt.time(0, 0), tz)
+        start_dt = dt.datetime.combine(pl_date, dt.time(0, 0), self.tz)
         end_dt   = start_dt + dt.timedelta(days=1)
 
         pp_data = {}
@@ -114,7 +111,7 @@ class ParserWDAV(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data, play):
+    def map_play(self, pp_data: dict, play: Play) -> tuple[ml_dict, dict]:
         """
         Each play item is a child `<div>` that looks like this:
           <div class="container" style="border-bottom: 1px dotted #cccccc; [...]">
@@ -140,14 +137,12 @@ class ParserWDAV(Parser):
 
         :param pp_data: [dict] parent program play data (from map_program_play())
         :param play: yield value from iter_plays()
-        :return: dict of normalized play information
+        :return: tuple of normalized play information and entity strings
         """
-        tz = ZoneInfo(self.station.timezone)
-
         time_div, play_div = play
         play_date = pp_data['prog_play_date']
         play_time = dt.datetime.strptime(time_div.string, "%I:%M %p").time()
-        start_dt  = dt.datetime.combine(play_date, play_time, tz)
+        start_dt  = dt.datetime.combine(play_date, play_time, self.tz)
 
         """
         <b>Franz Schubert:</b>

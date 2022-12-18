@@ -3,7 +3,6 @@
 """ParserC24C subclass implementation
 """
 
-from os.path import relpath
 import json
 import datetime as dt
 
@@ -35,7 +34,7 @@ class ParserC24C(Parser):
         :param playlist: Playlist object
         :yield: dict representing individual programs
         """
-        log.debug("Parsing json for %s", relpath(playlist.file, playlist.station.station_dir))
+        log.debug(f"Parsing json for {playlist.rel_path}")
         with open(playlist.file) as f:
             pl_info = json.load(f)
         # there may or may not be a 'props' wrapper around 'pageProps', depending on whether

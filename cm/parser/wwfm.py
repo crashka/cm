@@ -3,7 +3,6 @@
 """ParserWWFM subclass implementation
 """
 
-from os.path import relpath
 import json
 import datetime as dt
 from zoneinfo import ZoneInfo
@@ -26,7 +25,7 @@ class ParserWWFM(Parser):
         :param playlist: Playlist object
         :yield: [list of dicts] 'onToday' item from WWFM playlist file
         """
-        log.debug("Parsing json for %s", relpath(playlist.file, playlist.station.station_dir))
+        log.debug(f"Parsing json for {playlist.rel_path}")
         with open(playlist.file) as f:
             pl_info = json.load(f)
         pl_params = pl_info['params']
@@ -117,7 +116,7 @@ class ParserWWFM(Parser):
         if '_end_time' in raw_data:
             edate, etime = raw_data['_end_time'].split()
         else:
-            edate, etime = (None, None)
+            edate, etime = None, None
 
         # NOTE: would like to do integrity check, but need to rectify formatting difference
         # for date, hour offset for time, non-empty value for _end!!!

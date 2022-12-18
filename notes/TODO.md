@@ -6,6 +6,8 @@
 - `MusicEnt` should have its own module
 - create `EntityItem` and subclasses (composer, work, conductor, performer, ensemble)
 - push performer/role parsing upstream into `map_play`, where/when possible
+- download refdata from FanfareMag
+- refdata adapter for FanfareMag data
 - use refdata to aid in parsing of people and ensemble names
 - MusicLib should not be a class, convert methods to top-level functions
 - identify truncated entries (e.g. performer), and make parsable
@@ -30,7 +32,7 @@
 - rectify program based on play_seq matches
 - debug/fix work/play with composer/person '<none>' and work '<unknown>'
 - identify syndicated plays, factor out of queries (using master_play_id)
-- add stations: WQXR, WFMT, KUSC, WDAV, KING, WETA, KDFC, KQAC
+- add stations: WQXR, WFMT, KING, WETA, KQAC
 - debug/fix outstanding anomalies for person
 - play\_seq\_match analysis/algorithm tuning (utilizing UTC!)
 

@@ -44,10 +44,12 @@ ConfigKey      = LOV(['URLS',
                       'PLAYLIST_MIN',
                       'HTTP_HEADERS',
                       'FETCH_INTERVAL',
+                      'PARSER_PKG',
                       'PARSER_CLS',
                       'SYND_LEVEL'], 'lower')
 REQD_CFG_ATTRS = {ConfigKey.TIMEZONE,
                   ConfigKey.PLAYLIST_EXT,
+                  ConfigKey.PARSER_PKG,  # could make this optional, but probably not worth it
                   ConfigKey.PARSER_CLS}
 URL_ATTRS      = {ConfigKey.COND,
                   ConfigKey.URL_FMT,
