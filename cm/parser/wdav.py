@@ -9,8 +9,9 @@ from typing import NewType
 
 from bs4 import BeautifulSoup, Tag
 
-from .base import Parser
+from .base import Parser, parse_rec_info
 from ..core import log
+from ..utils import str2date, str2time, datetimetz
 from ..playlist import Playlist
 from ..musiclib import ml_dict
 
@@ -18,7 +19,7 @@ from ..musiclib import ml_dict
 # ParserWDAV #
 ##############
 
-ProgPlay = NewType('ProgPlay', tuple[dt.datetime, Tag])
+ProgPlay = NewType('ProgPlay', tuple[dt.date, Tag])
 Play     = NewType('Play', tuple[Tag, Tag])
 
 class ParserWDAV(Parser):
@@ -56,7 +57,7 @@ class ParserWDAV(Parser):
         title_str = soup.find('section', id="title").h4.string
         if m := re.match(r'WDAV Playlist for (.+)', title_str):
             date_str = m.group(1).strip()
-            pl_date = dt.datetime.strptime(date_str, "%b %d, %Y")
+            pl_date = str2date(date_str, "%b %d, %Y")
         else:
             # TODO: get date from file name (if needed)!!!
             assert False
@@ -91,7 +92,7 @@ class ParserWDAV(Parser):
         prog_name = self.DFLT_PROG_NAME
         prog_data = {'name': prog_name}
 
-        start_dt = dt.datetime.combine(pl_date, dt.time(0, 0), self.tz)
+        start_dt = datetimetz(pl_date, dt.time(0, 0), self.tz)
         end_dt   = start_dt + dt.timedelta(days=1)
 
         pp_data = {}
@@ -111,7 +112,7 @@ class ParserWDAV(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data: dict, play: Play) -> tuple[ml_dict, dict]:
+    def map_play(self, pp_norm: dict, play: Play) -> tuple[ml_dict, dict]:
         """
         Each play item is a child `<div>` that looks like this:
           <div class="container" style="border-bottom: 1px dotted #cccccc; [...]">
@@ -139,10 +140,11 @@ class ParserWDAV(Parser):
         :param play: yield value from iter_plays()
         :return: tuple of normalized play information and entity strings
         """
+        pp_data = pp_norm['program_play']
         time_div, play_div = play
         play_date = pp_data['prog_play_date']
-        play_time = dt.datetime.strptime(time_div.string, "%I:%M %p").time()
-        start_dt  = dt.datetime.combine(play_date, play_time, self.tz)
+        play_time = str2time(time_div.string, "%I:%M %p")
+        start_dt  = datetimetz(play_date, play_time, self.tz)
 
         """
         <b>Franz Schubert:</b>
@@ -175,32 +177,6 @@ class ParserWDAV(Parser):
                 return None, None
 
         # performer(s) / conductor / recording
-        def parse_rec_info(rec_info: str) -> tuple[str, str]:
-            """Parse out label and catalog number from combined string, we split on whitespace
-            and make interpretations on what the various segments mean based on how "catalogy-
-            looking" they are
-            """
-            segs = re.split(r'\s+', rec_info)
-            if len(segs) == 1:
-                return rec_info, None
-            elif not re.fullmatch(r'[0-9.-]', segs[-1]):  # last segment doesn't look catalogy
-                return rec_info, None
-            elif len(segs) == 2:
-                # note that the logic below would actually handle this correctly, but
-                # we'lll make it explicit here, since it is the most common case
-                return segs[0], segs[1]
-
-            # otherwise we assume all trailing segments that look catalogy comprise the
-            # catalog number (note, we already know the last segment qualifies, but we
-            # include it in the iteration to keep the logic simpler)
-            for i, seg in enumerate(segs[::-1]):
-                if not re.fullmatch(r'[0-9.-]', seg):
-                    return ' '.join(segs[:-i]), ' '.join(segs[-i:])
-
-            # not quite sure what to do now, but we'll go with treating the last segment
-            # as the catalog number, and the rest as the label name
-            return ' '.join(segs[:-1]), ' '.join(segs[-1:])
-
         for item in play_div('p'):
             if item.i:
                 # record information is uniquely in italics

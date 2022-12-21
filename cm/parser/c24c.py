@@ -96,7 +96,7 @@ class ParserC24C(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data, raw_data):
+    def map_play(self, pp_norm, raw_data):
         """This is the implementation for C24C and MPR3 (json)
 
         raw data in: 'playlist' item from WWFM playlist file

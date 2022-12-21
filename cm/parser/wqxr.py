@@ -21,11 +21,13 @@ from ..musiclib import ml_dict
 # Constants/Functions #
 #######################
 
-def str2dur_legacy(durstr: str) -> dt.timedelta | None:
+DFLT_TIME_FMT = "%I:%M %p"
+
+def str2dur_legacy(dur_str: str) -> dt.timedelta | None:
     """Parse legacy duration representation, pattern: 1 hrs 15 min 58 s, where "hrs"
     and "min" may or may not be present
     """
-    if m := re.fullmatch(r'(?:([0-9]+) hrs )?(?:([0-9]+) min )?([0-9]+) s', durstr):
+    if m := re.fullmatch(r'(?:([0-9]+) hrs )?(?:([0-9]+) min )?([0-9]+) s', dur_str):
         hrs, mins, secs = m.groups()
         return dt.timedelta(hours=int(hrs or 0), minutes=int(mins or 0), seconds=int(secs))
 
@@ -41,14 +43,6 @@ Play     = NewType('Play', dict)
 class ParserWQXR(Parser):
     """Parser for WQXR station
     """
-    PLAY_TIME_FMT = "%I:%M %p"
-
-    def __init__(self, sta: 'Station'):
-        """Parser object is relatively stateless (just station backreference and parser
-        directives), so constructor doesn't really do anything
-        """
-        super().__init__(sta)
-
     def iter_program_plays(self, playlist: Playlist) -> ProgPlay:
         """Iterator for program plays within a playlist, yield value is passed into
         map_program_play() and iter_plays())
@@ -125,12 +119,12 @@ class ParserWQXR(Parser):
                     notes.append(' '.join(tease_div.stripped_strings))
             return notes or None
 
-        prog_data = {'name': prog_play['event_title']}
+        prog_data = {'name': prog_play['event_title'], 'notes': get_notes(prog_play)}
 
         sdate, stime = prog_play['start_timestamp'].split('T')
         edate, etime = prog_play['end_timestamp'].split('T')
         if sdate != prog_play['date']:
-            log.debug("Date mismatch %s != %s" % (sdate, prog_play['date']))
+            log.debug(f"Date mismatch {sdate} != {prog_play['date']}")
 
         pp_data = {}
         pp_data['prog_play_info']  = prog_play
@@ -138,7 +132,7 @@ class ParserWQXR(Parser):
         pp_data['prog_play_start'] = str2time(stime)
         pp_data['prog_play_end']   = str2time(etime)
         pp_data['prog_play_dur']   = None # Interval, if listed
-        pp_data['notes']           = get_notes(prog_play)
+        pp_data['notes']           = None # ARRAY(text)
         pp_data['start_time']      = datetimetz(sdate, stime, self.tz)
         pp_data['end_time']        = datetimetz(edate, etime, self.tz)
         pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
@@ -148,7 +142,7 @@ class ParserWQXR(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data: dict, play: Play) -> tuple[ml_dict, dict]:
+    def map_play(self, pp_norm: dict, play: Play) -> tuple[ml_dict, dict]:
         """This is the implementation for WQXR (and others)
 
         raw data in: 'playlist' item from WQXR playlist file
@@ -173,8 +167,9 @@ class ParserWQXR(Parser):
           - the ISO timestamp above is not accurate (date is wrong), so we have to compute
             the actual start time using the playlist date and the `time` field here
         """
+        pp_data = pp_norm['program_play']
         play_date = pp_data['prog_play_date']
-        play_start = str2time(play['time'], self.PLAY_TIME_FMT)
+        play_start = str2time(play['time'], DFLT_TIME_FMT)
         play_duration = None
 
         soup = BeautifulSoup(play['info'], self.html_parser)
@@ -241,9 +236,9 @@ class ParserWQXR(Parser):
                     flds = parse_qs(res.query)
                     # {'cat': ['72'], 'id': ['127424'], 'label': ['Dynamic']}
                     if 'label' in flds:
-                        label = flds[b'label'][0]
+                        label = flds['label'][0]
                     if 'cat' in flds:
-                        cat_no = flds[b'cat'][0]
+                        cat_no = flds['cat'][0]
 
         play_data = {}
         play_data['play_info']  = play

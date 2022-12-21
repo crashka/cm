@@ -15,9 +15,9 @@ from ..core import env, log, DFLT_HTML_PARSER, ConfigError
 from ..playlist import Playlist
 from ..musiclib import ml_dict, MusicLib, StringCtx, UNIDENT
 
-#######################
-# Constants/Functions #
-#######################
+###############################
+# Commoon Constants/Functions #
+###############################
 
 def is_name_suffix(ent_str: str) -> bool:
     """Quick and dirty determination whether the given entity string is actually
@@ -30,6 +30,44 @@ def is_name_suffix(ent_str: str) -> bool:
     if m := re.match(r'((?:Jr|Sr)\.?)(?:\W|$)', ent_str.strip(), flags=re.I):
         suffix = m.group(1)  # for debugging
     return bool(m)
+
+def parse_rec_info(rec_info: str) -> tuple[str, str]:
+    """Parse out label and catalog number from combined string, we split on whitespace
+    and make interpretations on what the various segments mean based on how "catalogy-
+    looking" they are
+
+    Return tuple is (<label>, <cat_no>)
+    """
+    def is_catalogy(seg_str: str) -> bool:
+        """Catalog number-looking string?
+        """
+        return bool(re.search(r'[0-9.-]+[0-9]$', seg_str))
+
+    segs = re.split(r'\s+', rec_info)
+    # some stations (e.g. WFMT) use a trailing "(<n>)" to indicate the number of
+    # discs in the album; we don't care about this, so we'll just ignore it
+    if re.fullmatch(r'\([0-9]+\)', segs[-1]):
+        del segs[-1]
+
+    if len(segs) == 1:
+        return rec_info, None
+    elif not is_catalogy(segs[-1]):
+        return rec_info, None
+    elif len(segs) == 2:
+        # note that the logic below would actually handle this correctly, but
+        # we'lll make it explicit here, since it is the most common case
+        return tuple(segs)
+
+    # otherwise we assume all trailing segments that look catalogy comprise the
+    # catalog number (note, we already know the last segment qualifies, but we
+    # include it in the iteration to keep the logic simpler)
+    for i, seg in enumerate(segs[::-1]):
+        if not is_catalogy(seg):
+            return ' '.join(segs[:-i]), ' '.join(segs[-i:])
+
+    # not quite sure what to do now, but we'll go with treating the last segment
+    # as the catalog number, and the rest as the label name
+    return ' '.join(segs[:-1]), ' '.join(segs[-1:])
 
 #####################
 # Parser base class #
@@ -109,9 +147,9 @@ class Parser:
         """
         raise RuntimeError("abstract method map_program_play() must be subclassed")
 
-    def map_play(self, pp_data: dict, play: Play) -> tuple[ml_dict, dict]:
+    def map_play(self, pp_norm: dict, play: Play) -> tuple[ml_dict, dict]:
         """
-        :param pp_data: [dict] parent program play data (from map_program_play())
+        :param pp_norm: [dict] normalized program play information (from map_program_play())
         :param play: yield value from iter_plays()
         :return: tuple of normalized play information and entity strings
         """
@@ -140,7 +178,7 @@ class Parser:
 
             # Step 2 - Parse out play info (if present)
             for play in self.iter_plays(prog_play):
-                play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
+                play_norm, entity_str_data = self.map_play(pp_norm, play)
                 if not play_norm:
                     continue
                 # APOLOGY: perhaps this parsing of entity strings and merging into normalized
@@ -198,7 +236,7 @@ class Parser:
 
             parse_patterns = {}
             for play in self.iter_plays(prog_play):
-                play_norm, entity_str_data = self.map_play(pp_norm['program_play'], play)
+                play_norm, entity_str_data = self.map_play(pp_norm, play)
                 if not play_norm:
                     continue
                 # see APOLOGY in `parse()` above

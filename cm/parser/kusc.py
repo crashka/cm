@@ -5,12 +5,12 @@
 
 import regex as re
 import datetime as dt
-from zoneinfo import ZoneInfo
 
 from bs4 import BeautifulSoup
 
 from .base import Parser, is_name_suffix
 from ..core import log
+from ..utils import str2date, str2time, datetimetz
 from ..musiclib import ml_dict
 
 ##############
@@ -42,7 +42,7 @@ class ParserKUSC(Parser):
         pl_hdr = pl.find('div', class_="accordion-top")
         datestr = next(pl_hdr.h3.stripped_strings)
         datestr_norm = norm_date(datestr)
-        pl_date = dt.datetime.strptime(datestr_norm, "%B %d %Y").date()
+        pl_date = str2date(datestr_norm, "%B %d %Y")
 
         pl_root = pl.find('div', id="accordion-playlist-wrapper")
         for prog_wrapper in pl_root('div', class_="accordion-section", recursive=False):
@@ -79,8 +79,6 @@ class ParserKUSC(Parser):
             'program_play': {}
         }
         """
-        tz = ZoneInfo(self.station.timezone)
-
         pl_date, prog_wrapper = prog_play
         prog_head = prog_wrapper.find('div', class_="accordion-content")
 
@@ -91,12 +89,14 @@ class ParserKUSC(Parser):
         # ATTENTION: the following two lines do not work, since these unixtime values
         # are not correct (representing the right time, but a fixed date in the week),
         # so we need to construct `start_dt` and `end_dt` using `pl_date`!!!
-        #start_dt = dt.datetime.fromtimestamp(int(start['data-unixtime']), tz=tz)
-        #end_dt = dt.datetime.fromtimestamp(int(end['data-unixtime']), tz=tz)
-        start_time = dt.datetime.strptime(start.string, "%I%p")
-        end_time   = dt.datetime.strptime(end.string, "%I%p")
-        start_dt   = dt.datetime.combine(pl_date, start_time.time(), tz)
-        end_dt     = dt.datetime.combine(pl_date, end_time.time(), tz)
+        #start_dt = dt.datetime.fromtimestamp(int(start['data-unixtime']), tz=self.tz)
+        #end_dt = dt.datetime.fromtimestamp(int(end['data-unixtime']), tz=self.tz)
+        start_fmt  = "%I:%M%p" if ':' in start.string else "%I%p"
+        end_fmt    = "%I:%M%p" if ':' in end.string else "%I%p"
+        start_time = str2time(start.string, start_fmt)
+        end_time   = str2time(end.string, end_fmt)
+        start_dt   = datetimetz(pl_date, start_time, self.tz)
+        end_dt     = datetimetz(pl_date, end_time, self.tz)
 
         pp_data = {}
         # TODO: convert prog_head into dict for prog_play_info!!!
@@ -108,14 +108,14 @@ class ParserKUSC(Parser):
         pp_data['notes']           = None # ARRAY(Text)
         pp_data['start_time']      = start_dt
         pp_data['end_time']        = end_dt
-        pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
+        pp_data['duration']        = end_dt - start_dt
 
         pp_data['ext_id']          = None
         pp_data['ext_mstr_id']     = None
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data, play):
+    def map_play(self, pp_norm, play):
         """This is the implementation for KUSC
 
         raw data in: bs4 'tr' tag
@@ -129,12 +129,10 @@ class ParserKUSC(Parser):
             'play'      : {}
         }
         """
-        tz = ZoneInfo(self.station.timezone)
-
         # TODO: compute end_ts based on next play (or previous play, depending on
         # which order we process the items)!!!
         start_ts = int(play.th['data-unixtime'])
-        start_dt = dt.datetime.fromtimestamp(start_ts, tz=tz)
+        start_dt = dt.datetime.fromtimestamp(start_ts, tz=self.tz)
         start_time = play.th.string.strip()  # redundant info, can ignore
 
         fields = play('td')

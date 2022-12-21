@@ -5,7 +5,6 @@
 
 import json
 import datetime as dt
-from zoneinfo import ZoneInfo
 
 from .base import Parser
 from ..utils import str2date, str2time, datetimetz
@@ -78,7 +77,6 @@ class ParserWWFM(Parser):
             log.debug("Start time mismatch %s != %s" % (stime, data['start_time']))
         if etime != data['end_time']:
             log.debug("End time mismatch %s != %s" % (etime, data['end_time']))
-        tz = ZoneInfo(self.station.timezone)
 
         pp_data = {}
         # TODO: appropriate fixup of data (e.g. NULL chars) for prog_play_info!!!
@@ -89,8 +87,8 @@ class ParserWWFM(Parser):
         pp_data['prog_play_end']   = str2time(etime)
         pp_data['prog_play_dur']   = None # Interval, if listed
         pp_data['notes']           = None # ARRAY(Text)
-        pp_data['start_time']      = datetimetz(sdate, stime, tz)
-        pp_data['end_time']        = datetimetz(edate, etime, tz)
+        pp_data['start_time']      = datetimetz(sdate, stime, self.tz)
+        pp_data['end_time']        = datetimetz(edate, etime, self.tz)
         pp_data['duration']        = pp_data['end_time'] - pp_data['start_time']
 
         pp_data['ext_id']          = data.get('_id')
@@ -98,7 +96,7 @@ class ParserWWFM(Parser):
 
         return {'program': prog_data, 'program_play': pp_data}
 
-    def map_play(self, pp_data, raw_data):
+    def map_play(self, pp_norm, raw_data):
         """This is the implementation for WWFM (and others)
 
         raw data in: 'playlist' item from WWFM playlist file
@@ -128,7 +126,6 @@ class ParserWWFM(Parser):
         #    log.debug("End time mismatch %s != %s" % (etime, raw_data['end_time']))
 
         dur_msecs = raw_data.get('_duration')
-        tz = ZoneInfo(self.station.timezone)
 
         # special fix-up for NULL characters in recording name (WXXI)
         rec_name = raw_data.get('collectionName')
@@ -145,10 +142,10 @@ class ParserWWFM(Parser):
         play_data['play_end']   = str2time(etime) if etime else None
         play_data['play_dur']   = dt.timedelta(0, 0, 0, dur_msecs) if dur_msecs else None
         play_data['notes']      = None # ARRAY(Text)
-        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], tz)
+        play_data['start_time'] = datetimetz(play_data['play_date'], play_data['play_start'], self.tz)
         if etime:
             end_date = play_data['play_date'] if etime > stime else play_data['play_date'] + dt.timedelta(1)
-            play_data['end_time'] = datetimetz(end_date, play_data['play_end'], tz)
+            play_data['end_time'] = datetimetz(end_date, play_data['play_end'], self.tz)
             play_data['duration'] = play_data['end_time'] - play_data['start_time']
         else:
             play_data['end_time'] = None # TIMESTAMP(timezone=True)
