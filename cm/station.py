@@ -18,6 +18,7 @@ import requests
 
 from .utils import LOV, prettyprint, str2date, date2str
 from .core import BASE_DIR, cfg, log, dbg_hand, DFLT_FETCH_INT, ObjCollect
+from .playlist import Playlist
 from .parser import Parser
 
 ################

@@ -9,7 +9,7 @@ import datetime as dt
 from .base import Parser
 from ..utils import str2date, str2time, datetimetz
 from ..core import log
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 ##############
 # ParserWWFM #

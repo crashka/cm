@@ -13,7 +13,8 @@ import regex as re
 from ..utils import prettyprint
 from ..core import env, log, DFLT_HTML_PARSER, ConfigError
 from ..playlist import Playlist
-from ..musiclib import ml_dict, MusicLib, StringCtx, UNIDENT
+from ..musicent import ml_dict, StringCtx, UNIDENT
+from .. import musiclib as ml
 
 ###############################
 # Commoon Constants/Functions #
@@ -82,7 +83,6 @@ class Parser:
     station:     'Station'
     tz:          ZoneInfo
     html_parser: str
-    ml:          MusicLib
 
     @classmethod
     def get_class(cls, sta: 'Station') -> type:
@@ -111,7 +111,6 @@ class Parser:
 
         self.html_parser = env.get('html_parser') or DFLT_HTML_PARSER
         log.debug(f"HTML parser: {self.html_parser}")
-        self.ml = MusicLib()
 
     def proc_playlist(self, contents: str) -> str:
         """Process raw playlist contents downloaded from URL before saving to file.
@@ -168,7 +167,7 @@ class Parser:
         for prog_play in self.iter_program_plays(playlist):
             # Step 1 - Parse out program_play info
             pp_norm = self.map_program_play(prog_play)
-            pp_rec = self.ml.insert_program_play(playlist, pp_norm)
+            pp_rec = ml.insert_program_play(playlist, pp_norm)
             if not pp_rec:
                 raise RuntimeError("Could not insert program_play")
             playlist.parse_ctx['station_id']   = pp_rec['station_id']
@@ -187,33 +186,33 @@ class Parser:
                 # oh well... (just need to be careful here)
                 for composer_str in entity_str_data['composer']:
                     if composer_str:
-                        play_norm.merge(self.ml.parse_composer_str(composer_str))
+                        play_norm.merge(ml.parse_composer_str(composer_str))
                 for work_str in entity_str_data['work']:
                     if work_str:
-                        play_norm.merge(self.ml.parse_work_str(work_str))
+                        play_norm.merge(ml.parse_work_str(work_str))
                 for conductor_str in entity_str_data['conductor']:
                     if conductor_str:
-                        play_norm.merge(self.ml.parse_conductor_str(conductor_str))
+                        play_norm.merge(ml.parse_conductor_str(conductor_str))
                 for performers_str in entity_str_data['performers']:
                     if performers_str:
-                        play_norm.merge(self.ml.parse_performer_str(performers_str))
+                        play_norm.merge(ml.parse_performer_str(performers_str))
                 for ensembles_str in entity_str_data['ensembles']:
                     if ensembles_str:
-                        play_norm.merge(self.ml.parse_ensemble_str(ensembles_str))
+                        play_norm.merge(ml.parse_ensemble_str(ensembles_str))
 
-                play_rec = self.ml.insert_play(playlist, pp_rec, play_norm)
+                play_rec = ml.insert_play(playlist, pp_rec, play_norm)
                 if not play_rec:
                     raise RuntimeError("Could not insert play")
                 playlist.parse_ctx['play_id'] = play_rec['id']
                 pp_rec['plays'].append(play_rec)
 
-                es_recs = self.ml.insert_entity_strings(playlist, entity_str_data)
+                es_recs = ml.insert_entity_strings(playlist, entity_str_data)
 
                 play_name = "%s - %s" % (play_norm['composer']['name'], play_norm['work']['name'])
                 # TODO: create separate hash sequence for top of each hour!!!
                 play_seq = playlist.hash_seq.add(play_name)
                 if play_seq:
-                    ps_recs = self.ml.insert_play_seq(play_rec, play_seq, 1)
+                    ps_recs = ml.insert_play_seq(play_rec, play_seq, 1)
                 else:
                     log.debug("Skipping hash_seq for duplicate play:\n%s" % play_rec)
 
@@ -242,19 +241,19 @@ class Parser:
                 # see APOLOGY in `parse()` above
                 for composer_str in entity_str_data['composer']:
                     if composer_str:
-                        play_norm.merge(self.ml.parse_composer_str(composer_str))
+                        play_norm.merge(ml.parse_composer_str(composer_str))
                 for work_str in entity_str_data['work']:
                     if work_str:
-                        play_norm.merge(self.ml.parse_work_str(work_str))
+                        play_norm.merge(ml.parse_work_str(work_str))
                 for conductor_str in entity_str_data['conductor']:
                     if conductor_str:
-                        play_norm.merge(self.ml.parse_conductor_str(conductor_str))
+                        play_norm.merge(ml.parse_conductor_str(conductor_str))
                 for performers_str in entity_str_data['performers']:
                     if performers_str:
-                        play_norm.merge(self.ml.parse_performer_str(performers_str))
+                        play_norm.merge(ml.parse_performer_str(performers_str))
                 for ensembles_str in entity_str_data['ensembles']:
                     if ensembles_str:
-                        play_norm.merge(self.ml.parse_ensemble_str(ensembles_str))
+                        play_norm.merge(ml.parse_ensemble_str(ensembles_str))
 
                 for performers_str in entity_str_data['performers']:
                     if performers_str:

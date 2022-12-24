@@ -22,7 +22,8 @@ import requests
 
 from .core import BASE_DIR, cfg, env, log, dbg_hand, DFLT_FETCH_INT, DFLT_HTML_PARSER, ObjCollect
 from .utils import LOV, prettyprint
-from .musiclib import MusicLib, normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
+from .musicent import normalize_name, NormFlag, NAME_RE, ROLE_RE, ROLE_RE2
+from . import musiclib as ml
 
 #####################
 # core/config stuff #
@@ -328,7 +329,6 @@ class RefData(object):
         """
         """
         PERSON_CAT = {'composers', 'conductors', 'performers'}
-        ml = MusicLib()
 
         for item in chunk.ul('li', recursive=False):
             name      = item.a.string.strip()

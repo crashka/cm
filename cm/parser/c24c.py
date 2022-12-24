@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from .base import Parser
 from ..core import log
 from ..playlist import Playlist
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 ##############
 # ParserC24C #

@@ -15,7 +15,7 @@ from .base import Parser
 from ..core import log
 from ..utils import str2date, str2time, str2dur, datetimetz
 from ..playlist import Playlist
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 #######################
 # Constants/Functions #

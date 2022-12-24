@@ -4,6 +4,7 @@
 """Playlist module
 """
 
+import datetime as dt
 from os.path import relpath
 import logging
 
@@ -35,7 +36,7 @@ class Playlist:
     """Represents a playlist for a station
     """
     @staticmethod
-    def list(sta, ptrn: str = None) -> list:
+    def list(sta: 'Station', ptrn: str = None) -> list:
         """List playlists for a station
 
         :param sta: station object
@@ -44,7 +45,7 @@ class Playlist:
         """
         return sorted(sta.get_playlists(ptrn))
 
-    def __init__(self, sta, date):
+    def __init__(self, sta: 'Station', date: dt.date | str):
         """Sets status field locally (but not written back to info file)
 
         :param sta: station object
@@ -66,7 +67,7 @@ class Playlist:
         self.parse_ctx   = {}
         self.parsed_info = None
 
-    def playlist_info(self, keys = INFO_KEYS, exclude = None):
+    def playlist_info(self, keys = INFO_KEYS, exclude = None) -> dict:
         """Return playlist info (canonical fields) as a dict comprehension
         """
         if not isinstance(keys, ObjCollect):
@@ -75,7 +76,7 @@ class Playlist:
             keys = set(keys) - set(exclude)
         return {k: v for k, v in self.__dict__.items() if k in keys}
 
-    def parse(self, dryrun = False, force = False):
+    def parse(self, dryrun = False, force = False) -> dict:
         """Parse current playlist using underlying parser
 
         :param dryrun: don't write to database
@@ -89,7 +90,7 @@ class Playlist:
         self.status = PLStatus.PARSED
         return self.parsed_info
 
-    def analyze(self, dryrun = False, force = False):
+    def analyze(self, dryrun = False, force = False) -> None:
         """Analyze current playlist using underlying parser
 
         :param dryrun: don't write to config file

@@ -13,7 +13,7 @@ from .base import Parser, is_name_suffix, parse_rec_info
 from ..core import log, LogicError, DataError
 from ..utils import str2date, str2time, datetimetz
 from ..playlist import Playlist
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 #######################
 # Constants/Functions #

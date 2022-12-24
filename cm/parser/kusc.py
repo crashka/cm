@@ -11,7 +11,7 @@ from bs4 import BeautifulSoup
 from .base import Parser, is_name_suffix
 from ..core import log
 from ..utils import str2date, str2time, datetimetz
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 ##############
 # ParserKUSC #

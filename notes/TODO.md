@@ -3,15 +3,12 @@
 
 - opportunistically add docstrings and type annotations
 - create classes for `ProgPlay`, `Play`, and `EntityStrData`
-- `MusicEnt` should have its own module
 - create `EntityItem` and subclasses (composer, work, conductor, performer, ensemble)
 - push performer/role parsing upstream into `map_play`, where/when possible
 - download refdata from FanfareMag
 - refdata adapter for FanfareMag data
 - use refdata to aid in parsing of people and ensemble names
-- MusicLib should not be a class, convert methods to top-level functions
 - identify truncated entries (e.g. performer), and make parsable
-- break playlist parsers into separate files/submodules
 - merge definitive fetched playlists (caladan and arrakis)
 - new module to normalize names of works
 - addition refdata sources

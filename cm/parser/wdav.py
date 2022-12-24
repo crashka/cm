@@ -13,7 +13,7 @@ from .base import Parser, parse_rec_info
 from ..core import log
 from ..utils import str2date, str2time, datetimetz
 from ..playlist import Playlist
-from ..musiclib import ml_dict
+from ..musicent import ml_dict
 
 ##############
 # ParserWDAV #
