@@ -889,7 +889,7 @@ class MusicEnt(object):
             raise RuntimeError("Unknown column(s) for \"%s\": %s" % (self.name, str(unknown)))
 
         upd = self.tab.update()
-        for col, val in key_data(row, self.name).items():
+        for col, val in key_data(row._asdict(), self.name).items():
             upd = upd.where(self.tab.c[col] == val)
         with db.conn.begin() as trans:
             res = db.conn.execute(upd, data)

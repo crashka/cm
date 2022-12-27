@@ -77,7 +77,7 @@ def insert_program_play(playlist, data):
             log.debug("Skipping insert of duplicate program_play record (ID %d)" % pp_row.id)
         else:
             pass  # REVISIT: is this an internal error???
-    return {k: v for k, v in pp_row.items()} if pp_row else None
+    return pp_row._asdict() if pp_row else None
 
 def insert_play(playlist, prog_play, data):
     """
@@ -315,7 +315,7 @@ def insert_play(playlist, prog_play, data):
             except IntegrityError:
                 log.trace("Skipping insert of duplicate play_ensemble record:\n%s" % play_ens_data)
 
-    return {k: v for k, v in play_row.items()}
+    return play_row._asdict()
 
 def insert_play_seq(play_rec, play_seq, hash_type):
     """
@@ -339,7 +339,7 @@ def insert_play_seq(play_rec, play_seq, hash_type):
         try:
             ins_res = ps.insert(data)
             ps_row = ps.inserted_row(ins_res)
-            ret.append({k: v for k, v in ps_row.items()})
+            ret.append(ps_row._asdict())
         except IntegrityError:
             log.debug("Could not insert play_seq %s into musiclib" % data)
 
@@ -367,7 +367,7 @@ def insert_entity_strings(playlist, data):
             try:
                 ins_res = es.insert(ent_str_data)
                 es_row = es.inserted_row(ins_res)
-                ret.append({k: v for k, v in es_row.items()})
+                ret.append(es_row._asdict())
             except IntegrityError:
                 log.trace("Duplicate entity_string \"%s\" [%s] for station ID %d" %
                           (entity_str, entity_src, ctx['station_id']))
@@ -388,7 +388,7 @@ def insert_entity_ref(refdata, ent_data, ent_refs, raw_name = None):
     try:
         ins_res = er.insert(ent_data)
         es_row = er.inserted_row(ins_res)
-        ret.append({k: v for k, v in es_row.items()})
+        ret.append(es_row._asdict())
     except IntegrityError:
         log.trace("Duplicate entity name \"%s\" [%s] for refdata \"%s\"" %
                   (ent_name, ent_type, ref_source))
@@ -407,7 +407,7 @@ def insert_entity_ref(refdata, ent_data, ent_refs, raw_name = None):
         try:
             ins_res = er.insert(ent_ref_data)
             es_row = er.inserted_row(ins_res)
-            ret.append({k: v for k, v in es_row.items()})
+            ret.append(es_row._asdict())
         except IntegrityError:
             log.trace("Duplicate entity_ref \"%s\" [%s] for refdata \"%s\"" %
                       (ref_str, ent_type, ref_source))

@@ -56,36 +56,38 @@ class DatabaseCtx(object):
         self.db_info = DATABASE[dbname]
         if truthy(self.db_info.get('sql_tracing')):
             dblog.setLevel(logging.INFO)
-        self.eng  = create_engine(self.db_info['connect_str'])
+        self.eng  = create_engine(self.db_info['connect_str'], echo=True)
         self.conn = self.eng.connect()
-        self.meta = MetaData(self.conn)
-        self.meta.reflect()
+        self.meta = MetaData()
+        self.meta.reflect(self.eng)
 
     def create_schema(self, tables = None, dryrun = False, force = False):
         if len(self.meta.tables) > 0:
             raise RuntimeError("Schema must be empty, create is aborted")
 
         schema.load_schema(self.meta)
-        if not tables or tables == 'all':
-            self.meta.create_all()
-        else:
-            to_create = [self.meta.tables[tab] for tab in tables.split(',')]
-            self.meta.create_all(tables=to_create)
+        with self.conn.begin():
+            if not tables or tables == 'all':
+                self.meta.create_all(self.conn)
+            else:
+                to_create = [self.meta.tables[tab] for tab in tables.split(',')]
+                self.meta.create_all(self.conn, tables=to_create)
 
     def drop_schema(self, tables = None, dryrun = False, force = False):
         if len(self.meta.tables) == 0:
             raise RuntimeError("Schema is empty, nothing to drop")
 
-        if not tables or tables == 'all':
-            if not force:
-                raise RuntimeError("Force must be specified if no list of tables given")
-            self.meta.drop_all()
-            self.meta.clear()
-        else:
-            to_drop = [self.meta.tables[tab] for tab in tables.split(',')]
-            self.meta.drop_all(tables=to_drop)
-            self.meta.clear()
-            self.meta.reflect()
+        with self.conn.begin():
+            if not tables or tables == 'all':
+                if not force:
+                    raise RuntimeError("Force must be specified if no list of tables given")
+                self.meta.drop_all(self.conn)
+            else:
+                to_drop = [self.meta.tables[tab] for tab in tables.split(',')]
+                self.meta.drop_all(self.conn, tables=to_drop)
+
+        self.meta.clear()
+        self.meta.reflect(self.eng)
 
     def get_table(self, name):
         return self.meta.tables[name]
