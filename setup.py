@@ -25,7 +25,8 @@ setup(
             'station  = cm.station:main',
             'playlist = cm.playlist:main',
             'refdata = cm.refdata:main',
-            'database = cm.database:main'
+            'database = cm.database:main',
+            'musicent = cm.musicent2:main'
         ],
     }
 )
