@@ -108,12 +108,14 @@ STD_DATE_FMT  = '%Y-%m-%d'
 STD_TIME_FMT  = '%H:%M:%S'
 STD_TIME_FMT2 = '%H:%M'
 
-def str2date(datestr: str, fmt: str = STD_DATE_FMT) -> dt.date:
+def str2date(datestr: str, fmt: str = STD_DATE_FMT) -> dt.date | None:
     """
     :param datestr: string
     :param fmt: [optional] defaults to Y-m-d
     :return: dt.date object
     """
+    if not datestr:
+        return None
     return dt.datetime.strptime(datestr, fmt).date()
 
 def date2str(date: dt.date, fmt: str = STD_DATE_FMT) -> str:

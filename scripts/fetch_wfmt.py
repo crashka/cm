@@ -81,12 +81,14 @@ def main() -> int:
     if len(args) > 0:
         args_str = ' '.join(str(arg) for arg in args)
         raise RuntimeError("Unexpected argument(s): " + args_str)
-    start = str2date(kwargs.pop('start'))
+    start = str2date(kwargs.pop('start', None))
     if not start:
         raise RuntimeError("Start date must be specified")
-    end = str2date(kwargs.pop('end'))
-    if not end or end < start:
-        raise RuntimeError("Bad end date specified")
+    end = str2date(kwargs.pop('end', None))
+    if not end:
+        end = start
+    elif end < start:
+        raise RuntimeError("End date must be after start date")
     verbose = kwargs.pop('verbose', False)
 
     driver = Driver(uc=True, headless=True)

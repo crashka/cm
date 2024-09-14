@@ -65,6 +65,10 @@ def load_schema(meta):
             Column('cnl_person_id',     Integer,     ForeignKey('person.id')),  # points to self, if canonical
             Column('arkiv_uri',         Text),
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('name'),
             UniqueConstraint('full_name')
@@ -75,6 +79,10 @@ def load_schema(meta):
             Column('role',              Text,        nullable=True),  # instrument, voice, role, etc.
             Column('raw_role',          Text,        nullable=True),
             Column('cnl_performer_id',  Integer,     ForeignKey('performer.id')),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('person_id', 'role')
@@ -94,6 +102,10 @@ def load_schema(meta):
             Column('is_canonical',      Boolean),
             Column('cnl_ensemble_id',   Integer,     ForeignKey('ensemble.id')),  # points to self, if canonical
             Column('arkiv_uri',         Text),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('name')
@@ -116,6 +128,10 @@ def load_schema(meta):
             Column('cnl_work_id',       Integer,     ForeignKey('work.id')),  # points to self, if canonical
             Column('arkiv_uri',         Text),
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('composer_id', 'name')
         ),
@@ -126,6 +142,10 @@ def load_schema(meta):
             Column('catalog_no',        Text),
             Column('release_date',      Date),
             Column('arkiv_uri',         Text),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             # TODO: put a partial index on ('name', 'label')!!!
@@ -142,6 +162,10 @@ def load_schema(meta):
             Column('conductor_id',      Integer,     ForeignKey('person.id')),
             Column('recording_id',      Integer,     ForeignKey('recording.id')),
             Column('notes',             ARRAY(Text)),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('work_id', 'performer_ids', 'ensemble_ids', 'conductor_id')
@@ -165,6 +189,10 @@ def load_schema(meta):
             # canonicality/analytics metadata
             Column('synd_level',        Integer,     server_default=text('10')),  # 0-100 (default: 10)
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('name')
         ),
@@ -185,6 +213,10 @@ def load_schema(meta):
             Column('synd_level',        Integer),    # inherit from station
             Column('mstr_program_id',   Integer,     ForeignKey('program.id')),  # not null if syndicated
             Column('website',           Text),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('name', 'host_name')
@@ -213,6 +245,10 @@ def load_schema(meta):
             Column('start_time',        TIMESTAMP(timezone=True)),
             Column('end_time',          TIMESTAMP(timezone=True)),
             Column('duration',          Interval),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('station_id', 'prog_play_date', 'prog_play_start', 'program_id')
@@ -257,6 +293,10 @@ def load_schema(meta):
             Column('end_time',          TIMESTAMP(timezone=True)),
             Column('duration',          Interval),
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('station_id', 'play_date', 'play_start', 'work_id')
         ),
@@ -267,6 +307,10 @@ def load_schema(meta):
             Column('mstr_play_perf_id', Integer,     ForeignKey('play_performer.id')),  # not null if syndicated (denorm)
             Column('notes',             ARRAY(Text)),
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('play_id', 'performer_id')
         ),
@@ -276,6 +320,10 @@ def load_schema(meta):
             Column('ensemble_id',       Integer,     ForeignKey('ensemble.id'), nullable=False),
             Column('mstr_play_ens_id',  Integer,     ForeignKey('play_ensemble.id')),  # not null if syndicated (denorm)
             Column('notes',             ARRAY(Text)),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('play_id', 'ensemble_id')
@@ -292,6 +340,10 @@ def load_schema(meta):
             Column('program_id',        Integer,     ForeignKey('program.id')),
             Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('hash_level', 'hash_type', 'play_id'),
             Index('play_seq_seq_hash', 'seq_hash')
@@ -307,7 +359,11 @@ def load_schema(meta):
             # denorms from {pub,sub}_start_play_id
             Column('pub_station_id',    Integer,     ForeignKey('station.id')),
             Column('sub_station_id',    Integer,     ForeignKey('station.id')),
-            Column('pub_program_name',  Text)
+            Column('pub_program_name',  Text),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now())
         ),
         Entity.ENTITY_STRING: Table('entity_string', meta,
             Column('id',                Integer,     primary_key=True),
@@ -318,6 +374,10 @@ def load_schema(meta):
             Column('station_id',        Integer,     ForeignKey('station.id')),  # denorm
             Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
             Column('play_id',           Integer,     ForeignKey('play.id')),
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
 
             # constraints/indexes
             UniqueConstraint('entity_str', 'source_fld', 'station_id')
@@ -337,6 +397,10 @@ def load_schema(meta):
             Column('entity_strength',   Integer),    # experiemental, meaning TBD
             Column('ref_strength',      Integer),    # experiemental, meaning TBD
 
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now()),
+
             # constraints/indexes
             UniqueConstraint('entity_ref', 'entity_type', 'ref_source')
         ),
@@ -348,7 +412,9 @@ def load_schema(meta):
             Column('station_id',        Integer,     ForeignKey('station.id')),
             Column('prog_play_id',      Integer,     ForeignKey('program_play.id')),
             Column('play_id',           Integer,     ForeignKey('play.id')),
-            Column('created_at',        TIMESTAMP(timezone=True), nullable=False),
-            Column('updated_at',        TIMESTAMP(timezone=True), nullable=False)
+
+            # system columns
+            Column('created_at',        TIMESTAMP(timezone=True), server_default=func.now()),
+            Column('updated_at',        TIMESTAMP(timezone=True), onupdate=func.now())
         )
     }

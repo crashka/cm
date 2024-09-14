@@ -4,7 +4,7 @@ from setuptools import setup, find_packages
 
 setup(
     name='cm',
-    version='',
+    version='0.1',
     packages=find_packages(include=['cm']),
     url='',
     license_file='LICENSE.txt',

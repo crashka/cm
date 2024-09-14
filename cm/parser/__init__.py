@@ -4,6 +4,7 @@ from .base import Parser
 from .c24c import ParserC24C
 from .king import ParserKING
 from .kusc import ParserKUSC
+from .kusc2 import ParserKUSC2
 from .wdav import ParserWDAV
 from .wfmt import ParserWFMT
 from .wqxr import ParserWQXR

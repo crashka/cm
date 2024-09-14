@@ -10,7 +10,7 @@ from typing import Optional, Annotated
 
 from sqlalchemy import Integer, BigInteger, Text, Identity, func, text
 from sqlalchemy import UniqueConstraint, ForeignKeyConstraint, Index
-from sqlalchemy.orm import DeclarativeBase, registry, Mapped, mapped_column
+from sqlalchemy.orm import DeclarativeBase, registry, Mapped, mapped_column, relationship
 from sqlalchemy.dialects import postgresql
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TIMESTAMP
 from sqlalchemy.schema import CreateTable
@@ -42,6 +42,13 @@ class ModelBase(DeclarativeBase):
             dt.datetime:   TIMESTAMP(timezone=True)
         }
     )
+
+    @classmethod
+    def get_subclasses(cls) -> type:
+        for subclass in cls.__subclasses__():
+            yield from subclass.get_subclasses()
+            yield subclass
+        return
 
 ##########
 # Person #
@@ -326,6 +333,10 @@ class ProgramPlay(ModelBase):
     created_at:        Mapped[created_ts]
     updated_at:        Mapped[updated_ts]
 
+    # relationships
+    station:           Mapped[Station] = relationship()
+    program:           Mapped[Optional[Program]] = relationship()
+
 ########
 # Play #
 ########
@@ -383,6 +394,10 @@ class Play(ModelBase):
     # system columns
     created_at:        Mapped[created_ts]
     updated_at:        Mapped[updated_ts]
+
+    # relationships
+    program:           Mapped[Optional[Program]] = relationship()
+    prog_play:         Mapped[Optional[ProgramPlay]] = relationship()
 
 #################
 # PlayPerformer #
@@ -567,7 +582,7 @@ class ToDoList(ModelBase):
     station_id:        Mapped[Optional[fk]]
     prog_play_id:      Mapped[Optional[fk]]
     play_id:           Mapped[Optional[fk]]
-    
+
     # system columns
     created_at:        Mapped[created_ts]
     updated_at:        Mapped[updated_ts]
@@ -576,29 +591,10 @@ class ToDoList(ModelBase):
 # main #
 ########
 
-ENTITIES = [
-    Person,
-    Performer,
-    Ensemble,
-    Work,
-    Recording,
-    Performance,
-    Station,
-    Program,
-    ProgramPlay,
-    Play,
-    PlayPerformer,
-    PlayEnsemble,
-    PlaySeq,
-    PlaySeqMatch,
-    EntityString,
-    EntityRef,
-    ToDoList
-]
-
 def main():
-    for ent in ENTITIES:
-        print(CreateTable(ent.__table__).compile(dialect=postgresql.dialect()))
+    meta = ModelBase.metadata
+    for table in meta.sorted_tables:
+        print(CreateTable(table).compile(dialect=postgresql.dialect()))
 
     """
     person_data = {'id': 100, 'name': "John Doe"}
