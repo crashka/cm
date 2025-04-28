@@ -4,7 +4,7 @@
 abstractly (though that may never really happen)
 """
 
-from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint, Index, text
+from sqlalchemy import Table, Column, ForeignKey, UniqueConstraint, Index, text, func
 from sqlalchemy import Integer, BigInteger, Text, Boolean, Date, Time, Interval
 from sqlalchemy.dialects.postgresql import ARRAY, JSONB, TIMESTAMP
 

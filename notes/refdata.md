@@ -1,5 +1,9 @@
 # Refdata (metadata) Notes/Links #
 
+## Wikipedia
+
+[Classical composers by century](https://en.wikipedia.org/wiki/Category:Classical_composers_by_century)
+
 ## Presto Music ##
 
 [Composers](https://www.prestomusic.com/classical/composers)
@@ -23,9 +27,10 @@
 ## CLMU ##
 
 [Home](https://search.alexanderstreet.com/clmu)<br>
-[Performer](https://search.alexanderstreet.com/clmu/browse/composer?items_per_page=100)<br>
-[Ensemble](https://search.alexanderstreet.com/clmu/browse/performer-ensemble)<br>
+[Composer](https://search.alexanderstreet.com/clmu/browse/composer?items_per_page=100)<br>
+[Performer-Ensemble](https://search.alexanderstreet.com/clmu/browse/performer-ensemble)<br>
 [Person](https://search.alexanderstreet.com/clmu/browse/person)<br>
+[Composition](https://search.alexanderstreet.com/clmu/browse/composition?sort_by=name&sort_order=ASC&items_per_page=100)
 
 ## Fanfare Mag ##
 

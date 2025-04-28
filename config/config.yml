@@ -5,7 +5,8 @@ default:
     http_headers:
       User-Agent:      'Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/127.0.0.0 Safari/537.36'
       Accept:          'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7'
-      Accept-Encoding: 'gzip, deflate, br, zstd'
+      #Accept-Encoding: 'gzip, deflate, br, zstd'
+      Accept-Encoding: 'gzip, deflate'
       Accept-Language: 'en-US,en;q=0.9,fr;q=0.8'
       Sec-Fetch-Dest:  'document'
       Sec-Fetch-Mode:  'navigate'
@@ -232,6 +233,15 @@ default:
       timezone:     'America/New_York'
       playlist_ext: 'html'
       epoch:        '2006-03-06'
+      parser_cls:   'ParserWDAV'
+
+    WDAV2:
+      sample_url:   'https://wdav.org/listen/playlist/?ymd=2025-04-22'
+      url_fmt:      'https://wdav.org/listen/playlist/?ymd=<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'html'
+      epoch:        '2007-07-02'
       parser_cls:   'ParserWDAV'
 
     WETA:
@@ -479,6 +489,13 @@ default:
     'arrakis:/local/test/cmtest':
       envname:     'arrakis_test'
       database:    'local_test'
+
+    'corellia:/home/crash/dev/cmdev3':
+      envname:     'corellia_dev3'
+      database:    'local_dev3'
+      #html_parser: 'lxml'        # used to freak out with C24/playlists/2018-09-17.html (now irrelevant)
+      #html_parser: 'html5lib'    # adds tbody, doesn't handle non-closing <a>
+      #html_parser: 'html.parser' # sometimes treats <br /> as an opening tag--WRONG!!!
 
     'caladan:/local/test/cmtest':
       envname:     'caladan_test'
