@@ -12,7 +12,7 @@ default:
       Sec-Fetch-Mode:  'navigate'
       Sec-Fetch-Site:  'cross-site'
       Referer:         'https://www.google.com/'
-    fetch_interval: 1.0
+    fetch_interval: 1.2
 
   stations:
     BEET:
@@ -398,6 +398,16 @@ default:
       playlist_ext: 'json'
       epoch:        '2013-05-01'
       parser_cls:   'ParserWWFM'
+      synd_level:   70
+
+    WSMR:
+      sample_url:   'https://api.wusf.digital/nowPlaying/zetta/WSMR/day?date=2025-05-01'
+      url_fmt:      'https://api.wusf.digital/nowPlaying/zetta/WSMR/day?date=<DATE_STR>'
+      date_fmt:     '%Y-%m-%d'
+      timezone:     'America/New_York'
+      playlist_ext: 'json'
+      epoch:        '2023-05-08'
+      parser_cls:   'Parser'
       synd_level:   70
 
     WWFM:
